@@ -30,6 +30,7 @@ import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
 import { describePlayerFeedback } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
+import { describePowerStatus } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
@@ -2075,11 +2076,11 @@ export class Game {
     });
     this.feedbackVignette.className = feedback.classes.join(' ');
     this.feedbackVignette.style.setProperty('--feedback-opacity', String(feedback.opacity));
-    const powers = [];
-    if (this.rapidTimer > 0) powers.push(`Rapid ${Math.ceil(this.rapidTimer)}с`);
-    if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
-    if (this.overchargeShots > 0) powers.push(`Заряд x${this.overchargeShots}`);
-    this.hudPower.textContent = powers.length > 0 ? powers.join(' + ') : 'Апгрейди -';
+    this.hudPower.textContent = describePowerStatus({
+      rapidTimer: this.rapidTimer,
+      shieldTimer: this.shieldTimer,
+      overchargeShots: this.overchargeShots
+    });
     this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
     this.hudCamera.textContent = this.cameraController.getHudLabel();

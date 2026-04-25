@@ -306,3 +306,14 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, four pause intel cards present, `badConsole: 0`, `pageErrors: 0`.
 - Remaining risk: HUD active-power text still says `Rapid` by design for compact combat readability; it can be localized in a separate HUD-specific pass.
+
+## Iteration 28 - Active power HUD localized
+- Problem: the pause intel support label was fully Ukrainian, but the live HUD still showed `Rapid` during combat.
+- Change: added a small `describePowerStatus` presenter and changed the HUD active-power text to `Прискорення`, while keeping shield/charge copy and empty state intact.
+- Evidence:
+  - TDD red: `npm test -- src/game/powerStatus.test.ts` failed before the presenter existed.
+  - Focused green: `npm test -- src/game/powerStatus.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 32 files / 95 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, power text now `Прискорення 8с + Щит 9с + Заряд x1`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: active power wording is now localized; final subjective HUD brevity should be judged during manual combat.
