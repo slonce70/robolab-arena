@@ -26,7 +26,7 @@ const enemyLabels: Record<EnemyKind, UkrainianCountForms> = {
 
 const powerLabels: Record<PowerUpKind, UkrainianCountForms> = {
   repair: { one: 'ремонт', few: 'ремонти', many: 'ремонтів' },
-  rapid: { one: 'rapid-вогонь', few: 'rapid-вогні', many: 'rapid-вогнів' },
+  rapid: { one: 'прискорювач', few: 'прискорювачі', many: 'прискорювачів' },
   shield: { one: 'щит', few: 'щити', many: 'щитів' },
   overcharge: { one: 'суперзаряд', few: 'суперзаряди', many: 'суперзарядів' }
 };

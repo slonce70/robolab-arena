@@ -295,3 +295,14 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, four pause intel cards present, `badConsole: 0`, `pageErrors: 0`.
 - Remaining risk: wording is now grammatically cleaner, but a human copy pass could still rename English-flavored `rapid-вогонь` if desired.
+
+## Iteration 27 - Pause support naming localized
+- Problem: after count grammar was fixed, pause support copy still mixed English and Ukrainian with `rapid-вогонь`.
+- Change: renamed the generated rapid support label to Ukrainian `прискорювач` forms while leaving gameplay, pickup kind, HUD power text, and level data untouched.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelIntel.test.ts` failed while the pause support summary still contained `rapid-вогонь` instead of `прискорювач`.
+  - Focused green: `npm test -- src/game/levelIntel.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 31 files / 93 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, four pause intel cards present, `badConsole: 0`, `pageErrors: 0`.
+- Remaining risk: HUD active-power text still says `Rapid` by design for compact combat readability; it can be localized in a separate HUD-specific pass.
