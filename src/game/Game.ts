@@ -435,7 +435,7 @@ export class Game {
         <p class="intro">Кімната ${LEVELS[this.levelIndex].id}: ${LEVELS[this.levelIndex].name}</p>
         <div class="pause-actions" aria-label="Налаштування паузи">
           <button class="primary-action" type="button" data-action="resume">Продовжити</button>
-          <button class="secondary-action" type="button" data-action="restart">Restart room</button>
+          <button class="secondary-action" type="button" data-action="restart">Перезапустити кімнату</button>
           <button class="secondary-action" type="button" data-action="sound">${this.settings.soundOn ? 'Звук: увімкнено' : 'Звук: вимкнено'}</button>
           <button class="secondary-action" type="button" data-action="camera">${this.cameraController.getHudLabel()}</button>
           <button class="secondary-action" type="button" data-action="sensitivity">Чутливість ${this.settings.mouseSensitivity.toFixed(1)}x</button>
