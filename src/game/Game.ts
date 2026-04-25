@@ -1127,17 +1127,15 @@ export class Game {
   }
 
   private updatePlayer(delta: number): void {
-    const move = new THREE.Vector3();
-    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) move.z -= 1;
-    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) move.z += 1;
-    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) move.x -= 1;
-    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) move.x += 1;
-    const movementDirection = move.clone();
-    if (move.lengthSq() > 0) {
-      move.normalize();
-      this.lastMoveDirection.copy(move);
-      move.multiplyScalar(PLAYER_SPEED * delta);
-      this.movePlayer(move);
+    const movementInput = new THREE.Vector3();
+    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) movementInput.z -= 1;
+    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) movementInput.z += 1;
+    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) movementInput.x -= 1;
+    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) movementInput.x += 1;
+    const movementDirection = this.cameraController.getMovementDirection(movementInput);
+    if (movementDirection.lengthSq() > 0) {
+      this.lastMoveDirection.copy(movementDirection);
+      this.movePlayer(movementDirection.clone().multiplyScalar(PLAYER_SPEED * delta));
     }
 
     if ((this.keys.has('Space') || this.keys.has('KeyE')) && !this.jumpHeld && this.playerPosition.y <= 0.01) {

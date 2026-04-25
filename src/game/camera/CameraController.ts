@@ -118,6 +118,32 @@ export class CameraController {
     ).normalize();
   }
 
+  getMovementDirection(input: THREE.Vector3): THREE.Vector3 {
+    const planarInput = input.clone();
+    planarInput.y = 0;
+    if (planarInput.lengthSq() < 0.001) {
+      return new THREE.Vector3();
+    }
+
+    if (this.mode !== 'firstPerson') {
+      return planarInput.normalize();
+    }
+
+    if (!this.firstPersonLookReady) {
+      this.resetFirstPersonLook(new THREE.Vector3(0, 0, -1));
+    }
+
+    const forward = this.getFirstPersonLookDirection();
+    forward.y = 0;
+    forward.normalize();
+    const right = new THREE.Vector3(-forward.z, 0, forward.x);
+    const movement = new THREE.Vector3()
+      .addScaledVector(right, planarInput.x)
+      .addScaledVector(forward, -planarInput.z);
+
+    return movement.lengthSq() > 0.001 ? movement.normalize() : movement;
+  }
+
   getAimDirection(thirdPersonDirection: THREE.Vector3, fallbackDirection: THREE.Vector3): THREE.Vector3 {
     if (this.mode === 'firstPerson') {
       const direction = new THREE.Vector3();

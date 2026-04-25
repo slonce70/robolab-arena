@@ -44,4 +44,16 @@ describe('CameraController', () => {
     expect(Math.abs(direction.x)).toBeLessThan(0.02);
     expect(direction.z).toBeLessThan(-0.99);
   });
+
+  it('moves forward relative to first-person look direction', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+    controller.toggleMode();
+    controller.resetFirstPersonLook(new THREE.Vector3(1, 0, 0));
+
+    const movement = controller.getMovementDirection(new THREE.Vector3(0, 0, -1));
+
+    expect(movement.x).toBeGreaterThan(0.99);
+    expect(Math.abs(movement.z)).toBeLessThan(0.01);
+  });
 });
