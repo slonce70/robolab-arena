@@ -44,3 +44,21 @@ Evidence:
 
 Remaining risk:
 - Victory overlay text is unit-covered through formatting helpers; a full normal victory browser run is still not claimed.
+
+## Iteration 3 - Continue From Unlocked Room
+
+Goal: reduce frustration after reloads by letting players resume from their highest unlocked room.
+
+Changes:
+- Start screen now shows `Продовжити з кімнати N` when saved progress has unlocked later rooms.
+- Continue starts a fresh run directly at the saved room, with score/gears reset and normal room HUD loaded.
+- Fresh start remains available and still begins at room 1.
+
+Evidence:
+- `node .omx/tmp/robolab-continue-qa.mjs` -> `continue-flow-playwright-pass`, continued to `Кімната 6/12: Секретний реактор`, bad console 0, page errors 0.
+- `npm test` -> 15 files, 54 tests passed.
+- `npm run build` -> success with the known Vite large chunk warning.
+- `git diff --check` -> clean.
+
+Remaining risk:
+- Continue is intentionally a fresh room start, not a save-state restore of health/score/projectiles.

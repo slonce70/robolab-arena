@@ -262,6 +262,10 @@ export class Game {
   }
 
   mount(): void {
+    const resumeRoom = Math.min(Math.max(1, this.settings.highestUnlockedRoom), LEVELS.length);
+    const continueButton = resumeRoom > 1
+      ? `<button class="secondary-action" type="button" data-start-level="${resumeRoom - 1}">Продовжити з кімнати ${resumeRoom}</button>`
+      : '';
     this.root.innerHTML = `
       <main class="game-shell is-menu">
         <div class="canvas-host" aria-label="RoboLab Arena game scene"></div>
@@ -292,7 +296,10 @@ export class Game {
               <span>Вид від 1-ї особи</span>
               <span>Аптечки</span>
             </div>
-            <button class="primary-action" type="button">Почати гру</button>
+            <div class="start-actions">
+              <button class="primary-action" type="button" data-start-level="0">Почати гру</button>
+              ${continueButton}
+            </div>
           </div>
         </section>
       </main>
@@ -315,7 +322,10 @@ export class Game {
     this.crosshair = this.requireElement('.crosshair');
     this.canvasHost.appendChild(this.renderer.domElement);
 
-    this.overlay.querySelector('button')?.addEventListener('click', () => this.startGame());
+    this.overlay.querySelectorAll<HTMLButtonElement>('button[data-start-level]').forEach((button) => {
+      const startLevel = Number(button.dataset.startLevel ?? 0);
+      button.addEventListener('click', () => this.startGame(startLevel));
+    });
     window.addEventListener('resize', this.handleResize);
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
@@ -400,7 +410,7 @@ export class Game {
     this.camera.add(this.firstPersonBlaster);
   }
 
-  private async startGame(): Promise<void> {
+  private async startGame(startLevel = 0): Promise<void> {
     await this.audio.unlock();
     this.state = 'playing';
     this.shell.classList.remove('is-menu');
@@ -414,10 +424,11 @@ export class Game {
     this.dashCooldown = 0;
     this.toastTimer = 0;
     this.runStats = createRunStats(performance.now());
-    this.levelIndex = 0;
-    this.loadLevel(0);
+    const safeStartLevel = Math.min(Math.max(0, Math.floor(startLevel)), LEVELS.length - 1);
+    this.levelIndex = safeStartLevel;
+    this.loadLevel(safeStartLevel);
     this.requestPointerLockForFirstPerson();
-    this.showToast('Вперед, Бліце! Збий мішені й знай вихід.', 2.8);
+    this.showToast(safeStartLevel === 0 ? 'Вперед, Бліце! Збий мішені й знай вихід.' : `Продовження: кімната ${safeStartLevel + 1}.`, 2.8);
   }
 
   private showOverlay(title: string, text: string, button: string, action: () => void): void {

@@ -386,6 +386,16 @@ h1 {
   font-weight: 800;
 }
 
+.start-actions {
+  display: grid;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 360px;
+}
+.start-actions button {
+  width: 100%;
+}
+
 .primary-action {
   min-width: 180px;
   border: 0;
