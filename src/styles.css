@@ -358,15 +358,19 @@ h1 {
   }
 
   .progress-strip {
-    top: auto;
+    top: 10px;
     right: 10px;
-    bottom: 106px;
+    bottom: auto;
     gap: 4px;
     padding: 6px;
   }
 
+  .progress-dot:not(.is-current) {
+    display: none;
+  }
+
   .progress-dot {
-    width: 22px;
+    width: 32px;
     height: 22px;
     font-size: 11px;
   }
@@ -375,7 +379,7 @@ h1 {
     top: auto;
     left: 10px;
     right: 10px;
-    bottom: 62px;
+    bottom: 10px;
     width: auto;
     min-width: 0;
     transform: none;
@@ -383,10 +387,7 @@ h1 {
   }
 
   .hint-chip {
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    max-width: none;
+    display: none;
   }
 
   .boss-chip {
@@ -397,7 +398,7 @@ h1 {
   }
 
   .toast-chip {
-    bottom: 114px;
+    bottom: 62px;
     font-size: 13px;
   }
 

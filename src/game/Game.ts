@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { canApplyDamage, effectiveDamage } from './combat';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import type {
@@ -45,6 +46,8 @@ type Door = {
   id: string;
   group: THREE.Group;
   position: THREE.Vector3;
+  halfWidth: number;
+  halfDepth: number;
   open: boolean;
 };
 
@@ -75,6 +78,10 @@ type Spark = {
   material: THREE.MeshStandardMaterial;
   life: number;
   maxLife: number;
+};
+
+type DamageOptions = {
+  continuous?: boolean;
 };
 
 type PowerUp = {
@@ -149,6 +156,7 @@ export class Game {
   private readonly sparks: Spark[] = [];
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
+  private readonly playerAnimationParts: THREE.Object3D[] = [];
 
   private canvasHost!: HTMLDivElement;
   private shell!: HTMLElement;
@@ -174,6 +182,7 @@ export class Game {
   private shieldTimer = 0;
   private dashCooldown = 0;
   private toastTimer = 0;
+  private laserContactTimer = 0;
   private score = 0;
   private levelCompleteTimer = 0;
   private elapsed = 0;
@@ -518,12 +527,13 @@ export class Game {
 
   private createPlayer(): void {
     this.player.clear();
+    this.playerAnimationParts.length = 0;
     const bodyMaterial = new THREE.MeshStandardMaterial({
       color: palette.blue,
       emissive: 0x0c3d88,
-      emissiveIntensity: 0.35,
-      metalness: 0.45,
-      roughness: 0.28
+      emissiveIntensity: 0.5,
+      metalness: 0.55,
+      roughness: 0.22
     });
     const faceMaterial = new THREE.MeshStandardMaterial({
       color: palette.cyan,
@@ -532,14 +542,27 @@ export class Game {
       metalness: 0.1,
       roughness: 0.2
     });
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.65), bodyMaterial);
+    const darkMaterial = new THREE.MeshStandardMaterial({
+      color: 0x10223d,
+      emissive: 0x06152a,
+      emissiveIntensity: 0.25,
+      metalness: 0.45,
+      roughness: 0.34
+    });
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.75, 6, 16), bodyMaterial);
     body.position.y = 0.85;
     body.castShadow = true;
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.65, 0.75), bodyMaterial);
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.42, 0.08), faceMaterial);
+    chest.position.set(0, 0.92, -0.35);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.68, 0.78), bodyMaterial);
     head.position.y = 1.65;
     head.castShadow = true;
     const face = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.28, 0.04), faceMaterial);
     face.position.set(0, 1.67, -0.39);
+    const eyeA = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 8), darkMaterial);
+    const eyeB = eyeA.clone();
+    eyeA.position.set(-0.16, 1.69, -0.43);
+    eyeB.position.set(0.16, 1.69, -0.43);
     const frontLight = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.38, 18), faceMaterial);
     frontLight.position.set(0, 1.18, -0.58);
     frontLight.rotation.x = -Math.PI * 0.5;
@@ -547,14 +570,29 @@ export class Game {
     antenna.position.y = 2.18;
     const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), faceMaterial);
     antennaTip.position.y = 2.45;
-    const blaster = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.8), faceMaterial);
-    blaster.position.set(0.55, 1.2, -0.45);
+    const blaster = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.86, 14), faceMaterial);
+    blaster.position.set(0.64, 1.2, -0.42);
+    blaster.rotation.x = Math.PI * 0.5;
     blaster.castShadow = true;
+    const shoulderA = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), darkMaterial);
+    const shoulderB = shoulderA.clone();
+    shoulderA.position.set(-0.54, 1.16, -0.05);
+    shoulderB.position.set(0.54, 1.16, -0.05);
+    const armA = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.45, 4, 10), darkMaterial);
+    const armB = armA.clone();
+    armA.position.set(-0.66, 0.9, -0.04);
+    armB.position.set(0.66, 0.9, -0.04);
+    armA.rotation.z = 0.22;
+    armB.rotation.z = -0.22;
+    const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.72, 0.22), darkMaterial);
+    backpack.position.set(0, 0.92, 0.46);
     const footA = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.46), bodyMaterial);
     const footB = footA.clone();
     footA.position.set(-0.25, 0.14, -0.04);
     footB.position.set(0.25, 0.14, -0.04);
-    this.player.add(body, head, face, frontLight, antenna, antennaTip, blaster, footA, footB);
+    this.player.add(body, chest, head, face, eyeA, eyeB, frontLight, antenna, antennaTip, blaster, shoulderA, shoulderB, armA, armB, backpack, footA, footB);
+    this.player.scale.setScalar(1.18);
+    this.playerAnimationParts.push(head, antennaTip, armA, armB, footA, footB);
   }
 
   private createAimMarker(): void {
@@ -656,43 +694,102 @@ export class Game {
       const body = new THREE.Mesh(new THREE.SphereGeometry(0.48, 20, 14), material);
       const eye = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), eyeMaterial);
       eye.position.set(0, 0.05, -0.42);
-      const wingA = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.08, 0.16), material);
-      const wingB = wingA.clone();
-      wingA.position.x = -0.58;
-      wingB.position.x = 0.58;
-      group.add(body, eye, wingA, wingB);
+      const rotorMaterial = new THREE.MeshStandardMaterial({
+        color: palette.cyan,
+        emissive: palette.cyan,
+        emissiveIntensity: 0.9,
+        metalness: 0.35,
+        roughness: 0.22
+      });
+      const rotorA = new THREE.Group();
+      const rotorB = new THREE.Group();
+      for (const rotor of [rotorA, rotorB]) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.035, 8, 24), rotorMaterial);
+        ring.rotation.x = Math.PI * 0.5;
+        const bladeA = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.025, 0.08), rotorMaterial);
+        const bladeB = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.56), rotorMaterial);
+        rotor.add(ring, bladeA, bladeB);
+        rotor.position.y = 0.03;
+      }
+      rotorA.position.x = -0.68;
+      rotorB.position.x = 0.68;
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.4, 14), material);
+      tail.position.set(0, 0, 0.5);
+      tail.rotation.x = Math.PI * 0.5;
+      group.add(body, eye, rotorA, rotorB, tail);
+      group.userData.rotors = [rotorA, rotorB];
       group.position.set(base.x, 1.35, base.z);
     } else if (config.kind === 'turret') {
       const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 0.5, 20), material);
       const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 0.75), material);
-      const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.95), eyeMaterial);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 1.05, 16), eyeMaterial);
+      const shield = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.045, 8, 28), material);
       baseMesh.position.y = 0.25;
       head.position.y = 0.8;
-      barrel.position.set(0, 0.8, -0.7);
-      group.add(baseMesh, head, barrel);
+      barrel.position.set(0, 0.8, -0.72);
+      barrel.rotation.x = Math.PI * 0.5;
+      shield.position.set(0, 0.8, -0.2);
+      shield.rotation.x = Math.PI * 0.5;
+      group.add(baseMesh, head, barrel, shield);
+      group.userData.pulse = shield;
       group.position.copy(base);
     } else if (config.kind === 'boss') {
       const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 1.7), material);
       const core = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 16), eyeMaterial);
       const armA = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.2, 0.42), material);
       const armB = armA.clone();
+      const crown = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.08, 10, 36), eyeMaterial);
+      const shoulderA = new THREE.Mesh(new THREE.SphereGeometry(0.38, 18, 12), material);
+      const shoulderB = shoulderA.clone();
+      const legA = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.6, 0.48), material);
+      const legB = legA.clone();
       body.position.y = 1.4;
       core.position.set(0, 1.5, -0.88);
       armA.position.set(-1.45, 1.2, 0);
       armB.position.set(1.45, 1.2, 0);
-      group.add(body, core, armA, armB);
+      shoulderA.position.set(-1.1, 2.1, -0.05);
+      shoulderB.position.set(1.1, 2.1, -0.05);
+      legA.position.set(-0.55, 0.3, 0);
+      legB.position.set(0.55, 0.3, 0);
+      crown.position.set(0, 2.65, 0);
+      crown.rotation.x = Math.PI * 0.5;
+      group.add(body, core, armA, armB, shoulderA, shoulderB, legA, legB, crown);
+      group.userData.core = core;
+      group.userData.crown = crown;
       group.position.copy(base);
     } else {
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.45, 0.75), material);
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.55, 5, 14), material);
       const eye = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.05), eyeMaterial);
-      const legA = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.25, 0.75), material);
-      const legB = legA.clone();
+      body.rotation.z = Math.PI * 0.5;
+      const legs: THREE.Mesh[] = [];
+      for (let i = 0; i < 6; i += 1) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.62), material);
+        leg.position.set(i < 3 ? -0.38 : 0.38, 0.3, -0.25 + (i % 3) * 0.25);
+        leg.rotation.z = i < 3 ? 0.45 : -0.45;
+        legs.push(leg);
+      }
       body.position.y = 0.55;
       eye.position.set(0, 0.62, -0.4);
-      legA.position.set(-0.35, 0.28, 0);
-      legB.position.set(0.35, 0.28, 0);
-      group.add(body, eye, legA, legB);
+      group.add(body, eye, ...legs);
+      group.userData.legs = legs;
       group.position.copy(base);
+    }
+
+    if (config.kind !== 'beetle') {
+      const warningMaterial = new THREE.MeshStandardMaterial({
+        color: palette.red,
+        emissive: palette.red,
+        emissiveIntensity: 1.3,
+        transparent: true,
+        opacity: 0.65,
+        roughness: 0.25
+      });
+      const warning = new THREE.Mesh(new THREE.TorusGeometry(config.kind === 'boss' ? 2.15 : 0.92, 0.035, 8, 32), warningMaterial);
+      warning.rotation.x = Math.PI * 0.5;
+      warning.position.y = config.kind === 'drone' ? -1.28 : 0.05;
+      warning.visible = false;
+      group.add(warning);
+      group.userData.warning = warning;
     }
 
     group.traverse((child) => {
@@ -707,6 +804,7 @@ export class Game {
 
   private spawnDoor(config: DoorConfig): void {
     const group = new THREE.Group();
+    const doorWidth = 7.2;
     const material = new THREE.MeshStandardMaterial({
       color: palette.cyan,
       emissive: palette.blue,
@@ -716,12 +814,19 @@ export class Game {
       metalness: 0.05,
       roughness: 0.18
     });
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.5, 0.28), material);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, 2.5, 0.34), material);
     panel.position.y = 1.25;
     group.add(panel);
     group.position.set(config.position.x, 0, config.position.z);
     this.dynamicRoot.add(group);
-    this.doors.push({ id: config.id, group, position: new THREE.Vector3(config.position.x, 0, config.position.z), open: false });
+    this.doors.push({
+      id: config.id,
+      group,
+      position: new THREE.Vector3(config.position.x, 0, config.position.z),
+      halfWidth: doorWidth * 0.5,
+      halfDepth: 0.28,
+      open: false
+    });
   }
 
   private spawnButton(config: ButtonConfig): void {
@@ -792,16 +897,40 @@ export class Game {
       roughness: 0.22
     });
     const group = new THREE.Group();
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.07, 10, 28), material);
-    const coreGeometry =
-      config.kind === 'repair'
-        ? new THREE.BoxGeometry(0.42, 0.42, 0.18)
-        : config.kind === 'rapid'
-          ? new THREE.OctahedronGeometry(0.32)
-          : new THREE.SphereGeometry(0.28, 18, 12);
-    const core = new THREE.Mesh(coreGeometry, material);
-    ring.rotation.x = Math.PI * 0.5;
-    group.add(ring, core);
+    if (config.kind === 'repair') {
+      const caseMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf4fbff,
+        emissive: 0x173f31,
+        emissiveIntensity: 0.35,
+        metalness: 0.2,
+        roughness: 0.28
+      });
+      const crossMaterial = new THREE.MeshStandardMaterial({
+        color: palette.green,
+        emissive: palette.green,
+        emissiveIntensity: 1.25,
+        metalness: 0.15,
+        roughness: 0.2
+      });
+      const medkit = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.46, 0.42), caseMaterial);
+      const handle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 18), crossMaterial);
+      const crossA = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.045), crossMaterial);
+      const crossB = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.32, 0.045), crossMaterial);
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.035, 8, 28), crossMaterial);
+      handle.position.y = 0.32;
+      handle.rotation.x = Math.PI * 0.5;
+      crossA.position.set(0, 0.02, -0.24);
+      crossB.position.set(0, 0.02, -0.25);
+      halo.rotation.x = Math.PI * 0.5;
+      group.add(medkit, handle, crossA, crossB, halo);
+      group.userData.pulse = halo;
+    } else {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.07, 10, 28), material);
+      const coreGeometry = config.kind === 'rapid' ? new THREE.OctahedronGeometry(0.32) : new THREE.SphereGeometry(0.28, 18, 12);
+      const core = new THREE.Mesh(coreGeometry, material);
+      ring.rotation.x = Math.PI * 0.5;
+      group.add(ring, core);
+    }
     group.position.set(config.position.x, 0.72, config.position.z);
     this.dynamicRoot.add(group);
     this.powerUps.push({
@@ -876,9 +1005,11 @@ export class Game {
     this.shieldTimer = Math.max(0, this.shieldTimer - delta);
     this.dashCooldown = Math.max(0, this.dashCooldown - delta);
     this.toastTimer = Math.max(0, this.toastTimer - delta);
+    this.laserContactTimer = Math.max(0, this.laserContactTimer - delta);
     this.updateAimFromPointer();
     this.updateAimMarker(delta);
     this.updatePlayer(delta);
+    this.updatePlayerAnimation();
     this.updateEnemies(delta);
     this.updateBullets(delta);
     this.updateTargets(delta);
@@ -904,7 +1035,7 @@ export class Game {
       move.normalize();
       this.lastMoveDirection.copy(move);
       move.multiplyScalar(PLAYER_SPEED * delta);
-      this.playerPosition.add(move);
+      this.movePlayer(move);
     }
 
     if ((this.keys.has('Space') || this.keys.has('KeyE')) && !this.jumpHeld && this.playerPosition.y <= 0.01) {
@@ -921,21 +1052,51 @@ export class Game {
       this.playerVelocity.y = 0;
     }
 
-    this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
-    this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
-    this.resolveObstacleCollisions(this.playerPosition);
-    for (const door of this.doors) {
-      if (!door.open && this.distance2D(this.playerPosition, door.position) < 2.25) {
-        this.playerPosition.z += this.playerPosition.z > door.position.z ? 0.12 : -0.12;
-      }
-    }
-
     this.player.position.copy(this.playerPosition);
     const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
     aimDirection.y = 0;
     const facingDirection = movementDirection.lengthSq() > 0.01 ? movementDirection : aimDirection;
     if (facingDirection.lengthSq() > 0.01) {
       this.player.rotation.y = robotYawForDirection(facingDirection.x, facingDirection.z);
+    }
+  }
+
+  private updatePlayerAnimation(): void {
+    const moving =
+      this.keys.has('KeyW') ||
+      this.keys.has('ArrowUp') ||
+      this.keys.has('KeyS') ||
+      this.keys.has('ArrowDown') ||
+      this.keys.has('KeyA') ||
+      this.keys.has('ArrowLeft') ||
+      this.keys.has('KeyD') ||
+      this.keys.has('ArrowRight');
+    const bob = Math.sin(this.elapsed * (moving ? 11 : 3)) * (moving ? 0.045 : 0.015);
+    this.player.position.y = this.playerPosition.y + bob;
+
+    const [, antennaTip, armA, armB, footA, footB] = this.playerAnimationParts;
+    if (antennaTip) {
+      antennaTip.scale.setScalar(1 + Math.sin(this.elapsed * 5) * 0.08);
+    }
+    if (armA && armB) {
+      armA.rotation.x = Math.sin(this.elapsed * 9) * (moving ? 0.42 : 0.08);
+      armB.rotation.x = -armA.rotation.x;
+    }
+    if (footA && footB) {
+      footA.rotation.x = Math.sin(this.elapsed * 11) * (moving ? 0.2 : 0.03);
+      footB.rotation.x = -footA.rotation.x;
+    }
+  }
+
+  private movePlayer(deltaMove: THREE.Vector3): void {
+    const steps = Math.max(1, Math.ceil(deltaMove.length() / 0.35));
+    const step = deltaMove.clone().multiplyScalar(1 / steps);
+
+    for (let i = 0; i < steps; i += 1) {
+      this.playerPosition.add(step);
+      this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
+      this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
+      this.resolveSolidCollisions(this.playerPosition);
     }
   }
 
@@ -949,21 +1110,42 @@ export class Game {
       const lookAngle = Math.atan2(toPlayer.x, toPlayer.z);
       enemy.group.rotation.y = lookAngle;
       enemy.shootTimer -= delta;
+      const warning = enemy.group.userData.warning as THREE.Object3D | undefined;
+      if (warning) {
+        warning.visible = enemy.shootTimer < 0.5;
+        const pulse = 1 + Math.sin(this.elapsed * 20) * 0.12;
+        warning.scale.setScalar(warning.visible ? pulse : 1);
+      }
 
       if (enemy.kind === 'drone') {
         enemy.group.position.x = enemy.base.x + Math.sin(this.elapsed * 1.4 + enemy.base.x) * 0.7;
         enemy.group.position.y = 1.35 + Math.sin(this.elapsed * 3 + enemy.base.z) * 0.22;
+        for (const rotor of (enemy.group.userData.rotors ?? []) as THREE.Object3D[]) {
+          rotor.rotation.y += delta * 20;
+        }
         if (enemy.shootTimer <= 0 && distance < 12) {
           this.fireEnemyBullet(enemy.group.position, toPlayer.normalize(), 12);
           enemy.shootTimer = 2.35;
         }
       } else if (enemy.kind === 'turret') {
+        const pulse = enemy.group.userData.pulse as THREE.Object3D | undefined;
+        if (pulse) {
+          pulse.scale.setScalar(1 + Math.sin(this.elapsed * 4) * 0.06);
+        }
         if (enemy.shootTimer <= 0 && distance < 13) {
           this.fireEnemyBullet(enemy.group.position.clone().add(new THREE.Vector3(0, 0.9, 0)), toPlayer.normalize(), 16);
           enemy.shootTimer = 1.8;
         }
       } else if (enemy.kind === 'boss') {
         enemy.group.position.y = Math.sin(this.elapsed * 1.8) * 0.08;
+        const core = enemy.group.userData.core as THREE.Object3D | undefined;
+        const crown = enemy.group.userData.crown as THREE.Object3D | undefined;
+        if (core) {
+          core.scale.setScalar(1 + Math.sin(this.elapsed * 5) * 0.12);
+        }
+        if (crown) {
+          crown.rotation.z += delta * 1.8;
+        }
         if (enemy.shootTimer <= 0) {
           const baseAngle = Math.atan2(toPlayer.x, toPlayer.z);
           for (const offset of [-0.28, 0, 0.28]) {
@@ -973,8 +1155,13 @@ export class Game {
           enemy.shootTimer = 2.2;
         }
       } else {
+        const legs = (enemy.group.userData.legs ?? []) as THREE.Object3D[];
+        legs.forEach((leg, index) => {
+          leg.rotation.x = Math.sin(this.elapsed * 9 + index) * 0.28;
+        });
         if (distance > 1.1) {
           enemy.group.position.add(toPlayer.normalize().multiplyScalar(delta * 2.2));
+          this.resolveObstacleCollisions(enemy.group.position, 0.55);
         } else {
           this.damagePlayer(18);
         }
@@ -982,20 +1169,32 @@ export class Game {
     }
   }
 
-  private resolveObstacleCollisions(position: THREE.Vector3): void {
+  private resolveSolidCollisions(position: THREE.Vector3): void {
+    this.resolveObstacleCollisions(position, PLAYER_RADIUS);
+    for (const door of this.doors) {
+      if (door.open) continue;
+      this.resolveBoxCollision(position, door.position, door.halfWidth, door.halfDepth, PLAYER_RADIUS);
+    }
+  }
+
+  private resolveObstacleCollisions(position: THREE.Vector3, radius = PLAYER_RADIUS): void {
     for (const obstacle of this.obstacles) {
-      const dx = position.x - obstacle.position.x;
-      const dz = position.z - obstacle.position.z;
-      const overlapX = obstacle.halfWidth + PLAYER_RADIUS - Math.abs(dx);
-      const overlapZ = obstacle.halfDepth + PLAYER_RADIUS - Math.abs(dz);
+      this.resolveBoxCollision(position, obstacle.position, obstacle.halfWidth, obstacle.halfDepth, radius);
+    }
+  }
 
-      if (overlapX <= 0 || overlapZ <= 0) continue;
+  private resolveBoxCollision(position: THREE.Vector3, center: THREE.Vector3, halfWidth: number, halfDepth: number, radius: number): void {
+    const dx = position.x - center.x;
+    const dz = position.z - center.z;
+    const overlapX = halfWidth + radius - Math.abs(dx);
+    const overlapZ = halfDepth + radius - Math.abs(dz);
 
-      if (overlapX < overlapZ) {
-        position.x += dx >= 0 ? overlapX : -overlapX;
-      } else {
-        position.z += dz >= 0 ? overlapZ : -overlapZ;
-      }
+    if (overlapX <= 0 || overlapZ <= 0) return;
+
+    if (overlapX < overlapZ) {
+      position.x += dx >= 0 ? overlapX : -overlapX;
+    } else {
+      position.z += dz >= 0 ? overlapZ : -overlapZ;
     }
   }
 
@@ -1093,8 +1292,16 @@ export class Game {
       powerUp.group.rotation.y += delta * 2.8;
       powerUp.group.rotation.x = Math.sin(this.elapsed * 2.6 + powerUp.position.x) * 0.22;
       powerUp.group.position.y = 0.72 + Math.sin(this.elapsed * 3.4 + powerUp.position.z) * 0.14;
+      const pulse = powerUp.group.userData.pulse as THREE.Object3D | undefined;
+      if (pulse) {
+        pulse.scale.setScalar(1 + Math.sin(this.elapsed * 5) * 0.12);
+      }
 
       if (this.distance2D(this.playerPosition, powerUp.position) < 0.8) {
+        if (powerUp.kind === 'repair' && this.health >= PLAYER_MAX_HEALTH) {
+          this.showToast('Аптечка зачекає: енергія повна.', 1.3);
+          continue;
+        }
         powerUp.collected = true;
         powerUp.group.visible = false;
         this.score += 120;
@@ -1153,7 +1360,7 @@ export class Game {
           ? Math.abs(localZ) < 0.35 && Math.abs(localX) < laser.config.length * 0.5
           : Math.abs(localX) < 0.35 && Math.abs(localZ) < laser.config.length * 0.5;
       if (nearBeam) {
-        this.damagePlayer(24 * delta);
+        this.damagePlayer(48 * delta, { continuous: true });
       }
     }
   }
@@ -1222,7 +1429,7 @@ export class Game {
     if (level.objective === 'targets') return this.targets.every((target) => target.hit);
     if (level.objective === 'enemies') return this.enemies.every((enemy) => !enemy.alive);
     if (level.objective === 'buttons') return this.buttons.every((button) => button.active);
-    if (level.objective === 'boss') return this.enemies.every((enemy) => !enemy.alive);
+    if (level.objective === 'boss') return this.enemies.filter((enemy) => enemy.kind === 'boss').every((enemy) => !enemy.alive);
     return this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 2.2;
   }
 
@@ -1260,10 +1467,7 @@ export class Game {
       direction.set(0, 0, -1);
     }
     direction.normalize();
-    this.playerPosition.addScaledVector(direction, 3.1);
-    this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
-    this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
-    this.resolveObstacleCollisions(this.playerPosition);
+    this.movePlayer(direction.multiplyScalar(3.1));
     this.player.position.copy(this.playerPosition);
     this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
     this.dashCooldown = 2.6;
@@ -1300,11 +1504,16 @@ export class Game {
     this.dynamicRoot.remove(bullet.mesh);
   }
 
-  private damagePlayer(amount: number): void {
-    if (this.invulnerableTimer > 0) return;
-    const finalAmount = this.shieldTimer > 0 ? amount * 0.35 : amount;
+  private damagePlayer(amount: number, options: DamageOptions = {}): void {
+    const continuous = options.continuous ?? false;
+    if (!canApplyDamage(this.invulnerableTimer, continuous)) return;
+    const finalAmount = effectiveDamage(amount, this.shieldTimer > 0);
     this.health = Math.max(0, this.health - finalAmount);
-    this.invulnerableTimer = 0.45;
+    if (!continuous) {
+      this.invulnerableTimer = 0.45;
+    } else {
+      this.laserContactTimer = 0.18;
+    }
     if (this.health <= 0) {
       this.health = PLAYER_MAX_HEALTH;
       this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0)), palette.red, 1.6);
@@ -1334,7 +1543,7 @@ export class Game {
     this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : level.tip;
-    this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0);
+    this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const powers = [];
     if (this.rapidTimer > 0) powers.push(`Швидкий бластер ${Math.ceil(this.rapidTimer)}с`);
     if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
