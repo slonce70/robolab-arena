@@ -194,3 +194,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, first-person crosshair classes included `is-visible`, `is-rapid`, `is-overcharged`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: automated QA validates state classes; actual firing pulse timing should be judged by eye during manual first-person combat.
+
+## Iteration 16 - Power aura animation made testable and calmer-mode aware
+- Problem: shield/rapid/overcharge rings were useful, but their animation math lived inline and did not share the calmer-effects reduction rules clearly.
+- Change: added a pure `describePowerAuraState` helper that controls visibility, rotation speed, and pulse scale for all player power auras, including reduced-motion scaling.
+- Evidence:
+  - `npm test` PASS: 24 files / 78 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-power-aura-2026-04-26/report.json`: `power-aura-playwright-pass`, all DEV power effects present, shield vignette active, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: helper tests protect state math; subjective aura beauty still needs human visual review in the in-app browser.

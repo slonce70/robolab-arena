@@ -26,6 +26,7 @@ import { robotYawForDirection } from './math';
 import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
 import { describePlayerFeedback } from './playerFeedback';
+import { describePowerAuraState } from './powerAura';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
@@ -1422,19 +1423,22 @@ export class Game {
     const overchargeVisible = this.overchargeShots > 0;
 
     shieldObjects.forEach((object, index) => {
-      object.visible = shieldVisible;
-      object.rotation.y += delta * (index === 0 ? 1.9 : -1.35);
-      object.scale.setScalar(1 + Math.sin(this.elapsed * 7 + index) * 0.045);
+      const aura = describePowerAuraState(shieldVisible, index === 0 ? 1.9 : -1.35, this.elapsed, index, this.settings.reducedMotion);
+      object.visible = aura.visible;
+      object.rotation.y += delta * aura.rotationSpeed;
+      object.scale.setScalar(aura.scale);
     });
     rapidObjects.forEach((object, index) => {
-      object.visible = rapidVisible;
-      object.rotation.y += delta * (4.8 + index);
-      object.scale.setScalar(1 + Math.sin(this.elapsed * 12 + index) * 0.06);
+      const aura = describePowerAuraState(rapidVisible, 4.8 + index, this.elapsed, index, this.settings.reducedMotion);
+      object.visible = aura.visible;
+      object.rotation.y += delta * aura.rotationSpeed;
+      object.scale.setScalar(aura.scale);
     });
     overchargeObjects.forEach((object, index) => {
-      object.visible = overchargeVisible;
-      object.rotation.y += delta * (2.2 + index);
-      object.scale.setScalar(1 + Math.sin(this.elapsed * 8 + index) * 0.08);
+      const aura = describePowerAuraState(overchargeVisible, 2.2 + index, this.elapsed, index, this.settings.reducedMotion);
+      object.visible = aura.visible;
+      object.rotation.y += delta * aura.rotationSpeed;
+      object.scale.setScalar(aura.scale);
     });
   }
 
