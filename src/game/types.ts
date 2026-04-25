@@ -35,6 +35,13 @@ export type LaserConfig = {
   phase: number;
 };
 
+export type PowerUpKind = 'repair' | 'rapid' | 'shield';
+
+export type PowerUpConfig = {
+  kind: PowerUpKind;
+  position: Vec2;
+};
+
 export type LevelObjective = 'targets' | 'enemies' | 'buttons' | 'survive-lasers' | 'boss';
 
 export type LevelConfig = {
@@ -50,5 +57,5 @@ export type LevelConfig = {
   buttons?: ButtonConfig[];
   doors?: DoorConfig[];
   lasers?: LaserConfig[];
+  powerUps?: PowerUpConfig[];
 };
-

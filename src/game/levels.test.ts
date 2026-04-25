@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { LEVELS } from './levels';
 
 describe('RoboLab Arena levels', () => {
-  it('ships with five first-release chambers', () => {
-    expect(LEVELS).toHaveLength(5);
+  it('ships with eight first-release chambers', () => {
+    expect(LEVELS).toHaveLength(8);
   });
 
   it('gives every chamber a clear objective and exit', () => {
@@ -20,4 +20,3 @@ describe('RoboLab Arena levels', () => {
     expect(LEVELS[0]?.targets ?? []).toHaveLength(3);
   });
 });
-

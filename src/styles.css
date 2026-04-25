@@ -88,11 +88,14 @@ button {
   top: 62px;
   left: 16px;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  max-width: min(720px, calc(100vw - 32px));
 }
 
 .health-chip,
-.gears-chip {
+.gears-chip,
+.power-chip {
   position: static;
   padding: 9px 12px;
   min-width: 118px;
@@ -106,6 +109,12 @@ button {
 
 .gears-chip {
   border-color: rgba(255, 209, 102, 0.55);
+}
+
+.power-chip {
+  min-width: 150px;
+  border-color: rgba(255, 79, 163, 0.5);
+  color: #f0fbff;
 }
 
 .objective-chip {
@@ -237,6 +246,16 @@ h1 {
   .status-row {
     top: 56px;
     left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+
+  .health-chip,
+  .gears-chip,
+  .power-chip {
+    min-width: 0;
+    flex: 1 1 126px;
+    font-size: 12px;
   }
 
   .objective-chip {
@@ -264,4 +283,3 @@ h1 {
     min-width: 180px;
   }
 }
-

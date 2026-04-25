@@ -1,6 +1,17 @@
 import * as THREE from 'three';
 import { LEVELS } from './levels';
-import type { ButtonConfig, DoorConfig, EnemyConfig, EnemyKind, LaserConfig, LevelConfig, TargetConfig } from './types';
+import { robotYawForDirection } from './math';
+import type {
+  ButtonConfig,
+  DoorConfig,
+  EnemyConfig,
+  EnemyKind,
+  LaserConfig,
+  LevelConfig,
+  PowerUpConfig,
+  PowerUpKind,
+  TargetConfig
+} from './types';
 
 type GameState = 'menu' | 'playing' | 'levelComplete' | 'finished' | 'paused';
 type BulletOwner = 'player' | 'enemy';
@@ -65,6 +76,21 @@ type Spark = {
   maxLife: number;
 };
 
+type PowerUp = {
+  group: THREE.Group;
+  kind: PowerUpKind;
+  position: THREE.Vector3;
+  collected: boolean;
+};
+
+type LevelTheme = {
+  floor: number;
+  wall: number;
+  accent: number;
+  secondary: number;
+  fog: number;
+};
+
 const ROOM_HALF_WIDTH = 9;
 const ROOM_HALF_DEPTH = 10;
 const PLAYER_RADIUS = 0.55;
@@ -82,6 +108,7 @@ const palette = {
   green: 0x7cf27c,
   red: 0xff4b55,
   purple: 0xa875ff,
+  orange: 0xff9f43,
   dark: 0x07111f,
   white: 0xf4fbff
 };
@@ -108,6 +135,7 @@ export class Game {
   private readonly doors: Door[] = [];
   private readonly buttons: LabButton[] = [];
   private readonly lasers: Laser[] = [];
+  private readonly powerUps: PowerUp[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
 
@@ -119,6 +147,7 @@ export class Game {
   private hudObjective!: HTMLDivElement;
   private hudHint!: HTMLDivElement;
   private hudBoss!: HTMLDivElement;
+  private hudPower!: HTMLDivElement;
 
   private state: GameState = 'menu';
   private levelIndex = 0;
@@ -126,6 +155,9 @@ export class Game {
   private gears = 0;
   private shootCooldown = 0;
   private invulnerableTimer = 0;
+  private rapidTimer = 0;
+  private shieldTimer = 0;
+  private score = 0;
   private levelCompleteTimer = 0;
   private elapsed = 0;
   private animationId = 0;
@@ -138,6 +170,8 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.08;
     this.scene.background = new THREE.Color(0x07111f);
     this.scene.fog = new THREE.Fog(0x07111f, 22, 48);
   }
@@ -151,10 +185,11 @@ export class Game {
           <div class="status-row">
             <div class="status-chip health-chip"></div>
             <div class="status-chip gears-chip"></div>
+            <div class="status-chip power-chip"></div>
           </div>
           <div class="objective-chip"></div>
           <div class="boss-chip"></div>
-          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, Space - стрибок</div>
+          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, Space - стрибок, R - перезапуск кімнати</div>
         </section>
         <section class="overlay is-visible">
           <div class="panel">
@@ -175,6 +210,7 @@ export class Game {
     this.hudObjective = this.requireElement('.objective-chip');
     this.hudHint = this.requireElement('.hint-chip');
     this.hudBoss = this.requireElement('.boss-chip');
+    this.hudPower = this.requireElement('.power-chip');
     this.canvasHost.appendChild(this.renderer.domElement);
 
     this.overlay.querySelector('button')?.addEventListener('click', () => this.startGame());
@@ -227,6 +263,9 @@ export class Game {
     this.overlay.classList.remove('is-visible');
     this.health = PLAYER_MAX_HEALTH;
     this.gears = 0;
+    this.score = 0;
+    this.rapidTimer = 0;
+    this.shieldTimer = 0;
     this.levelIndex = 0;
     this.loadLevel(0);
   }
@@ -265,6 +304,7 @@ export class Game {
     level.doors?.forEach((door) => this.spawnDoor(door));
     level.buttons?.forEach((button) => this.spawnButton(button));
     level.lasers?.forEach((laser) => this.spawnLaser(laser));
+    level.powerUps?.forEach((powerUp) => this.spawnPowerUp(powerUp));
 
     this.updateHud();
   }
@@ -278,15 +318,20 @@ export class Game {
     this.doors.length = 0;
     this.buttons.length = 0;
     this.lasers.length = 0;
+    this.powerUps.length = 0;
     this.bullets.length = 0;
     this.sparks.length = 0;
   }
 
   private buildRoom(level: LevelConfig): void {
+    const theme = this.getTheme(level.id);
+    this.scene.background = new THREE.Color(theme.fog);
+    this.scene.fog = new THREE.Fog(theme.fog, 24, 54);
+
     const floorMaterial = new THREE.MeshStandardMaterial({
-      color: palette.floor,
-      metalness: 0.2,
-      roughness: 0.55
+      color: theme.floor,
+      metalness: 0.28,
+      roughness: 0.48
     });
     const floor = new THREE.Mesh(new THREE.BoxGeometry(18, 0.4, 20), floorMaterial);
     floor.position.y = -0.25;
@@ -294,9 +339,9 @@ export class Game {
     this.levelRoot.add(floor);
 
     const gridMaterial = new THREE.MeshStandardMaterial({
-      color: palette.cyan,
-      emissive: palette.blue,
-      emissiveIntensity: 0.8,
+      color: theme.accent,
+      emissive: theme.accent,
+      emissiveIntensity: 0.92,
       metalness: 0.3,
       roughness: 0.35
     });
@@ -312,14 +357,15 @@ export class Game {
     }
 
     const wallMaterial = new THREE.MeshStandardMaterial({
-      color: palette.wall,
-      metalness: 0.35,
-      roughness: 0.5
+      color: theme.wall,
+      metalness: 0.42,
+      roughness: 0.44
     });
     this.addWall(0, -10.25, 18.5, 0.5, wallMaterial);
     this.addWall(0, 10.25, 18.5, 0.5, wallMaterial);
     this.addWall(-9.25, 0, 0.5, 20.5, wallMaterial);
     this.addWall(9.25, 0, 0.5, 20.5, wallMaterial);
+    this.addRoomDecorations(level, theme);
 
     const exit = this.createPad(level.exit.x, level.exit.z, palette.green, 'ВИХІД');
     this.levelRoot.add(exit);
@@ -334,6 +380,85 @@ export class Game {
     wall.castShadow = true;
     wall.receiveShadow = true;
     this.levelRoot.add(wall);
+  }
+
+  private getTheme(levelId: number): LevelTheme {
+    const themes: LevelTheme[] = [
+      { floor: 0x132f46, wall: 0x28516c, accent: palette.cyan, secondary: palette.blue, fog: 0x081525 },
+      { floor: 0x1d2744, wall: 0x33436f, accent: palette.yellow, secondary: palette.pink, fog: 0x10162b },
+      { floor: 0x142f2b, wall: 0x2d5950, accent: palette.green, secondary: palette.cyan, fog: 0x071c18 },
+      { floor: 0x2d1737, wall: 0x51245f, accent: palette.pink, secondary: palette.red, fog: 0x16071f },
+      { floor: 0x30271a, wall: 0x5a4528, accent: palette.orange, secondary: palette.yellow, fog: 0x160f08 },
+      { floor: 0x17363a, wall: 0x265c63, accent: palette.green, secondary: palette.cyan, fog: 0x071b1f },
+      { floor: 0x171f39, wall: 0x273961, accent: palette.blue, secondary: palette.red, fog: 0x080d20 },
+      { floor: 0x28183f, wall: 0x44286d, accent: palette.purple, secondary: palette.pink, fog: 0x12081f }
+    ];
+    return themes[(levelId - 1) % themes.length];
+  }
+
+  private addRoomDecorations(level: LevelConfig, theme: LevelTheme): void {
+    const panelMaterial = new THREE.MeshStandardMaterial({
+      color: theme.secondary,
+      emissive: theme.secondary,
+      emissiveIntensity: 0.65,
+      metalness: 0.25,
+      roughness: 0.28
+    });
+    const metalMaterial = new THREE.MeshStandardMaterial({
+      color: theme.wall,
+      metalness: 0.58,
+      roughness: 0.38
+    });
+
+    for (const x of [-7.6, 7.6]) {
+      for (const z of [-7.2, 0, 7.2]) {
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.34, 2.4, 14), metalMaterial);
+        pillar.position.set(x, 1.1, z);
+        pillar.castShadow = true;
+        pillar.receiveShadow = true;
+        const glow = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.08, 14), panelMaterial);
+        glow.position.set(x, 2.35, z);
+        this.levelRoot.add(pillar, glow);
+      }
+    }
+
+    const consolePositions = [
+      { x: -7.4, z: -8.6 },
+      { x: 7.4, z: -8.6 },
+      { x: -7.4, z: 8.6 },
+      { x: 7.4, z: 8.6 }
+    ];
+    for (const position of consolePositions) {
+      const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.7), metalMaterial);
+      base.position.set(position.x, 0.38, position.z);
+      base.rotation.y = position.x < 0 ? -0.35 : 0.35;
+      const screen = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.08, 0.42), panelMaterial);
+      screen.position.set(position.x, 0.85, position.z);
+      screen.rotation.copy(base.rotation);
+      base.castShadow = true;
+      screen.castShadow = true;
+      this.levelRoot.add(base, screen);
+    }
+
+    if (level.id >= 5) {
+      for (const x of [-3.6, 3.6]) {
+        const coil = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.08, 10, 28), panelMaterial);
+        coil.position.set(x, 0.78, -1.4);
+        coil.rotation.x = Math.PI * 0.5;
+        const core = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.4, 16), metalMaterial);
+        core.position.set(x, 0.78, -1.4);
+        core.rotation.z = Math.PI * 0.5;
+        this.levelRoot.add(coil, core);
+      }
+    }
+
+    if (level.id >= 7) {
+      for (const z of [4.8, 2.3, -0.2, -2.7, -5.2]) {
+        const warning = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.05, 0.08), panelMaterial);
+        warning.position.set(0, 0.08, z + 0.55);
+        this.levelRoot.add(warning);
+      }
+    }
   }
 
   private createPlayer(): void {
@@ -360,6 +485,9 @@ export class Game {
     head.castShadow = true;
     const face = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.28, 0.04), faceMaterial);
     face.position.set(0, 1.67, -0.39);
+    const frontLight = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.38, 18), faceMaterial);
+    frontLight.position.set(0, 1.18, -0.58);
+    frontLight.rotation.x = -Math.PI * 0.5;
     const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45, 10), faceMaterial);
     antenna.position.y = 2.18;
     const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), faceMaterial);
@@ -367,7 +495,11 @@ export class Game {
     const blaster = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.8), faceMaterial);
     blaster.position.set(0.55, 1.2, -0.45);
     blaster.castShadow = true;
-    this.player.add(body, head, face, antenna, antennaTip, blaster);
+    const footA = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.46), bodyMaterial);
+    const footB = footA.clone();
+    footA.position.set(-0.25, 0.14, -0.04);
+    footB.position.set(0.25, 0.14, -0.04);
+    this.player.add(body, head, face, frontLight, antenna, antennaTip, blaster, footA, footB);
   }
 
   private spawnTarget(config: TargetConfig): void {
@@ -572,6 +704,41 @@ export class Game {
     this.lasers.push({ group, material, config, active: true });
   }
 
+  private spawnPowerUp(config: PowerUpConfig): void {
+    const colors: Record<PowerUpKind, number> = {
+      repair: palette.green,
+      rapid: palette.yellow,
+      shield: palette.cyan
+    };
+    const color = colors[config.kind];
+    const material = new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity: 1.15,
+      metalness: 0.2,
+      roughness: 0.22
+    });
+    const group = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.07, 10, 28), material);
+    const coreGeometry =
+      config.kind === 'repair'
+        ? new THREE.BoxGeometry(0.42, 0.42, 0.18)
+        : config.kind === 'rapid'
+          ? new THREE.OctahedronGeometry(0.32)
+          : new THREE.SphereGeometry(0.28, 18, 12);
+    const core = new THREE.Mesh(coreGeometry, material);
+    ring.rotation.x = Math.PI * 0.5;
+    group.add(ring, core);
+    group.position.set(config.position.x, 0.72, config.position.z);
+    this.dynamicRoot.add(group);
+    this.powerUps.push({
+      group,
+      kind: config.kind,
+      position: new THREE.Vector3(config.position.x, 0.72, config.position.z),
+      collected: false
+    });
+  }
+
   private createPad(x: number, z: number, color: number, label: string): THREE.Group {
     const group = new THREE.Group();
     const material = new THREE.MeshStandardMaterial({
@@ -632,12 +799,15 @@ export class Game {
 
     this.shootCooldown = Math.max(0, this.shootCooldown - delta);
     this.invulnerableTimer = Math.max(0, this.invulnerableTimer - delta);
+    this.rapidTimer = Math.max(0, this.rapidTimer - delta);
+    this.shieldTimer = Math.max(0, this.shieldTimer - delta);
     this.updateAimFromPointer();
     this.updatePlayer(delta);
     this.updateEnemies(delta);
     this.updateBullets(delta);
     this.updateTargets(delta);
     this.updateCollectibles(delta);
+    this.updatePowerUps(delta);
     this.updateButtons();
     this.updateDoors(delta);
     this.updateLasers(delta);
@@ -653,6 +823,7 @@ export class Game {
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) move.z += 1;
     if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) move.x -= 1;
     if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) move.x += 1;
+    const movementDirection = move.clone();
     if (move.lengthSq() > 0) {
       move.normalize().multiplyScalar(PLAYER_SPEED * delta);
       this.playerPosition.add(move);
@@ -681,10 +852,11 @@ export class Game {
     }
 
     this.player.position.copy(this.playerPosition);
-    const direction = this.aimPoint.clone().sub(this.playerPosition);
-    direction.y = 0;
-    if (direction.lengthSq() > 0.01) {
-      this.player.rotation.y = Math.atan2(direction.x, direction.z);
+    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    aimDirection.y = 0;
+    const facingDirection = movementDirection.lengthSq() > 0.01 ? movementDirection : aimDirection;
+    if (facingDirection.lengthSq() > 0.01) {
+      this.player.rotation.y = robotYawForDirection(facingDirection.x, facingDirection.z);
     }
   }
 
@@ -756,6 +928,7 @@ export class Game {
           if (enemy.health <= 0) {
             enemy.alive = false;
             enemy.group.visible = false;
+            this.score += enemy.kind === 'boss' ? 1000 : 180;
             this.addSpark(enemy.group.position.clone().add(new THREE.Vector3(0, 1, 0)), palette.cyan, 1.4);
           }
           continue;
@@ -800,7 +973,33 @@ export class Game {
         collectible.collected = true;
         collectible.group.visible = false;
         this.gears += 1;
+        this.score += 50;
         this.addSpark(collectible.position.clone().add(new THREE.Vector3(0, 0.7, 0)), palette.yellow);
+      }
+    }
+  }
+
+  private updatePowerUps(delta: number): void {
+    for (const powerUp of this.powerUps) {
+      if (powerUp.collected) continue;
+      powerUp.group.rotation.y += delta * 2.8;
+      powerUp.group.rotation.x = Math.sin(this.elapsed * 2.6 + powerUp.position.x) * 0.22;
+      powerUp.group.position.y = 0.72 + Math.sin(this.elapsed * 3.4 + powerUp.position.z) * 0.14;
+
+      if (this.distance2D(this.playerPosition, powerUp.position) < 0.8) {
+        powerUp.collected = true;
+        powerUp.group.visible = false;
+        this.score += 120;
+        if (powerUp.kind === 'repair') {
+          this.health = Math.min(PLAYER_MAX_HEALTH, this.health + 38);
+          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.green, 1.15);
+        } else if (powerUp.kind === 'rapid') {
+          this.rapidTimer = 8;
+          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.yellow, 1.15);
+        } else {
+          this.shieldTimer = 9;
+          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.cyan, 1.15);
+        }
       }
     }
   }
@@ -810,6 +1009,7 @@ export class Game {
       if (!button.active && this.distance2D(this.playerPosition, button.position) < 0.95) {
         button.active = true;
         button.group.scale.y = 0.82;
+        this.score += 100;
         this.addSpark(button.position.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.green);
       }
     }
@@ -888,7 +1088,7 @@ export class Game {
     this.state = 'levelComplete';
     const next = this.levelIndex + 1;
     if (next >= LEVELS.length) {
-      this.showOverlay('Перемога!', `Бліц пройшов усі кімнати й зібрав ${this.gears} шестерень. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
+      this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
     this.showOverlay('Кімнату пройдено!', 'Двері до наступного випробування відкриті. Готовий рухатись далі?', 'Наступна кімната', () => {
@@ -928,10 +1128,10 @@ export class Game {
       mesh,
       velocity: direction.multiplyScalar(BULLET_SPEED),
       owner: 'player',
-      damage: 26,
+      damage: this.rapidTimer > 0 ? 20 : 26,
       life: 1.6
     });
-    this.shootCooldown = 0.18;
+    this.shootCooldown = this.rapidTimer > 0 ? 0.09 : 0.18;
   }
 
   private fireEnemyBullet(origin: THREE.Vector3, direction: THREE.Vector3, damage: number): void {
@@ -960,7 +1160,8 @@ export class Game {
 
   private damagePlayer(amount: number): void {
     if (this.invulnerableTimer > 0) return;
-    this.health = Math.max(0, this.health - amount);
+    const finalAmount = this.shieldTimer > 0 ? amount * 0.35 : amount;
+    this.health = Math.max(0, this.health - finalAmount);
     this.invulnerableTimer = 0.45;
     if (this.health <= 0) {
       this.health = PLAYER_MAX_HEALTH;
@@ -987,11 +1188,15 @@ export class Game {
   private updateHud(): void {
     const level = LEVELS[this.levelIndex];
     const objectiveDone = this.isObjectiveComplete();
-    this.hudLevel.textContent = `Кімната ${level.id}/5: ${level.name}`;
+    this.hudLevel.textContent = `Кімната ${level.id}/${LEVELS.length}: ${level.name}`;
     this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
-    this.hudGears.textContent = `Шестерні ${this.gears}`;
+    this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : level.tip;
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0);
+    const powers = [];
+    if (this.rapidTimer > 0) powers.push(`Швидкий бластер ${Math.ceil(this.rapidTimer)}с`);
+    if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
+    this.hudPower.textContent = powers.length > 0 ? powers.join(' + ') : 'Апгрейди -';
 
     const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
     if (boss) {
