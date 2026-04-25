@@ -97,3 +97,21 @@ Evidence:
 
 Remaining risk:
 - Progress summary appears only after saved progress exists; first-run menu remains clean by design.
+
+## Iteration 6 - Dev Shortcut Safety
+
+Goal: keep QA shortcuts from causing unrelated setting changes during browser verification.
+
+Changes:
+- Refactored dev-only keyboard handling into a dedicated shortcut handler.
+- Dev `KeyM` room-jump now returns before the normal mute shortcut, so QA midpoint navigation no longer toggles sound.
+- Production mute behavior is unchanged because dev shortcuts only run under Vite dev mode while playing.
+
+Evidence:
+- `node .omx/tmp/robolab-dev-keym-qa.mjs` -> `dev-keym-shortcut-pass`, loaded room 6, bad console 0, page errors 0.
+- `npm test` -> 15 files, 54 tests passed.
+- `npm run build` -> success with the known Vite large chunk warning.
+- `git diff --check` -> clean.
+
+Remaining risk:
+- This is intentionally dev-mode behavior; production builds do not expose the room-jump shortcut.

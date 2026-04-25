@@ -2107,6 +2107,9 @@ export class Game {
     if (event.code === 'Escape' && this.state === 'playing') {
       this.showPauseOverlay();
     }
+    if (this.handleDevShortcut(event)) {
+      return;
+    }
     if (event.code === 'KeyC' && this.state === 'playing' && !event.repeat) {
       this.toggleCameraMode();
     }
@@ -2121,25 +2124,28 @@ export class Game {
     if (event.code === 'KeyR' && this.state === 'playing') {
       this.restartCurrentLevel();
     }
-    if (import.meta.env.DEV && this.state === 'playing') {
-      if (getDevEffectTarget(event.code) === 'all') {
-        this.rapidTimer = 8;
-        this.shieldTimer = 9;
-        this.overchargeShots = Math.max(this.overchargeShots, 1);
-        const effectPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0));
-        this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
-        this.showToast('QA: усі ефекти активні.', 1.4);
-        this.updateHud();
-        return;
-      }
-      const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);
-      if (targetLevel !== undefined) {
-        this.health = PLAYER_MAX_HEALTH;
-        this.loadLevel(targetLevel - 1);
-        this.showToast(`QA: кімната ${targetLevel}`, 1.1);
-      }
-    }
   };
+
+  private handleDevShortcut(event: KeyboardEvent): boolean {
+    if (!import.meta.env.DEV || this.state !== 'playing' || event.repeat) return false;
+    if (getDevEffectTarget(event.code) === 'all') {
+      this.rapidTimer = 8;
+      this.shieldTimer = 9;
+      this.overchargeShots = Math.max(this.overchargeShots, 1);
+      const effectPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0));
+      this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
+      this.showToast('QA: усі ефекти активні.', 1.4);
+      this.updateHud();
+      return true;
+    }
+    const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);
+    if (targetLevel === undefined) return false;
+
+    this.health = PLAYER_MAX_HEALTH;
+    this.loadLevel(targetLevel - 1);
+    this.showToast(`QA: кімната ${targetLevel}`, 1.1);
+    return true;
+  }
 
   private handleKeyUp = (event: KeyboardEvent): void => {
     this.keys.delete(event.code);
