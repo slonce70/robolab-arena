@@ -230,3 +230,8 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-room-brief-2026-04-26/report.json`: `room-brief-playwright-pass`, room 12 toast included `7 ворогів`, `5 апгрейдів`, `5 шестерень`, and `Фінальний сектор`, with `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: copy is concise and data-derived; final wording should still be read in the in-app browser for tone.
+
+## Iteration 20 - Post-room-brief full room smoke
+- Purpose: after changing room-start toast behavior and DEV room jumps, rechecked that all 12 rooms still load sequentially with HUD labels, objective text, and progress dots.
+- Evidence: Playwright DOM smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
+- Remaining risk: DOM smoke verifies continuity, not a no-jump human victory run.
