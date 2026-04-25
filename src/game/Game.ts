@@ -20,6 +20,7 @@ import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint } from './laserHazard';
+import { describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeBossStatus } from './bossStatus';
@@ -1738,12 +1739,16 @@ export class Game {
         }
       }
       laser.active = Math.sin(this.elapsed * 2.4 + laser.config.phase) > -0.25;
-      laser.group.visible = laser.active;
+      const laserVisibility = describeLaserVisibility(laser.active);
+      laser.group.visible = laserVisibility.groupVisible;
+      const [warningLane, beam, postA, postB] = laser.group.children as THREE.Object3D[];
+      beam.visible = laserVisibility.beamVisible;
+      postA.visible = laserVisibility.postVisible;
+      postB.visible = laserVisibility.postVisible;
       laser.material.opacity = laser.active ? 0.85 : 0.18;
-      const warningLane = laser.group.children[0] as THREE.Mesh | undefined;
-      const warningMaterial = warningLane?.material as THREE.MeshStandardMaterial | undefined;
+      const warningMaterial = (warningLane as THREE.Mesh | undefined)?.material as THREE.MeshStandardMaterial | undefined;
       if (warningMaterial) {
-        warningMaterial.opacity = laser.active ? 0.32 : 0.16;
+        warningMaterial.opacity = laserVisibility.warningOpacity;
       }
       if (!laser.active || this.playerPosition.y > 0.45) continue;
 

@@ -176,3 +176,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright smoke `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, room 1 HUD and objective loaded, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: automated smoke does not visually compare the material color; unit tests cover the lock/open state values and browser smoke confirms the render path remains healthy.
+
+## Iteration 14 - Architect blocker fix: laser lane remains visible while inactive
+- Problem found by architect: the laser warning lane was inside the same group that was hidden whenever the damaging beam was inactive, making the inactive `0.16` warning opacity branch ineffective.
+- Change: kept the laser group visible, toggled only the damaging beam/posts, and extracted `describeLaserVisibility` so the inactive-visible warning contract is regression-tested.
+- Evidence:
+  - `npm test` PASS: 22 files / 72 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-laser-lanes-2026-04-26/report.json`: `laser-lanes-playwright-pass`, room 6 loaded, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: Playwright smoke validates the room render path; the exact inactive warning-lane visual is protected by unit state tests and should still be judged by eye in a live browser pass.
