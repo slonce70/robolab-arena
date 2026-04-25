@@ -167,3 +167,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright smoke `output/playwright/overnight-audio-smoke-2026-04-26/report.json`: `audio-profile-smoke-pass`, room 12 and power effect flow stayed error-free after audio-profile scheduling, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: headless automation validates scheduling safety but not subjective sound taste; final audio mix needs human listening with speakers/headphones.
+
+## Iteration 13 - Exit pad lock/open readability
+- Problem: the exit pad was always green even before the room objective was complete, which could make a player think the door/exit was broken when it did not finish the room.
+- Change: added a tested exit-pad status presenter and made the pad orange/muted while locked, then pulsing green only after the objective is complete.
+- Evidence:
+  - `npm test` PASS: 21 files / 70 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright smoke `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, room 1 HUD and objective loaded, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: automated smoke does not visually compare the material color; unit tests cover the lock/open state values and browser smoke confirms the render path remains healthy.

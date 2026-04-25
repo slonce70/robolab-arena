@@ -17,6 +17,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { getPowerEffectTheme } from './effects';
+import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint } from './laserHazard';
 import { LEVELS } from './levels';
@@ -206,6 +207,8 @@ export class Game {
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
   private readonly firstPersonBlaster = new THREE.Group();
+  private exitPad?: THREE.Mesh;
+  private exitPadMaterial?: THREE.MeshStandardMaterial;
   private readonly playerAnimationParts: THREE.Object3D[] = [];
 
   private canvasHost!: HTMLDivElement;
@@ -586,6 +589,8 @@ export class Game {
     this.bullets.length = 0;
     this.sparks.length = 0;
     this.pulses.length = 0;
+    this.exitPad = undefined;
+    this.exitPadMaterial = undefined;
   }
 
   private buildRoom(level: LevelConfig): void {
@@ -634,6 +639,8 @@ export class Game {
     this.addRoomDecorations(level, theme);
 
     const exit = this.createPad(level.exit.x, level.exit.z, palette.green, 'ВИХІД');
+    this.exitPad = exit.userData.pad as THREE.Mesh;
+    this.exitPadMaterial = exit.userData.padMaterial as THREE.MeshStandardMaterial;
     this.levelRoot.add(exit);
 
     const titlePad = this.createFloatingLabel(level.name, -11.8, 0.08, ROOM_HALF_DEPTH - 3.1);
@@ -1260,6 +1267,8 @@ export class Game {
     pad.position.y = 0.06;
     const sign = this.createFloatingLabel(label, 0, 0.38, 0);
     group.add(pad, sign);
+    group.userData.pad = pad;
+    group.userData.padMaterial = material;
     group.position.set(x, 0, z);
     return group;
   }
@@ -2024,6 +2033,7 @@ export class Game {
     this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : `${this.objectiveProgressText()} - ${level.tip}`;
+    this.updateExitPadStatus(objectiveDone);
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const feedback = describePlayerFeedback({
       health: this.health,
@@ -2063,6 +2073,15 @@ export class Game {
     } else {
       this.hudBoss.classList.remove('is-visible');
     }
+  }
+
+  private updateExitPadStatus(objectiveDone: boolean): void {
+    if (!this.exitPad || !this.exitPadMaterial) return;
+    const status = describeExitPadStatus(objectiveDone, this.elapsed);
+    this.exitPadMaterial.color.setHex(status.color);
+    this.exitPadMaterial.emissive.setHex(status.color);
+    this.exitPadMaterial.emissiveIntensity = status.emissiveIntensity;
+    this.exitPad.scale.setScalar(status.scale);
   }
 
   private updateAimFromPointer(): void {
