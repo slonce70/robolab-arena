@@ -203,3 +203,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-power-aura-2026-04-26/report.json`: `power-aura-playwright-pass`, all DEV power effects present, shield vignette active, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: helper tests protect state math; subjective aura beauty still needs human visual review in the in-app browser.
+
+## Iteration 17 - Late-room pacing guardrails
+- Problem: rooms 6, 10, and 12 are the balance hotspots, but support-pickup expectations were only implicit in level data.
+- Change: added `summarizeLevelPacing` and `validateLateRoomSupport` tests so late rooms cannot silently lose repair/power-up support during future tuning.
+- Evidence:
+  - `npm test` PASS: 25 files / 80 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright DOM smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
+- Remaining risk: this is a balance guardrail, not a substitute for a real human full-run difficulty judgment.
