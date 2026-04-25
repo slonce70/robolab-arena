@@ -6,6 +6,7 @@ import { getDevLevelTarget } from './devControls';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeObjectiveProgress } from './objectives';
+import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import type {
   ButtonConfig,
@@ -185,6 +186,10 @@ export class Game {
 
   private state: GameState = 'menu';
   private settings: RoboLabSettings = loadSettings();
+  private pointerLocked = false;
+  private pointerLockAvailable = true;
+  private fallbackMouseCaptured = false;
+  private lastPointerUnlockAt = 0;
   private levelIndex = 0;
   private health = PLAYER_MAX_HEALTH;
   private gears = 0;
@@ -277,6 +282,8 @@ export class Game {
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('pointermove', this.handlePointerMove);
     window.addEventListener('pointerdown', this.handlePointerDown);
+    document.addEventListener('pointerlockchange', this.handlePointerLockChange);
+    document.addEventListener('pointerlockerror', this.handlePointerLockError);
 
     this.setupScene();
     this.loadLevel(0);
@@ -362,10 +369,12 @@ export class Game {
     this.toastTimer = 0;
     this.levelIndex = 0;
     this.loadLevel(0);
+    this.requestPointerLockForFirstPerson();
     this.showToast('Вперед, Бліце! Збий мішені й знай вихід.', 2.8);
   }
 
   private showOverlay(title: string, text: string, button: string, action: () => void): void {
+    this.exitPointerLock();
     this.state = title.includes('Перемога') ? 'finished' : this.state;
     this.overlay.innerHTML = `
       <div class="panel">
@@ -1718,6 +1727,8 @@ export class Game {
     this.hudCamera.textContent = this.cameraController.getHudLabel();
     const isFirstPerson = this.cameraController.getMode() === 'firstPerson';
     this.shell.classList.toggle('is-first-person', isFirstPerson);
+    this.shell.classList.toggle('is-pointer-locked', this.pointerLocked);
+    this.shell.classList.toggle('is-mouse-captured', this.isFirstPersonMouseCaptured());
     this.crosshair.classList.toggle('is-visible', this.state === 'playing' && isFirstPerson);
     this.hudProgress.innerHTML = LEVELS.map((item, index) => {
       const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
@@ -1756,7 +1767,8 @@ export class Game {
   };
 
   private handlePointerMove = (event: PointerEvent): void => {
-    if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
+    if (this.cameraController.getMode() === 'firstPerson') {
+      if (!shouldUseFirstPersonMouseLook(this.state, this.cameraController.getMode(), this.pointerLocked, this.fallbackMouseCaptured)) return;
       this.cameraController.applyFirstPersonLookDelta(event.movementX, event.movementY);
       return;
     }
@@ -1766,6 +1778,10 @@ export class Game {
   };
 
   private handlePointerDown = (event: PointerEvent): void => {
+    if (event.button === 0 && this.state === 'playing' && this.cameraController.getMode() === 'firstPerson' && !this.isFirstPersonMouseCaptured()) {
+      this.requestPointerLockForFirstPerson();
+      return;
+    }
     if (event.button === 0 && this.state === 'playing') {
       this.shoot();
     }
@@ -1773,6 +1789,19 @@ export class Game {
 
   private handleKeyDown = (event: KeyboardEvent): void => {
     this.keys.add(event.code);
+    if (
+      event.code === 'Escape' &&
+      this.state === 'playing' &&
+      this.cameraController.getMode() === 'firstPerson' &&
+      (this.isFirstPersonMouseCaptured() || performance.now() - this.lastPointerUnlockAt < 350)
+    ) {
+      event.preventDefault();
+      this.exitPointerLock();
+      this.fallbackMouseCaptured = false;
+      this.shell.classList.remove('is-mouse-captured');
+      this.showToast('Курсор вільний. Клік по арені - повернути приціл.', 1.4);
+      return;
+    }
     if (event.code === 'Escape' && this.state === 'playing') {
       this.state = 'paused';
       this.showOverlay('Пауза', 'WASD - рух, мишка - приціл, клік - постріл, C - змінити вид, M - звук, Shift - ривок, Space - стрибок, R - перезапуск кімнати.', 'Продовжити', () => {
@@ -1786,6 +1815,10 @@ export class Game {
       if (this.cameraController.getMode() === 'firstPerson') {
         const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
         this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
+        this.requestPointerLockForFirstPerson();
+      } else {
+        this.fallbackMouseCaptured = false;
+        this.exitPointerLock();
       }
       this.settings = saveSettings({ preferredCameraMode: this.cameraController.getMode() });
       this.showToast(this.cameraController.getMode() === 'firstPerson' ? 'Вид від першої особи.' : 'Тактичний вид зверху.', 1.15);
@@ -1817,6 +1850,62 @@ export class Game {
     this.keys.delete(event.code);
   };
 
+  private requestPointerLockForFirstPerson(): void {
+    if (this.state !== 'playing' || this.cameraController.getMode() !== 'firstPerson' || this.pointerLocked) return;
+    if (!this.pointerLockAvailable || !this.renderer.domElement.requestPointerLock) {
+      this.handlePointerLockUnavailable();
+      return;
+    }
+    if (!shouldRequestPointerLock(this.state, this.cameraController.getMode(), this.pointerLocked, this.pointerLockAvailable)) return;
+    try {
+      const result = this.renderer.domElement.requestPointerLock();
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => this.handlePointerLockUnavailable());
+      }
+    } catch {
+      this.handlePointerLockUnavailable();
+    }
+  }
+
+  private exitPointerLock(): void {
+    if (document.pointerLockElement === this.renderer.domElement) {
+      document.exitPointerLock?.();
+    }
+  }
+
+  private isFirstPersonMouseCaptured(): boolean {
+    return this.pointerLocked || this.fallbackMouseCaptured;
+  }
+
+  private handlePointerLockChange = (): void => {
+    const wasPointerLocked = this.pointerLocked;
+    this.pointerLocked = document.pointerLockElement === this.renderer.domElement;
+    if (this.pointerLocked) {
+      this.fallbackMouseCaptured = false;
+    }
+    if (wasPointerLocked && !this.pointerLocked) {
+      this.lastPointerUnlockAt = performance.now();
+      if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
+        this.showToast('Клік по арені - повернути приціл.', 1.4);
+      }
+    }
+    this.shell.classList.toggle('is-pointer-locked', this.pointerLocked);
+    this.shell.classList.toggle('is-mouse-captured', this.isFirstPersonMouseCaptured());
+  };
+
+  private handlePointerLockError = (): void => {
+    this.handlePointerLockUnavailable();
+  };
+
+  private handlePointerLockUnavailable(): void {
+    this.pointerLockAvailable = false;
+    if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
+      this.fallbackMouseCaptured = true;
+      this.shell.classList.add('is-mouse-captured');
+      this.showToast('Приціл активний. Esc - показати курсор.', 1.4);
+    }
+  }
+
   destroy(): void {
     window.cancelAnimationFrame(this.animationId);
     window.removeEventListener('resize', this.handleResize);
@@ -1824,6 +1913,8 @@ export class Game {
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('pointermove', this.handlePointerMove);
     window.removeEventListener('pointerdown', this.handlePointerDown);
+    document.removeEventListener('pointerlockchange', this.handlePointerLockChange);
+    document.removeEventListener('pointerlockerror', this.handlePointerLockError);
     this.renderer.dispose();
   }
 }

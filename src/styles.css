@@ -53,6 +53,14 @@ button {
   height: 100%;
 }
 
+.game-shell.is-first-person .canvas-host canvas {
+  cursor: crosshair;
+}
+
+.game-shell.is-mouse-captured .canvas-host canvas {
+  cursor: none;
+}
+
 .hud {
   position: absolute;
   inset: 0;
