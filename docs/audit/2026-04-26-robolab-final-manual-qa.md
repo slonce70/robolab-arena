@@ -15,6 +15,17 @@ Plan: `.omx/plans/robolab-arena-final-qa-plan.md`
 - Playwright command usage: **none**. The `playwright` package exists in dependencies, but no Playwright browser automation or `.playwright-cli/` command was run.
 - `.playwright-cli/` preservation: **preserved**. It is not present in this worker worktree (`.playwright-cli exists: False`), and no deletion or modification was performed.
 - QA jump rule: dev/QA jumps are treated as **inspection only**, not as proof of campaign progression. No room is marked `Pass` unless completed from a valid start state in Browser Use.
+
+### QA Jump Classification Policy
+
+When Browser Use is available, use this classification before entering room results:
+
+- `Pass`: room started from its valid campaign/room start state, the objective was completed, and exit/finish behavior was confirmed in Browser Use.
+- `Inspection only`: room was reached with a QA/dev jump (`M`, `B`, bracket navigation, or equivalent) or partial setup, so observations can describe layout/effects/risks but cannot prove progression.
+- `Needs Fix`: Browser Use confirms a defect that is playable/reproducible but should be fixed before readiness.
+- `Blocked`: Browser Use is unavailable or an S0/S1 defect prevents valid completion evidence.
+
+This policy is intentionally stricter than static route tests: route tests can support confidence, but they do not replace valid manual progression proof.
 - Baseline `git status --short --untracked-files=all` before edits: clean output.
 
 ## Browser Use Availability Gate
