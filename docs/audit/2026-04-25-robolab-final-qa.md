@@ -12,7 +12,9 @@ Date: 2026-04-25
   - third-person HUD shows room, energy, score, dash, camera mode, objective progress;
   - `C` toggles to first-person immediately;
   - first-person shows centered crosshair and blaster viewmodel;
+  - first-person hides the player body so the view is not blocked;
   - toggling back returns to tactical third-person;
+  - dev-only QA keys jump to room 6 (`M`) and room 12 (`B`) for middle/boss checks;
   - browser console has no errors during the checked flow.
 
 ## Added Coverage
@@ -21,6 +23,7 @@ Date: 2026-04-25
 - `src/game/objectives.test.ts`
 - `src/game/storage.test.ts`
 - `src/game/levelValidation.test.ts`
+- `src/game/devControls.test.ts`
 - Expanded `src/game/levels.test.ts` for shield bots, overcharge, and moving lasers.
 
 ## Notes

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { AudioManager } from './audio';
 import { CameraController } from './camera/CameraController';
 import { canApplyDamage, effectiveDamage } from './combat';
+import { getDevLevelTarget } from './devControls';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeObjectiveProgress } from './objectives';
@@ -341,6 +342,7 @@ export class Game {
     coil.position.set(0.46, -0.24, -0.58);
     coil.rotation.x = Math.PI * 0.5;
     this.firstPersonBlaster.add(grip, barrel, coil);
+    this.firstPersonBlaster.scale.setScalar(0.72);
     this.firstPersonBlaster.visible = false;
     this.camera.add(this.firstPersonBlaster);
   }
@@ -1523,7 +1525,9 @@ export class Game {
   private updateCamera(delta: number): void {
     const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
     this.cameraController.update(delta, this.playerPosition, aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
-    this.firstPersonBlaster.visible = this.state === 'playing' && this.cameraController.getMode() === 'firstPerson';
+    const isFirstPersonPlaying = this.state === 'playing' && this.cameraController.getMode() === 'firstPerson';
+    this.player.visible = !isFirstPersonPlaying;
+    this.firstPersonBlaster.visible = isFirstPersonPlaying;
   }
 
   private checkExit(delta: number): void {
@@ -1789,6 +1793,14 @@ export class Game {
     if (event.code === 'KeyR' && this.state === 'playing') {
       this.health = PLAYER_MAX_HEALTH;
       this.loadLevel(this.levelIndex);
+    }
+    if (import.meta.env.DEV && this.state === 'playing') {
+      const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);
+      if (targetLevel !== undefined) {
+        this.health = PLAYER_MAX_HEALTH;
+        this.loadLevel(targetLevel - 1);
+        this.showToast(`QA: кімната ${targetLevel}`, 1.1);
+      }
     }
   };
 
