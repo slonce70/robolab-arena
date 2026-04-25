@@ -14,6 +14,13 @@ describe('level intel', () => {
     }
   });
 
+  it('uses readable Ukrainian count labels in pause support summaries', () => {
+    expect(getLevelIntel(LEVELS[1]).threat).toContain('1 турель');
+    expect(getLevelIntel(LEVELS[4]).support).toContain('2 ремонти');
+    expect(getLevelIntel(LEVELS[11]).support).toContain('5 шестерень');
+    expect(getLevelIntel(LEVELS[11]).threat).toContain('1 бос');
+  });
+
   it('calls out boss and laser rooms with specific tactics', () => {
     expect(getLevelIntel(LEVELS[3]).tactic).toContain('ривок');
     expect(getLevelIntel(LEVELS[11]).threat).toContain('бос');

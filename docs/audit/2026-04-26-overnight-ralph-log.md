@@ -283,3 +283,15 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, first-person power/crosshair state healthy, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: exact recoil feel is still subjective and should be judged by hand while firing in first-person combat.
+
+## Iteration 26 - Pause intel count copy polished
+- Problem: pause-screen room intel still used fixed noun labels, so some rooms read mechanically (`1 турелі`, `2 ремонт`, `5 шестерні`) even after room-start briefs were polished.
+- Change: extracted the Ukrainian one/few/many count formatter into a shared helper and reused it from both room-start briefs and pause intel threat/support summaries.
+- Evidence:
+  - Cleanup plan written before refactor: lock pause-intel copy, extract only proven count logic, reuse in room brief and level intel, then rerun focused/full/browser checks.
+  - TDD red: `npm test -- src/game/levelIntel.test.ts` failed on old `1 турелі` wording.
+  - Focused green: `npm test -- src/game/ukrainianCounts.test.ts src/game/levelIntel.test.ts src/game/roomBrief.test.ts` PASS: 7 tests.
+  - Full regression: `npm test` PASS: 31 files / 93 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, four pause intel cards present, `badConsole: 0`, `pageErrors: 0`.
+- Remaining risk: wording is now grammatically cleaner, but a human copy pass could still rename English-flavored `rapid-вогонь` if desired.

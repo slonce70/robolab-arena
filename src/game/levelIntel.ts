@@ -1,4 +1,5 @@
 import type { EnemyKind, LevelConfig, LevelObjective, PowerUpKind } from './types';
+import { formatUkrainianCount, type UkrainianCountForms } from './ukrainianCounts';
 
 export type LevelIntel = {
   objective: string;
@@ -15,19 +16,19 @@ const objectiveLabels: Record<LevelObjective, string> = {
   boss: 'Збий ядро боса, контролюй арену й добігай до фінішу.'
 };
 
-const enemyLabels: Record<EnemyKind, string> = {
-  drone: 'дрони',
-  turret: 'турелі',
-  beetle: 'жуки-тарани',
-  shieldBot: 'щитоботи',
-  boss: 'бос'
+const enemyLabels: Record<EnemyKind, UkrainianCountForms> = {
+  drone: { one: 'дрон', few: 'дрони', many: 'дронів' },
+  turret: { one: 'турель', few: 'турелі', many: 'турелей' },
+  beetle: { one: 'жук-таран', few: 'жуки-тарани', many: 'жуків-таранів' },
+  shieldBot: { one: 'щитобот', few: 'щитоботи', many: 'щитоботів' },
+  boss: { one: 'бос', few: 'боси', many: 'босів' }
 };
 
-const powerLabels: Record<PowerUpKind, string> = {
-  repair: 'ремонт',
-  rapid: 'rapid-вогонь',
-  shield: 'щит',
-  overcharge: 'суперзаряд'
+const powerLabels: Record<PowerUpKind, UkrainianCountForms> = {
+  repair: { one: 'ремонт', few: 'ремонти', many: 'ремонтів' },
+  rapid: { one: 'rapid-вогонь', few: 'rapid-вогні', many: 'rapid-вогнів' },
+  shield: { one: 'щит', few: 'щити', many: 'щитів' },
+  overcharge: { one: 'суперзаряд', few: 'суперзаряди', many: 'суперзарядів' }
 };
 
 export function getLevelIntel(level: LevelConfig): LevelIntel {
@@ -42,9 +43,11 @@ export function getLevelIntel(level: LevelConfig): LevelIntel {
 function describeThreat(level: LevelConfig): string {
   const parts = countBy(level.enemies?.map((enemy) => enemy.kind) ?? []);
   const enemySummary = Object.entries(parts)
-    .map(([kind, count]) => `${count} ${enemyLabels[kind as EnemyKind]}`)
+    .map(([kind, count]) => formatUkrainianCount(count, enemyLabels[kind as EnemyKind]))
     .join(', ');
-  const laserSummary = level.lasers?.length ? `${level.lasers.length} лазерні пастки` : '';
+  const laserSummary = level.lasers?.length
+    ? formatUkrainianCount(level.lasers.length, { one: 'лазерна пастка', few: 'лазерні пастки', many: 'лазерних пасток' })
+    : '';
   const summary = [enemySummary, laserSummary].filter(Boolean).join(' + ');
 
   return summary || 'ворогів немає, головна загроза - маршрут і таймінг';
@@ -53,10 +56,10 @@ function describeThreat(level: LevelConfig): string {
 function describeSupport(level: LevelConfig): string {
   const powers = countBy(level.powerUps?.map((powerUp) => powerUp.kind) ?? []);
   const powerSummary = Object.entries(powers)
-    .map(([kind, count]) => `${count} ${powerLabels[kind as PowerUpKind]}`)
+    .map(([kind, count]) => formatUkrainianCount(count, powerLabels[kind as PowerUpKind]))
     .join(', ');
   const gearCount = level.collectibles?.length ?? 0;
-  const gearSummary = gearCount > 0 ? `${gearCount} шестерні` : '';
+  const gearSummary = gearCount > 0 ? formatUkrainianCount(gearCount, { one: 'шестерня', few: 'шестерні', many: 'шестерень' }) : '';
   const summary = [powerSummary, gearSummary].filter(Boolean).join(' + ');
 
   return summary || 'допомоги немає - грай обережно';
