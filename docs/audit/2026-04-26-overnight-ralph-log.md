@@ -135,3 +135,17 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-feedback-vignette-2026-04-26/report.json`: `feedback-vignette-playwright-pass`, vignette classes included `is-shielded`, power HUD showed `Щит`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: browser QA uses the DEV all-effects shortcut for deterministic shield validation; real combat damage colors are covered by helper tests and should be manually felt during a combat pass.
+
+## Iteration 9 - Full room DOM smoke after HUD polish
+- Purpose: after the boss and feedback HUD changes, rechecked that every DEV-jumped room still presents a room label, objective copy, and 12-dot progress strip.
+- Evidence: Playwright DOM QA `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
+- Note: the first screenshot-heavy version was stopped because repeated WebGL screenshots stalled after room 2; the final DOM smoke avoided that machine-specific ReadPixels bottleneck and still verified room/HUD continuity.
+
+## Iteration 10 - Pause sensitivity controls made explicit
+- Problem: pause already had sensitivity, but one cycling button was easy to overshoot and not clear for a sleepy player tuning first-person aim.
+- Change: replaced the single cycle with explicit `− / current / +` controls and extracted sensitivity stepping into a pure helper.
+- Evidence:
+  - `npm test` PASS: 18 files / 63 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-sensitivity-2026-04-26/report.json`: `sensitivity-controls-playwright-pass`, `1.0x → 1.2x → 1.0x`, persisted `mouseSensitivity: 1`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: actual mouse-look feel still needs human hand tuning; automation verifies control behavior and persistence.

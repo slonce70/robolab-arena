@@ -23,6 +23,7 @@ import { robotYawForDirection } from './math';
 import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
 import { describePlayerFeedback } from './playerFeedback';
+import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
   beginRoom,
@@ -478,7 +479,11 @@ export class Game {
           <button class="secondary-action" type="button" data-action="restart">Перезапустити кімнату</button>
           <button class="secondary-action" type="button" data-action="sound">${this.settings.soundOn ? 'Звук: увімкнено' : 'Звук: вимкнено'}</button>
           <button class="secondary-action" type="button" data-action="camera">${this.cameraController.getHudLabel()}</button>
-          <button class="secondary-action" type="button" data-action="sensitivity">Чутливість ${this.settings.mouseSensitivity.toFixed(1)}x</button>
+          <div class="sensitivity-control" aria-label="Чутливість мишки">
+            <button class="secondary-action" type="button" data-action="sensitivity-down">−</button>
+            <span>Чутливість ${this.settings.mouseSensitivity.toFixed(1)}x</span>
+            <button class="secondary-action" type="button" data-action="sensitivity-up">+</button>
+          </div>
           <button class="secondary-action" type="button" data-action="motion">Ефекти: ${this.settings.reducedMotion ? 'спокійні' : 'повні'}</button>
         </div>
       </div>
@@ -511,8 +516,9 @@ export class Game {
       this.showPauseOverlay();
       return;
     }
-    if (action === 'sensitivity') {
-      const next = this.nextMouseSensitivity(this.settings.mouseSensitivity);
+    if (action === 'sensitivity-up' || action === 'sensitivity-down') {
+      const direction: SensitivityDirection = action === 'sensitivity-up' ? 'up' : 'down';
+      const next = stepMouseSensitivity(this.settings.mouseSensitivity, direction);
       this.settings = saveSettings({ mouseSensitivity: next });
       this.cameraController.setMouseSensitivity(this.settings.mouseSensitivity);
       this.showPauseOverlay();
@@ -530,12 +536,6 @@ export class Game {
     this.shell.classList.remove('is-menu');
     this.overlay.classList.remove('is-visible');
     this.updateHud();
-  }
-
-  private nextMouseSensitivity(current: number): number {
-    const values = [0.6, 0.8, 1, 1.2, 1.5, 2];
-    const index = values.findIndex((value) => value > current + 0.01);
-    return index === -1 ? values[0] : values[index];
   }
 
   private restartCurrentLevel(): void {
