@@ -56,4 +56,15 @@ describe('CameraController', () => {
     expect(movement.x).toBeGreaterThan(0.99);
     expect(Math.abs(movement.z)).toBeLessThan(0.01);
   });
+
+  it('clamps configurable mouse sensitivity for pause settings', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+
+    controller.setMouseSensitivity(9);
+    expect(controller.getMouseSensitivity()).toBe(2);
+
+    controller.setMouseSensitivity(0.1);
+    expect(controller.getMouseSensitivity()).toBe(0.6);
+  });
 });

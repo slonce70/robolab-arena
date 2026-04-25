@@ -16,6 +16,7 @@ export class CameraController {
   private firstPersonYaw = 0;
   private firstPersonPitch = 0;
   private firstPersonLookReady = false;
+  private mouseSensitivity = 1;
 
   constructor(camera: THREE.PerspectiveCamera, initialMode: CameraMode = 'thirdPerson') {
     this.camera = camera;
@@ -45,6 +46,14 @@ export class CameraController {
 
   getHudLabel(): string {
     return this.mode === 'thirdPerson' ? 'Вид: 3-я особа' : 'Вид: 1-а особа';
+  }
+
+  getMouseSensitivity(): number {
+    return this.mouseSensitivity;
+  }
+
+  setMouseSensitivity(value: number): void {
+    this.mouseSensitivity = THREE.MathUtils.clamp(value, 0.6, 2);
   }
 
   update(delta: number, playerPosition: THREE.Vector3, facingDirection: THREE.Vector3): void {
@@ -100,9 +109,9 @@ export class CameraController {
   applyFirstPersonLookDelta(deltaX: number, deltaY: number): void {
     const clampedX = THREE.MathUtils.clamp(deltaX, -FIRST_PERSON_MAX_MOUSE_DELTA, FIRST_PERSON_MAX_MOUSE_DELTA);
     const clampedY = THREE.MathUtils.clamp(deltaY, -FIRST_PERSON_MAX_MOUSE_DELTA, FIRST_PERSON_MAX_MOUSE_DELTA);
-    this.firstPersonYaw += clampedX * FIRST_PERSON_MOUSE_SENSITIVITY;
+    this.firstPersonYaw += clampedX * FIRST_PERSON_MOUSE_SENSITIVITY * this.mouseSensitivity;
     this.firstPersonPitch = THREE.MathUtils.clamp(
-      this.firstPersonPitch - clampedY * FIRST_PERSON_MOUSE_SENSITIVITY,
+      this.firstPersonPitch - clampedY * FIRST_PERSON_MOUSE_SENSITIVITY * this.mouseSensitivity,
       -FIRST_PERSON_MAX_PITCH,
       FIRST_PERSON_MAX_PITCH
     );

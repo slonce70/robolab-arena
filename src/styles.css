@@ -101,7 +101,7 @@ button {
 
 .status-row {
   position: absolute;
-  top: 62px;
+  top: 78px;
   left: 16px;
   display: flex;
   flex-wrap: wrap;
@@ -131,6 +131,7 @@ button {
 
 .power-chip {
   min-width: 150px;
+  max-width: 300px;
   border-color: rgba(255, 79, 163, 0.5);
   color: #f0fbff;
 }
@@ -376,6 +377,36 @@ h1 {
 
 .primary-action:active {
   transform: translateY(1px);
+}
+
+.pause-panel h1 {
+  font-size: clamp(32px, 5vw, 48px);
+}
+
+.pause-actions {
+  display: grid;
+  gap: 10px;
+  margin: 0 auto;
+  max-width: 360px;
+}
+
+.pause-actions button {
+  width: 100%;
+}
+
+.secondary-action {
+  border: 1px solid rgba(84, 241, 255, 0.34);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: rgba(84, 241, 255, 0.08);
+  color: #eafcff;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.secondary-action:hover {
+  border-color: rgba(124, 242, 124, 0.58);
+  background: rgba(124, 242, 124, 0.12);
 }
 
 @media (max-width: 1120px) {

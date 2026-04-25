@@ -1,8 +1,22 @@
 import * as THREE from 'three';
 import { AudioManager } from './audio';
+import {
+  BEETLE_CONTACT_DAMAGE,
+  ENEMY_INITIAL_SHOOT_DELAY,
+  LASER_DAMAGE_PER_SECOND,
+  PLAYER_BASE_DAMAGE,
+  PLAYER_OVERCHARGE_DAMAGE,
+  PLAYER_RAPID_DAMAGE,
+  REPAIR_AMOUNT,
+  SPAWN_INVULNERABILITY_SECONDS,
+  getBossPhase,
+  getEnemyStats
+} from './balance';
 import { CameraController } from './camera/CameraController';
+import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
-import { getDevLevelTarget } from './devControls';
+import { getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getPowerEffectTheme } from './effects';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeObjectiveProgress } from './objectives';
@@ -33,6 +47,7 @@ type Enemy = {
   radius: number;
   shootTimer: number;
   alive: boolean;
+  phase: number;
 };
 
 type Target = {
@@ -61,6 +76,7 @@ type LabButton = {
   group: THREE.Group;
   position: THREE.Vector3;
   opensDoorId: string;
+  opensDoorIds: string[];
   active: boolean;
 };
 
@@ -85,6 +101,14 @@ type Spark = {
   material: THREE.MeshStandardMaterial;
   life: number;
   maxLife: number;
+};
+
+type Pulse = {
+  mesh: THREE.Mesh;
+  material: THREE.MeshStandardMaterial;
+  life: number;
+  maxLife: number;
+  maxScale: number;
 };
 
 type DamageOptions = {
@@ -151,6 +175,7 @@ export class Game {
   private readonly levelRoot = new THREE.Group();
   private readonly dynamicRoot = new THREE.Group();
   private readonly player = new THREE.Group();
+  private readonly playerEffectRoot = new THREE.Group();
   private readonly playerPosition = new THREE.Vector3();
   private readonly playerVelocity = new THREE.Vector3();
   private readonly enemies: Enemy[] = [];
@@ -163,6 +188,7 @@ export class Game {
   private readonly obstacles: Obstacle[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
+  private readonly pulses: Pulse[] = [];
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
   private readonly firstPersonBlaster = new THREE.Group();
@@ -201,6 +227,7 @@ export class Game {
   private dashCooldown = 0;
   private toastTimer = 0;
   private laserContactTimer = 0;
+  private blasterFlashTimer = 0;
   private score = 0;
   private levelCompleteTimer = 0;
   private elapsed = 0;
@@ -219,6 +246,7 @@ export class Game {
     this.scene.background = new THREE.Color(0x07111f);
     this.scene.fog = new THREE.Fog(0x07111f, 22, 48);
     this.cameraController.setMode(this.settings.preferredCameraMode);
+    this.cameraController.setMouseSensitivity(this.settings.mouseSensitivity);
     this.audio.setEnabled(this.settings.soundOn);
   }
 
@@ -319,8 +347,9 @@ export class Game {
     rim.position.set(0, 5, -7);
     this.scene.add(rim);
 
-    this.scene.add(this.levelRoot, this.dynamicRoot, this.player, this.aimMarker, this.camera);
+    this.scene.add(this.levelRoot, this.dynamicRoot, this.player, this.playerEffectRoot, this.aimMarker, this.camera);
     this.createPlayer();
+    this.createPlayerEffectRings();
     this.createAimMarker();
     this.createFirstPersonBlaster();
   }
@@ -343,12 +372,18 @@ export class Game {
     const grip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.2), bodyMaterial);
     const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.72, 16), glowMaterial);
     const coil = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.02, 8, 20), glowMaterial);
+    const flash = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10), glowMaterial);
     grip.position.set(0.42, -0.36, -0.58);
     barrel.position.set(0.46, -0.24, -0.88);
     barrel.rotation.x = Math.PI * 0.5;
     coil.position.set(0.46, -0.24, -0.58);
     coil.rotation.x = Math.PI * 0.5;
-    this.firstPersonBlaster.add(grip, barrel, coil);
+    flash.position.set(0.46, -0.24, -1.24);
+    flash.visible = false;
+    this.firstPersonBlaster.add(grip, barrel, coil, flash);
+    this.firstPersonBlaster.userData.flash = flash;
+    this.firstPersonBlaster.userData.coil = coil;
+    this.firstPersonBlaster.userData.glowMaterial = glowMaterial;
     this.firstPersonBlaster.scale.setScalar(0.72);
     this.firstPersonBlaster.visible = false;
     this.camera.add(this.firstPersonBlaster);
@@ -389,11 +424,79 @@ export class Game {
     this.overlay.classList.add('is-visible');
   }
 
+  private showPauseOverlay(): void {
+    this.exitPointerLock();
+    this.fallbackMouseCaptured = false;
+    this.state = 'paused';
+    this.overlay.innerHTML = `
+      <div class="panel pause-panel">
+        <p class="eyebrow">Пауза</p>
+        <h1>RoboLab</h1>
+        <p class="intro">Кімната ${LEVELS[this.levelIndex].id}: ${LEVELS[this.levelIndex].name}</p>
+        <div class="pause-actions" aria-label="Налаштування паузи">
+          <button class="primary-action" type="button" data-action="resume">Продовжити</button>
+          <button class="secondary-action" type="button" data-action="restart">Restart room</button>
+          <button class="secondary-action" type="button" data-action="sound">${this.settings.soundOn ? 'Звук: увімкнено' : 'Звук: вимкнено'}</button>
+          <button class="secondary-action" type="button" data-action="camera">${this.cameraController.getHudLabel()}</button>
+          <button class="secondary-action" type="button" data-action="sensitivity">Чутливість ${this.settings.mouseSensitivity.toFixed(1)}x</button>
+        </div>
+      </div>
+    `;
+    this.overlay.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((button) => {
+      button.addEventListener('click', () => this.handlePauseAction(button.dataset.action ?? 'resume'));
+    });
+    this.shell.classList.add('is-menu');
+    this.overlay.classList.add('is-visible');
+  }
+
+  private handlePauseAction(action: string): void {
+    if (action === 'resume') {
+      this.resumeFromPause();
+      return;
+    }
+    if (action === 'restart') {
+      this.health = PLAYER_MAX_HEALTH;
+      this.resumeFromPause();
+      this.loadLevel(this.levelIndex);
+      return;
+    }
+    if (action === 'sound') {
+      this.settings = saveSettings({ soundOn: !this.settings.soundOn });
+      this.audio.setEnabled(this.settings.soundOn);
+      this.showPauseOverlay();
+      return;
+    }
+    if (action === 'camera') {
+      this.toggleCameraMode();
+      this.showPauseOverlay();
+      return;
+    }
+    if (action === 'sensitivity') {
+      const next = this.nextMouseSensitivity(this.settings.mouseSensitivity);
+      this.settings = saveSettings({ mouseSensitivity: next });
+      this.cameraController.setMouseSensitivity(this.settings.mouseSensitivity);
+      this.showPauseOverlay();
+    }
+  }
+
+  private resumeFromPause(): void {
+    this.state = 'playing';
+    this.shell.classList.remove('is-menu');
+    this.overlay.classList.remove('is-visible');
+    this.updateHud();
+  }
+
+  private nextMouseSensitivity(current: number): number {
+    const values = [0.6, 0.8, 1, 1.2, 1.5, 2];
+    const index = values.findIndex((value) => value > current + 0.01);
+    return index === -1 ? values[0] : values[index];
+  }
+
   private loadLevel(index: number): void {
     this.levelIndex = index;
     this.levelCompleteTimer = 0;
     this.shootCooldown = 0;
-    this.invulnerableTimer = 0;
+    this.invulnerableTimer = SPAWN_INVULNERABILITY_SECONDS;
     this.clearLevel();
 
     const level = LEVELS[this.levelIndex];
@@ -428,6 +531,7 @@ export class Game {
     this.obstacles.length = 0;
     this.bullets.length = 0;
     this.sparks.length = 0;
+    this.pulses.length = 0;
   }
 
   private buildRoom(level: LevelConfig): void {
@@ -478,7 +582,8 @@ export class Game {
     const exit = this.createPad(level.exit.x, level.exit.z, palette.green, 'ВИХІД');
     this.levelRoot.add(exit);
 
-    const titlePad = this.createFloatingLabel(level.name, 0, 0.08, ROOM_HALF_DEPTH - 2.8);
+    const titlePad = this.createFloatingLabel(level.name, -11.8, 0.08, ROOM_HALF_DEPTH - 3.1);
+    titlePad.scale.set(2.5, 0.62, 1);
     this.levelRoot.add(titlePad);
   }
 
@@ -668,6 +773,54 @@ export class Game {
     this.playerAnimationParts.push(head, antennaTip, armA, armB, footA, footB);
   }
 
+  private createPlayerEffectRings(): void {
+    this.playerEffectRoot.clear();
+    const shieldTheme = getPowerEffectTheme('shield');
+    const rapidTheme = getPowerEffectTheme('rapid');
+    const overchargeTheme = getPowerEffectTheme('overcharge');
+
+    const shieldMaterial = this.createEffectMaterial(shieldTheme.color, 0.34, shieldTheme.emissiveIntensity);
+    const rapidMaterial = this.createEffectMaterial(rapidTheme.color, 0.42, rapidTheme.emissiveIntensity);
+    const overchargeMaterial = this.createEffectMaterial(overchargeTheme.color, 0.5, overchargeTheme.emissiveIntensity);
+
+    const shieldRingA = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.025, 8, 48), shieldMaterial);
+    const shieldRingB = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.025, 8, 48), shieldMaterial);
+    shieldRingA.position.y = 1.05;
+    shieldRingB.position.y = 1.05;
+    shieldRingA.rotation.x = Math.PI * 0.5;
+    shieldRingB.rotation.z = Math.PI * 0.5;
+
+    const rapidRing = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.032, 8, 44), rapidMaterial);
+    const rapidArcA = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), rapidMaterial);
+    const rapidArcB = rapidArcA.clone();
+    rapidRing.position.y = 0.18;
+    rapidRing.rotation.x = Math.PI * 0.5;
+    rapidArcA.position.set(0.78, 0.3, 0);
+    rapidArcB.position.set(-0.78, 0.3, 0);
+
+    const overchargeOrbit = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.03, 8, 44), overchargeMaterial);
+    const overchargeCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.16), overchargeMaterial);
+    overchargeOrbit.position.y = 1.25;
+    overchargeOrbit.rotation.x = Math.PI * 0.62;
+    overchargeCore.position.set(0.92, 1.25, 0);
+
+    this.playerEffectRoot.add(shieldRingA, shieldRingB, rapidRing, rapidArcA, rapidArcB, overchargeOrbit, overchargeCore);
+    this.playerEffectRoot.userData.shield = [shieldRingA, shieldRingB];
+    this.playerEffectRoot.userData.rapid = [rapidRing, rapidArcA, rapidArcB];
+    this.playerEffectRoot.userData.overcharge = [overchargeOrbit, overchargeCore];
+  }
+
+  private createEffectMaterial(color: number, opacity: number, emissiveIntensity: number): THREE.MeshStandardMaterial {
+    return new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity,
+      transparent: true,
+      opacity,
+      roughness: 0.16
+    });
+  }
+
   private createAimMarker(): void {
     this.aimMarker.clear();
     const material = new THREE.MeshStandardMaterial({
@@ -735,22 +888,7 @@ export class Game {
   private spawnEnemy(config: EnemyConfig): void {
     const group = new THREE.Group();
     const base = new THREE.Vector3(config.position.x, 0, config.position.z);
-    let health = 35;
-    let radius = 0.7;
-
-    if (config.kind === 'boss') {
-      health = 180;
-      radius = 1.5;
-    } else if (config.kind === 'shieldBot') {
-      health = 70;
-      radius = 0.9;
-    } else if (config.kind === 'turret') {
-      health = 55;
-      radius = 0.85;
-    } else if (config.kind === 'beetle') {
-      health = 45;
-      radius = 0.65;
-    }
+    const { health, radius } = getEnemyStats(config.kind);
 
     const material = new THREE.MeshStandardMaterial({
       color: config.kind === 'boss' ? palette.purple : config.kind === 'shieldBot' ? palette.cyan : palette.pink,
@@ -893,7 +1031,7 @@ export class Game {
       }
     });
     this.dynamicRoot.add(group);
-    this.enemies.push({ group, kind: config.kind, base, health, maxHealth: health, radius, shootTimer: 1.2, alive: true });
+    this.enemies.push({ group, kind: config.kind, base, health, maxHealth: health, radius, shootTimer: ENEMY_INITIAL_SHOOT_DELAY, alive: true, phase: 1 });
   }
 
   private spawnDoor(config: DoorConfig): void {
@@ -946,6 +1084,7 @@ export class Game {
       group,
       position: new THREE.Vector3(config.position.x, 0, config.position.z),
       opensDoorId: config.opensDoorId,
+      opensDoorIds: config.opensDoorIds ?? [config.opensDoorId],
       active: false
     });
   }
@@ -1108,10 +1247,13 @@ export class Game {
     this.dashCooldown = Math.max(0, this.dashCooldown - delta);
     this.toastTimer = Math.max(0, this.toastTimer - delta);
     this.laserContactTimer = Math.max(0, this.laserContactTimer - delta);
+    this.blasterFlashTimer = Math.max(0, this.blasterFlashTimer - delta);
     this.updateAimFromPointer();
     this.updateAimMarker(delta);
+    this.updateFirstPersonBlaster(delta);
     this.updatePlayer(delta);
     this.updatePlayerAnimation();
+    this.updatePlayerEffectRings(delta);
     this.updateEnemies(delta);
     this.updateBullets(delta);
     this.updateTargets(delta);
@@ -1121,6 +1263,7 @@ export class Game {
     this.updateDoors(delta);
     this.updateLasers(delta);
     this.updateSparks(delta);
+    this.updatePulses(delta);
     this.updateCamera(delta);
     this.checkExit(delta);
     this.updateHud();
@@ -1193,6 +1336,32 @@ export class Game {
     }
   }
 
+  private updatePlayerEffectRings(delta: number): void {
+    this.playerEffectRoot.position.copy(this.playerPosition);
+    const shieldObjects = (this.playerEffectRoot.userData.shield ?? []) as THREE.Object3D[];
+    const rapidObjects = (this.playerEffectRoot.userData.rapid ?? []) as THREE.Object3D[];
+    const overchargeObjects = (this.playerEffectRoot.userData.overcharge ?? []) as THREE.Object3D[];
+    const shieldVisible = this.shieldTimer > 0 || this.invulnerableTimer > 0;
+    const rapidVisible = this.rapidTimer > 0;
+    const overchargeVisible = this.overchargeShots > 0;
+
+    shieldObjects.forEach((object, index) => {
+      object.visible = shieldVisible;
+      object.rotation.y += delta * (index === 0 ? 1.9 : -1.35);
+      object.scale.setScalar(1 + Math.sin(this.elapsed * 7 + index) * 0.045);
+    });
+    rapidObjects.forEach((object, index) => {
+      object.visible = rapidVisible;
+      object.rotation.y += delta * (4.8 + index);
+      object.scale.setScalar(1 + Math.sin(this.elapsed * 12 + index) * 0.06);
+    });
+    overchargeObjects.forEach((object, index) => {
+      object.visible = overchargeVisible;
+      object.rotation.y += delta * (2.2 + index);
+      object.scale.setScalar(1 + Math.sin(this.elapsed * 8 + index) * 0.08);
+    });
+  }
+
   private movePlayer(deltaMove: THREE.Vector3): void {
     const steps = Math.max(1, Math.ceil(deltaMove.length() / 0.35));
     const step = deltaMove.clone().multiplyScalar(1 / steps);
@@ -1254,19 +1423,27 @@ export class Game {
         enemy.group.position.y = Math.sin(this.elapsed * 1.8) * 0.08;
         const core = enemy.group.userData.core as THREE.Object3D | undefined;
         const crown = enemy.group.userData.crown as THREE.Object3D | undefined;
+        const phase = getBossPhase(enemy.health, enemy.maxHealth);
+        if (phase.index !== enemy.phase) {
+          enemy.phase = phase.index;
+          this.audio.play('boss');
+          this.showToast(phase.index === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!', 1.5);
+        }
         if (core) {
-          core.scale.setScalar(1 + Math.sin(this.elapsed * 5) * 0.12);
+          core.scale.setScalar(1 + phase.index * 0.05 + Math.sin(this.elapsed * (5 + phase.index)) * 0.12);
         }
         if (crown) {
-          crown.rotation.z += delta * 1.8;
+          crown.rotation.z += delta * (1.6 + phase.index * 0.45);
         }
         if (enemy.shootTimer <= 0) {
           const baseAngle = Math.atan2(toPlayer.x, toPlayer.z);
-          for (const offset of [-0.28, 0, 0.28]) {
+          const center = (phase.bulletCount - 1) * 0.5;
+          for (let index = 0; index < phase.bulletCount; index += 1) {
+            const offset = (index - center) * phase.spread;
             const direction = new THREE.Vector3(Math.sin(baseAngle + offset), 0, Math.cos(baseAngle + offset));
-            this.fireEnemyBullet(enemy.group.position.clone().add(new THREE.Vector3(0, 1.4, 0)), direction, 18);
+            this.fireEnemyBullet(enemy.group.position.clone().add(new THREE.Vector3(0, 1.4, 0)), direction, phase.damage);
           }
-          enemy.shootTimer = 2.2;
+          enemy.shootTimer = phase.cooldown;
         }
       } else {
         const legs = (enemy.group.userData.legs ?? []) as THREE.Object3D[];
@@ -1277,7 +1454,7 @@ export class Game {
           enemy.group.position.add(toPlayer.normalize().multiplyScalar(delta * 2.2));
           this.resolveObstacleCollisions(enemy.group.position, 0.55);
         } else {
-          this.damagePlayer(18);
+          this.damagePlayer(BEETLE_CONTACT_DAMAGE);
         }
       }
     }
@@ -1313,12 +1490,7 @@ export class Game {
   }
 
   private pointHitsObstacle(position: THREE.Vector3, radius = 0.18): boolean {
-    return this.obstacles.some((obstacle) => {
-      return (
-        Math.abs(position.x - obstacle.position.x) < obstacle.halfWidth + radius &&
-        Math.abs(position.z - obstacle.position.z) < obstacle.halfDepth + radius
-      );
-    });
+    return pointHitsSolid(position, this.obstacles, this.doors, radius);
   }
 
   private isEnemyProtected(enemy: Enemy): boolean {
@@ -1431,26 +1603,26 @@ export class Game {
           this.showToast('Аптечка зачекає: енергія повна.', 1.3);
           continue;
         }
+        const effectTheme = getPowerEffectTheme(powerUp.kind);
         powerUp.collected = true;
         powerUp.group.visible = false;
         this.score += 120;
         if (powerUp.kind === 'repair') {
-          this.health = Math.min(PLAYER_MAX_HEALTH, this.health + 38);
+          this.health = Math.min(PLAYER_MAX_HEALTH, this.health + REPAIR_AMOUNT);
           this.showToast('Аптечка: енергія відновлена!', 1.8);
-          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.green, 1.15);
         } else if (powerUp.kind === 'rapid') {
           this.rapidTimer = 8;
           this.showToast('Швидкий бластер активний!', 1.8);
-          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.yellow, 1.15);
         } else if (powerUp.kind === 'shield') {
           this.shieldTimer = 9;
           this.showToast('Щит увімкнено!', 1.8);
-          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.cyan, 1.15);
         } else {
           this.overchargeShots += 1;
           this.showToast('Заряджений постріл готовий!', 1.8);
-          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.orange, 1.25);
         }
+        const effectPosition = powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0));
+        this.addSpark(effectPosition, effectTheme.color, effectTheme.pulseScale);
+        this.addPulseRing(effectPosition, effectTheme.color, effectTheme.pulseScale);
         this.audio.play('pickup');
       }
     }
@@ -1471,7 +1643,7 @@ export class Game {
 
   private updateDoors(delta: number): void {
     for (const door of this.doors) {
-      const relatedButtons = this.buttons.filter((button) => button.opensDoorId === door.id);
+      const relatedButtons = this.buttons.filter((button) => button.opensDoorIds.includes(door.id));
       const shouldOpen = relatedButtons.length > 0 && relatedButtons.every((button) => button.active);
       if (shouldOpen) {
         door.open = true;
@@ -1504,7 +1676,7 @@ export class Game {
           : Math.abs(localX) < 0.35 && Math.abs(localZ) < laser.config.length * 0.5;
       if (nearBeam) {
         this.audio.play('laser');
-        this.damagePlayer(48 * delta, { continuous: true });
+        this.damagePlayer(LASER_DAMAGE_PER_SECOND * delta, { continuous: true });
       }
     }
   }
@@ -1523,10 +1695,50 @@ export class Game {
     }
   }
 
+  private updatePulses(delta: number): void {
+    for (let i = this.pulses.length - 1; i >= 0; i -= 1) {
+      const pulse = this.pulses[i];
+      pulse.life -= delta;
+      const progress = 1 - pulse.life / pulse.maxLife;
+      pulse.mesh.scale.setScalar(1 + progress * pulse.maxScale);
+      pulse.material.opacity = Math.max(0, (pulse.life / pulse.maxLife) * 0.58);
+      if (pulse.life <= 0) {
+        this.dynamicRoot.remove(pulse.mesh);
+        this.pulses.splice(i, 1);
+      }
+    }
+  }
+
   private updateAimMarker(delta: number): void {
     this.aimMarker.visible = this.state === 'playing' && this.cameraController.getMode() === 'thirdPerson';
     this.aimMarker.position.lerp(new THREE.Vector3(this.aimPoint.x, 0.09, this.aimPoint.z), 1 - Math.pow(0.004, delta));
     this.aimMarker.rotation.y += delta * 2.4;
+  }
+
+  private updateFirstPersonBlaster(delta: number): void {
+    const flash = this.firstPersonBlaster.userData.flash as THREE.Object3D | undefined;
+    const coil = this.firstPersonBlaster.userData.coil as THREE.Object3D | undefined;
+    const glowMaterial = this.firstPersonBlaster.userData.glowMaterial as THREE.MeshStandardMaterial | undefined;
+    const flashActive = this.blasterFlashTimer > 0;
+    const overchargeActive = this.overchargeShots > 0;
+    const rapidActive = this.rapidTimer > 0;
+    if (glowMaterial) {
+      const color = overchargeActive ? palette.orange : rapidActive ? palette.yellow : palette.cyan;
+      glowMaterial.color.setHex(color);
+      glowMaterial.emissive.setHex(color);
+      glowMaterial.emissiveIntensity = overchargeActive ? 2.6 : rapidActive ? 2.1 : 1.5;
+    }
+    if (flash) {
+      flash.visible = flashActive;
+      flash.scale.setScalar(flashActive ? 1 + this.blasterFlashTimer * (overchargeActive ? 14 : 10) : 1);
+    }
+    if (coil) {
+      coil.rotation.z += delta * (rapidActive ? 16 : 7);
+      coil.scale.setScalar(overchargeActive ? 1.24 + Math.sin(this.elapsed * 10) * 0.08 : rapidActive ? 1.14 : 1);
+    }
+    const kick = flashActive ? this.blasterFlashTimer / 0.12 : 0;
+    this.firstPersonBlaster.position.z = THREE.MathUtils.lerp(this.firstPersonBlaster.position.z, kick * 0.08, 1 - Math.pow(0.001, delta));
+    this.firstPersonBlaster.rotation.x = THREE.MathUtils.lerp(this.firstPersonBlaster.rotation.x, -kick * 0.08, 1 - Math.pow(0.001, delta));
   }
 
   private updateCamera(delta: number): void {
@@ -1623,9 +1835,10 @@ export class Game {
       mesh,
       velocity: direction.clone().multiplyScalar(BULLET_SPEED),
       owner: 'player',
-      damage: overcharged ? 92 : this.rapidTimer > 0 ? 20 : 26,
+      damage: overcharged ? PLAYER_OVERCHARGE_DAMAGE : this.rapidTimer > 0 ? PLAYER_RAPID_DAMAGE : PLAYER_BASE_DAMAGE,
       life: 1.6
     });
+    this.blasterFlashTimer = 0.12;
     this.audio.play('shot');
     this.shootCooldown = this.rapidTimer > 0 ? 0.09 : 0.18;
   }
@@ -1680,6 +1893,12 @@ export class Game {
     if (!canApplyDamage(this.invulnerableTimer, continuous)) return;
     const finalAmount = effectiveDamage(amount, this.shieldTimer > 0);
     this.health = Math.max(0, this.health - finalAmount);
+    if (this.shieldTimer > 0 && !continuous) {
+      const shieldTheme = getPowerEffectTheme('shield');
+      const shieldHitPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1.05, 0));
+      this.addSpark(shieldHitPosition, shieldTheme.color, 0.85);
+      this.addPulseRing(shieldHitPosition, shieldTheme.color, 0.75);
+    }
     if (!continuous) {
       this.invulnerableTimer = 0.45;
     } else {
@@ -1707,6 +1926,22 @@ export class Game {
     this.sparks.push({ mesh, material, life: 0.42, maxLife: 0.42 });
   }
 
+  private addPulseRing(position: THREE.Vector3, color: number, scale = 1): void {
+    const material = new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity: 1.8,
+      transparent: true,
+      opacity: 0.58,
+      roughness: 0.2
+    });
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(0.52 * scale, 0.035, 8, 48), material);
+    mesh.position.copy(position);
+    mesh.rotation.x = Math.PI * 0.5;
+    this.dynamicRoot.add(mesh);
+    this.pulses.push({ mesh, material, life: 0.56, maxLife: 0.56, maxScale: 2.8 });
+  }
+
   private updateHud(): void {
     const level = LEVELS[this.levelIndex];
     const objectiveDone = this.isObjectiveComplete();
@@ -1716,9 +1951,9 @@ export class Game {
     this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : `${this.objectiveProgressText()} - ${level.tip}`;
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const powers = [];
-    if (this.rapidTimer > 0) powers.push(`Швидкий бластер ${Math.ceil(this.rapidTimer)}с`);
+    if (this.rapidTimer > 0) powers.push(`Rapid ${Math.ceil(this.rapidTimer)}с`);
     if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
-    if (this.overchargeShots > 0) powers.push(`Overcharge x${this.overchargeShots}`);
+    if (this.overchargeShots > 0) powers.push(`Заряд x${this.overchargeShots}`);
     this.hudPower.textContent = powers.length > 0 ? powers.join(' + ') : 'Апгрейди -';
     this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
@@ -1785,6 +2020,21 @@ export class Game {
     }
   };
 
+  private toggleCameraMode(): void {
+    this.cameraController.toggleMode();
+    if (this.cameraController.getMode() === 'firstPerson') {
+      const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+      this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
+      this.requestPointerLockForFirstPerson();
+    } else {
+      this.fallbackMouseCaptured = false;
+      this.exitPointerLock();
+    }
+    this.settings = saveSettings({ preferredCameraMode: this.cameraController.getMode() });
+    this.showToast(this.cameraController.getMode() === 'firstPerson' ? 'Вид від першої особи.' : 'Тактичний вид зверху.', 1.15);
+    this.updateHud();
+  }
+
   private handleKeyDown = (event: KeyboardEvent): void => {
     this.keys.add(event.code);
     if (
@@ -1801,26 +2051,10 @@ export class Game {
       return;
     }
     if (event.code === 'Escape' && this.state === 'playing') {
-      this.state = 'paused';
-      this.showOverlay('Пауза', 'WASD - рух, мишка - приціл, клік - постріл, C - змінити вид, M - звук, Shift - ривок, Space - стрибок, R - перезапуск кімнати.', 'Продовжити', () => {
-        this.state = 'playing';
-        this.shell.classList.remove('is-menu');
-        this.overlay.classList.remove('is-visible');
-      });
+      this.showPauseOverlay();
     }
     if (event.code === 'KeyC' && this.state === 'playing' && !event.repeat) {
-      this.cameraController.toggleMode();
-      if (this.cameraController.getMode() === 'firstPerson') {
-        const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
-        this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
-        this.requestPointerLockForFirstPerson();
-      } else {
-        this.fallbackMouseCaptured = false;
-        this.exitPointerLock();
-      }
-      this.settings = saveSettings({ preferredCameraMode: this.cameraController.getMode() });
-      this.showToast(this.cameraController.getMode() === 'firstPerson' ? 'Вид від першої особи.' : 'Тактичний вид зверху.', 1.15);
-      this.updateHud();
+      this.toggleCameraMode();
     }
     if (event.code === 'KeyM' && !event.repeat) {
       this.settings = saveSettings({ soundOn: !this.settings.soundOn });
@@ -1835,6 +2069,16 @@ export class Game {
       this.loadLevel(this.levelIndex);
     }
     if (import.meta.env.DEV && this.state === 'playing') {
+      if (getDevEffectTarget(event.code) === 'all') {
+        this.rapidTimer = 8;
+        this.shieldTimer = 9;
+        this.overchargeShots = Math.max(this.overchargeShots, 1);
+        const effectPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0));
+        this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
+        this.showToast('QA: усі ефекти активні.', 1.4);
+        this.updateHud();
+        return;
+      }
       const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);
       if (targetLevel !== undefined) {
         this.health = PLAYER_MAX_HEALTH;

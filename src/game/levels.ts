@@ -140,9 +140,9 @@ export const LEVELS: LevelConfig[] = [
     enemies: [
       { kind: 'turret', position: { x: -14, z: 8 } },
       { kind: 'turret', position: { x: 14, z: 8 } },
-      { kind: 'shieldBot', position: { x: 0, z: 6 } },
-      { kind: 'beetle', position: { x: -8, z: 1 } },
-      { kind: 'beetle', position: { x: 8, z: 1 } },
+      { kind: 'shieldBot', position: { x: 0, z: 8.2 } },
+      { kind: 'beetle', position: { x: -10, z: 1 } },
+      { kind: 'beetle', position: { x: 10, z: 1 } },
       { kind: 'drone', position: { x: -11, z: -10 } },
       { kind: 'drone', position: { x: 11, z: -10 } }
     ],
@@ -331,8 +331,7 @@ export const LEVELS: LevelConfig[] = [
       { position: { x: -15, z: -7 }, opensDoorId: 'left' },
       { position: { x: 15, z: 14 }, opensDoorId: 'right' },
       { position: { x: 15, z: -7 }, opensDoorId: 'right' },
-      { position: { x: 0, z: -2 }, opensDoorId: 'left' },
-      { position: { x: 0, z: -2 }, opensDoorId: 'right' }
+      { position: { x: 0, z: -2 }, opensDoorId: 'left', opensDoorIds: ['left', 'right'] }
     ],
     doors: [
       { id: 'left', position: { x: -4, z: -18 } },
@@ -381,7 +380,7 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'shieldBot', position: { x: 0, z: 0 } },
       { kind: 'beetle', position: { x: -5, z: 4 } },
       { kind: 'beetle', position: { x: 5, z: 4 } },
-      { kind: 'turret', position: { x: 0, z: -15 } }
+      { kind: 'turret', position: { x: 0, z: -17.5 } }
     ],
     collectibles: [
       { position: { x: -16, z: 0 } },

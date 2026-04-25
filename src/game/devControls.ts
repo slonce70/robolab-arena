@@ -6,6 +6,11 @@ export function getDevLevelTarget(code: string, currentLevel: number, totalLevel
   return undefined;
 }
 
+export function getDevEffectTarget(code: string): 'all' | undefined {
+  if (code === 'KeyV') return 'all';
+  return undefined;
+}
+
 function clampRoom(level: number, totalLevels: number): number {
   return Math.min(Math.max(1, level), totalLevels);
 }

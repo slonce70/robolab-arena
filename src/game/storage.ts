@@ -5,6 +5,7 @@ const STORAGE_KEY = 'robolab-arena-settings';
 export type RoboLabSettings = {
   bestScore: number;
   highestUnlockedRoom: number;
+  mouseSensitivity: number;
   preferredCameraMode: CameraMode;
   reducedMotion: boolean;
   soundOn: boolean;
@@ -13,6 +14,7 @@ export type RoboLabSettings = {
 export const DEFAULT_SETTINGS: RoboLabSettings = {
   bestScore: 0,
   highestUnlockedRoom: 1,
+  mouseSensitivity: 1,
   preferredCameraMode: 'thirdPerson',
   reducedMotion: false,
   soundOn: true
@@ -42,6 +44,9 @@ function sanitizeSettings(settings: Partial<RoboLabSettings>): RoboLabSettings {
     highestUnlockedRoom: Number.isFinite(settings.highestUnlockedRoom)
       ? Math.max(1, Math.floor(settings.highestUnlockedRoom ?? 1))
       : DEFAULT_SETTINGS.highestUnlockedRoom,
+    mouseSensitivity: Number.isFinite(settings.mouseSensitivity)
+      ? Math.min(2, Math.max(0.6, Number(settings.mouseSensitivity)))
+      : DEFAULT_SETTINGS.mouseSensitivity,
     preferredCameraMode,
     reducedMotion: settings.reducedMotion === true,
     soundOn: settings.soundOn !== false

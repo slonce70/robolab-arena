@@ -38,4 +38,12 @@ describe('RoboLab Arena levels', () => {
     expect(LEVELS.flatMap((level) => level.powerUps ?? []).some((powerUp) => powerUp.kind === 'overcharge')).toBe(true);
     expect(LEVELS.flatMap((level) => level.lasers ?? []).some((laser) => laser.sweep)).toBe(true);
   });
+
+  it('does not hide duplicate buttons on the same floor pad', () => {
+    for (const level of LEVELS) {
+      const buttonPositions = new Set((level.buttons ?? []).map((button) => `${button.position.x},${button.position.z}`));
+
+      expect(buttonPositions.size, level.name).toBe(level.buttons?.length ?? 0);
+    }
+  });
 });

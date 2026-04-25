@@ -11,6 +11,7 @@ describe('RoboLab storage', () => {
     expect(loadSettings(storage)).toEqual({
       bestScore: 0,
       highestUnlockedRoom: 1,
+      mouseSensitivity: 1,
       preferredCameraMode: 'thirdPerson',
       reducedMotion: false,
       soundOn: true
@@ -27,5 +28,19 @@ describe('RoboLab storage', () => {
     saveSettings({ bestScore: 900, soundOn: false }, storage);
 
     expect(loadSettings(storage)).toMatchObject({ bestScore: 900, soundOn: false, highestUnlockedRoom: 1 });
+  });
+
+  it('sanitizes mouse sensitivity for pause settings', () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: vi.fn((key: string) => values.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => values.set(key, value))
+    } as unknown as Storage;
+
+    saveSettings({ mouseSensitivity: 9 }, storage);
+    expect(loadSettings(storage).mouseSensitivity).toBe(2);
+
+    saveSettings({ mouseSensitivity: 0.2 }, storage);
+    expect(loadSettings(storage).mouseSensitivity).toBe(0.6);
   });
 });

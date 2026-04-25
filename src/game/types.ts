@@ -21,6 +21,7 @@ export type CollectibleConfig = {
 export type ButtonConfig = {
   position: Vec2;
   opensDoorId: string;
+  opensDoorIds?: string[];
 };
 
 export type DoorConfig = {
