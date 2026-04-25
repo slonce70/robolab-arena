@@ -158,3 +158,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-laser-lanes-2026-04-26/report.json`: `laser-lanes-playwright-pass`, room 6 loaded, objective HUD visible, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: screenshot confirms the laser-room render path stays healthy, but visual taste should still be judged by eye in the in-app browser.
+
+## Iteration 12 - Audio cues made more expressive
+- Problem: door/victory/laser/boss sounds existed, but the audio manager treated them as one-beep frequency presets, making finale and door feedback less distinctive.
+- Change: extracted tested sound profiles and gave door/victory multi-tone cues while keeping laser/boss as low warning timbres.
+- Evidence:
+  - `npm test` PASS: 20 files / 68 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright smoke `output/playwright/overnight-audio-smoke-2026-04-26/report.json`: `audio-profile-smoke-pass`, room 12 and power effect flow stayed error-free after audio-profile scheduling, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: headless automation validates scheduling safety but not subjective sound taste; final audio mix needs human listening with speakers/headphones.
