@@ -212,3 +212,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright DOM smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
 - Remaining risk: this is a balance guardrail, not a substitute for a real human full-run difficulty judgment.
+
+## Iteration 18 - Door open/closed feedback
+- Problem: button rooms could still feel unclear because doors moved up, but their material stayed similarly bright and button sounds fired before the actual door was fully open.
+- Change: added `describeDoorVisualStatus`, stored each door material, dimmed passable doors, and played a door spark/sound exactly when a door transitions open.
+- Evidence:
+  - `npm test` PASS: 26 files / 82 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-door-status-2026-04-26/report.json`: `door-status-playwright-pass`, room 10 loaded, objective HUD visible, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: browser smoke validates the door-room render path; actual door transition timing should be watched in a manual button-room pass.

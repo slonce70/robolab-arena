@@ -16,6 +16,7 @@ import { CameraController } from './camera/CameraController';
 import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { describeDoorVisualStatus } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
@@ -84,6 +85,7 @@ type Collectible = {
 type Door = {
   id: string;
   group: THREE.Group;
+  material: THREE.MeshStandardMaterial;
   position: THREE.Vector3;
   halfWidth: number;
   halfDepth: number;
@@ -1118,6 +1120,7 @@ export class Game {
     this.doors.push({
       id: config.id,
       group,
+      material,
       position: new THREE.Vector3(config.position.x, 0, config.position.z),
       halfWidth: doorWidth * 0.5,
       halfDepth: 0.28,
@@ -1725,11 +1728,15 @@ export class Game {
     for (const door of this.doors) {
       const relatedButtons = this.buttons.filter((button) => button.opensDoorIds.includes(door.id));
       const shouldOpen = relatedButtons.length > 0 && relatedButtons.every((button) => button.active);
-      if (shouldOpen) {
+      if (shouldOpen && !door.open) {
         door.open = true;
+        this.audio.play('door');
+        this.addSpark(door.position.clone().add(new THREE.Vector3(0, 1.2, 0)), palette.green, 1.05);
       }
-      const targetY = door.open ? 3.2 : 0;
-      door.group.position.y = THREE.MathUtils.lerp(door.group.position.y, targetY, delta * 4);
+      const visual = describeDoorVisualStatus(door.open);
+      door.material.opacity = visual.opacity;
+      door.material.emissiveIntensity = visual.emissiveIntensity;
+      door.group.position.y = THREE.MathUtils.lerp(door.group.position.y, visual.targetY, delta * 4);
     }
   }
 
