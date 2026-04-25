@@ -62,3 +62,21 @@ Evidence:
 
 Remaining risk:
 - Continue is intentionally a fresh room start, not a save-state restore of health/score/projectiles.
+
+## Iteration 4 - Reduced Motion Effects
+
+Goal: make the game more comfortable for motion-sensitive players while keeping the neon style available by default.
+
+Changes:
+- Added a pause setting `Ефекти: повні/спокійні` backed by the existing `reducedMotion` storage field.
+- Reduced spark/pulse lifetime, scale, and CSS animation/transition intensity when calm effects are enabled.
+- Kept full effects as the default.
+
+Evidence:
+- `node .omx/tmp/robolab-reduced-motion-qa.mjs` -> `reduced-motion-playwright-pass`, persisted `reducedMotion: true`, bad console 0, page errors 0.
+- `npm test` -> 15 files, 54 tests passed.
+- `npm run build` -> success with the known Vite large chunk warning.
+- `git diff --check` -> clean.
+
+Remaining risk:
+- Canvas camera/gameplay movement is unchanged; this setting currently calms effects and UI animation, not player locomotion.

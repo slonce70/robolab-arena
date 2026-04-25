@@ -68,6 +68,17 @@ button:focus-visible {
   cursor: none;
 }
 
+
+.game-shell.is-reduced-motion .toast-chip,
+.game-shell.is-reduced-motion .overlay {
+  animation-duration: 0.01ms;
+}
+
+.game-shell.is-reduced-motion .primary-action,
+.game-shell.is-reduced-motion .secondary-action {
+  transition: none;
+}
+
 .hud {
   position: absolute;
   inset: 0;

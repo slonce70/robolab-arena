@@ -470,6 +470,7 @@ export class Game {
           <button class="secondary-action" type="button" data-action="sound">${this.settings.soundOn ? 'Звук: увімкнено' : 'Звук: вимкнено'}</button>
           <button class="secondary-action" type="button" data-action="camera">${this.cameraController.getHudLabel()}</button>
           <button class="secondary-action" type="button" data-action="sensitivity">Чутливість ${this.settings.mouseSensitivity.toFixed(1)}x</button>
+          <button class="secondary-action" type="button" data-action="motion">Ефекти: ${this.settings.reducedMotion ? 'спокійні' : 'повні'}</button>
         </div>
       </div>
     `;
@@ -505,6 +506,12 @@ export class Game {
       const next = this.nextMouseSensitivity(this.settings.mouseSensitivity);
       this.settings = saveSettings({ mouseSensitivity: next });
       this.cameraController.setMouseSensitivity(this.settings.mouseSensitivity);
+      this.showPauseOverlay();
+      return;
+    }
+    if (action === 'motion') {
+      this.settings = saveSettings({ reducedMotion: !this.settings.reducedMotion });
+      this.updateHud();
       this.showPauseOverlay();
     }
   }
@@ -1958,10 +1965,12 @@ export class Game {
       opacity: 0.85,
       roughness: 0.22
     });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.28 * scale, 18, 12), material);
+    const motionScale = this.settings.reducedMotion ? 0.65 : 1;
+    const life = this.settings.reducedMotion ? 0.24 : 0.42;
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.28 * scale * motionScale, 18, 12), material);
     mesh.position.copy(position);
     this.dynamicRoot.add(mesh);
-    this.sparks.push({ mesh, material, life: 0.42, maxLife: 0.42 });
+    this.sparks.push({ mesh, material, life, maxLife: life });
   }
 
   private addPulseRing(position: THREE.Vector3, color: number, scale = 1): void {
@@ -1973,11 +1982,13 @@ export class Game {
       opacity: 0.58,
       roughness: 0.2
     });
-    const mesh = new THREE.Mesh(new THREE.TorusGeometry(0.52 * scale, 0.035, 8, 48), material);
+    const motionScale = this.settings.reducedMotion ? 0.72 : 1;
+    const life = this.settings.reducedMotion ? 0.32 : 0.56;
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(0.52 * scale * motionScale, 0.035, 8, 48), material);
     mesh.position.copy(position);
     mesh.rotation.x = Math.PI * 0.5;
     this.dynamicRoot.add(mesh);
-    this.pulses.push({ mesh, material, life: 0.56, maxLife: 0.56, maxScale: 2.8 });
+    this.pulses.push({ mesh, material, life, maxLife: life, maxScale: this.settings.reducedMotion ? 1.55 : 2.8 });
   }
 
   private updateHud(): void {
@@ -1998,6 +2009,7 @@ export class Game {
     this.hudCamera.textContent = this.cameraController.getHudLabel();
     const isFirstPerson = this.cameraController.getMode() === 'firstPerson';
     this.shell.classList.toggle('is-first-person', isFirstPerson);
+    this.shell.classList.toggle('is-reduced-motion', this.settings.reducedMotion);
     this.shell.classList.toggle('is-pointer-locked', this.pointerLocked);
     this.shell.classList.toggle('is-mouse-captured', this.isFirstPersonMouseCaptured());
     this.crosshair.classList.toggle('is-visible', this.state === 'playing' && isFirstPerson);
