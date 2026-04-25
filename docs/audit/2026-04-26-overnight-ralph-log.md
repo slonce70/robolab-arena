@@ -25,3 +25,22 @@ Artifact:
 
 Remaining risk:
 - The intel is text/UI guidance only; it does not replace a no-jump human victory run.
+
+## Iteration 2 - Run Feedback Stats
+
+Goal: make success/failure feedback more satisfying and useful without changing combat balance.
+
+Changes:
+- Added run-stat helpers for elapsed time, completed rooms, and restarts.
+- Added room-complete and victory summaries so players see run time and retry count.
+- Counted manual restarts and defeat reloads as restarts.
+- Added unit tests for duration formatting and stat transitions.
+
+Evidence:
+- `npx vitest run --dir src` -> 15 files, 54 tests passed during implementation.
+- `npm test` -> 15 files, 54 tests passed.
+- `npm run build` -> success with the known Vite large chunk warning.
+- `git diff --check` -> clean.
+
+Remaining risk:
+- Victory overlay text is unit-covered through formatting helpers; a full normal victory browser run is still not claimed.

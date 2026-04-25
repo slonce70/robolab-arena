@@ -22,6 +22,15 @@ import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeObjectiveProgress } from './objectives';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
+import {
+  beginRoom,
+  completeRoom,
+  createRunStats,
+  formatRoomSummary,
+  formatVictorySummary,
+  recordRestart,
+  type RunStats
+} from './runStats';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import type {
   ButtonConfig,
@@ -227,6 +236,7 @@ export class Game {
   private overchargeShots = 0;
   private dashCooldown = 0;
   private toastTimer = 0;
+  private runStats: RunStats = createRunStats(0);
   private laserContactTimer = 0;
   private blasterFlashTimer = 0;
   private score = 0;
@@ -403,6 +413,7 @@ export class Game {
     this.overchargeShots = 0;
     this.dashCooldown = 0;
     this.toastTimer = 0;
+    this.runStats = createRunStats(performance.now());
     this.levelIndex = 0;
     this.loadLevel(0);
     this.requestPointerLockForFirstPerson();
@@ -464,9 +475,8 @@ export class Game {
       return;
     }
     if (action === 'restart') {
-      this.health = PLAYER_MAX_HEALTH;
+      this.restartCurrentLevel();
       this.resumeFromPause();
-      this.loadLevel(this.levelIndex);
       return;
     }
     if (action === 'sound') {
@@ -501,8 +511,15 @@ export class Game {
     return index === -1 ? values[0] : values[index];
   }
 
+  private restartCurrentLevel(): void {
+    this.health = PLAYER_MAX_HEALTH;
+    this.runStats = recordRestart(this.runStats);
+    this.loadLevel(this.levelIndex);
+  }
+
   private loadLevel(index: number): void {
     this.levelIndex = index;
+    this.runStats = beginRoom(this.runStats, performance.now());
     this.levelCompleteTimer = 0;
     this.shootCooldown = 0;
     this.invulnerableTimer = SPAWN_INVULNERABILITY_SECONDS;
@@ -1782,12 +1799,14 @@ export class Game {
       bestScore: Math.max(this.settings.bestScore, this.score),
       highestUnlockedRoom: Math.max(this.settings.highestUnlockedRoom, Math.min(next + 1, LEVELS.length))
     });
+    const now = performance.now();
+    this.runStats = completeRoom(this.runStats);
     if (next >= LEVELS.length) {
       this.audio.play('victory');
-      this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
+      this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
-      this.showOverlay('Кімнату пройдено!', 'Двері до наступного випробування відкриті. Готовий рухатись далі?', 'Наступна кімната', () => {
+      this.showOverlay('Кімнату пройдено!', `Двері до наступного випробування відкриті. ${formatRoomSummary(this.runStats, now)}. Готовий рухатись далі?`, 'Наступна кімната', () => {
         this.state = 'playing';
         this.shell.classList.remove('is-menu');
         this.overlay.classList.remove('is-visible');
@@ -1914,9 +1933,8 @@ export class Game {
       this.laserContactTimer = 0.18;
     }
     if (this.health <= 0) {
-      this.health = PLAYER_MAX_HEALTH;
       this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0)), palette.red, 1.6);
-      this.loadLevel(this.levelIndex);
+      this.restartCurrentLevel();
     }
   }
 
@@ -2074,8 +2092,7 @@ export class Game {
       this.dash();
     }
     if (event.code === 'KeyR' && this.state === 'playing') {
-      this.health = PLAYER_MAX_HEALTH;
-      this.loadLevel(this.levelIndex);
+      this.restartCurrentLevel();
     }
     if (import.meta.env.DEV && this.state === 'playing') {
       if (getDevEffectTarget(event.code) === 'all') {
