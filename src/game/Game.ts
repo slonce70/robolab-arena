@@ -24,6 +24,7 @@ import { getLaserHazardFootprint } from './laserHazard';
 import { describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
+import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
 import { describePlayerFeedback } from './playerFeedback';
@@ -450,6 +451,13 @@ export class Game {
     this.showToast(safeStartLevel === 0 ? 'Вперед, Бліце! Збий мішені й знай вихід.' : `Продовження: кімната ${safeStartLevel + 1}.`, 2.8);
   }
 
+
+  private showRoomStartToast(level: LevelConfig): void {
+    const brief = createRoomBrief(level);
+    const stats = brief.stats.slice(0, 3).join(' · ');
+    this.showToast(`${brief.title}: ${stats}. ${brief.warning}`, level.id >= 10 ? 4.2 : 3.1);
+  }
+
   private showOverlay(title: string, text: string, button: string, action: () => void): void {
     this.exitPointerLock();
     this.state = title.includes('Перемога') ? 'finished' : this.state;
@@ -577,7 +585,7 @@ export class Game {
     level.powerUps?.forEach((powerUp) => this.spawnPowerUp(powerUp));
 
     this.updateHud();
-    this.showToast(level.tip, 2.6);
+    this.showRoomStartToast(level);
   }
 
   private clearLevel(): void {
@@ -2216,7 +2224,6 @@ export class Game {
 
     this.health = PLAYER_MAX_HEALTH;
     this.loadLevel(targetLevel - 1);
-    this.showToast(`QA: кімната ${targetLevel}`, 1.1);
     return true;
   }
 

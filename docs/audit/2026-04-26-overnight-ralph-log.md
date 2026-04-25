@@ -221,3 +221,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-door-status-2026-04-26/report.json`: `door-status-playwright-pass`, room 10 loaded, objective HUD visible, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: browser smoke validates the door-room render path; actual door transition timing should be watched in a manual button-room pass.
+
+## Iteration 19 - Room-start briefing for late-game clarity
+- Problem: after room jumps or room starts, the toast only repeated the level tip; it did not summarize pressure level, support pickups, or late-game caution.
+- Change: added `createRoomBrief` and room-start toasts that summarize enemy/support/collectible counts and give a final-sector caution for rooms 10-12. DEV room jumps now keep the same room briefing instead of overwriting it with `QA: кімната N`.
+- Evidence:
+  - `npm test` PASS: 27 files / 84 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-room-brief-2026-04-26/report.json`: `room-brief-playwright-pass`, room 12 toast included `7 ворогів`, `5 апгрейдів`, `5 шестерень`, and `Фінальний сектор`, with `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: copy is concise and data-derived; final wording should still be read in the in-app browser for tone.
