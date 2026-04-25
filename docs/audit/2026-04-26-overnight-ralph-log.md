@@ -253,3 +253,11 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright DOM smoke previously rerun after this change: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
 - Remaining risk: target hit animation is state-tested, but target shooting feel still needs manual aim checks.
+
+## Iteration 23 - Build warning signal cleaned up
+- Problem: Vite's large-chunk warning appeared on every build, making real future bundle regressions easier to miss even though most weight came from Three.js.
+- Change: added a minimal Vite manual chunk for `three` and a focused config test that locks the cacheable vendor-chunk intent.
+- Evidence:
+  - `npm test` PASS: 29 files / 87 tests.
+  - `npm run build` PASS with no large-chunk warning; JS split into app chunk around 81 kB and `three` chunk around 487 kB.
+- Remaining risk: local Vite production build is verified; real CDN/browser-cache behavior was not measured.
