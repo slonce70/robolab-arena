@@ -41,6 +41,7 @@ import {
   type RunStats
 } from './runStats';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
+import { describeTargetStatus } from './targetStatus';
 import { getCrosshairClasses } from './weaponFeedback';
 import type {
   ButtonConfig,
@@ -1640,9 +1641,7 @@ export class Game {
     for (const target of this.targets) {
       if (!target.hit && this.distance2D(target.position, position) < 0.7) {
         target.hit = true;
-        target.material.color.setHex(palette.green);
-        target.material.emissive.setHex(palette.green);
-        target.group.scale.setScalar(0.74);
+        this.applyTargetStatus(target);
         this.score += 90;
         this.showToast('Мішень збито!', 1.2);
         return true;
@@ -1655,10 +1654,16 @@ export class Game {
     for (const target of this.targets) {
       target.group.rotation.y += delta * 2.2;
       target.group.rotation.x = Math.sin(this.elapsed * 2 + target.position.x) * 0.16;
-      if (!target.hit) {
-        target.material.emissiveIntensity = 0.8 + Math.sin(this.elapsed * 5) * 0.25;
-      }
+      this.applyTargetStatus(target);
     }
+  }
+
+  private applyTargetStatus(target: Target): void {
+    const status = describeTargetStatus(target.hit, this.elapsed);
+    target.material.color.setHex(status.color);
+    target.material.emissive.setHex(status.color);
+    target.material.emissiveIntensity = status.emissiveIntensity;
+    target.group.scale.setScalar(status.scale);
   }
 
   private updateCollectibles(delta: number): void {

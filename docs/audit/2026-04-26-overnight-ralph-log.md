@@ -244,3 +244,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-room-brief-normal-2026-04-26/report.json`: `room-brief-normal-playwright-pass`, normal start toast includes room 1 stats, continue to room 10 toast includes `Фінальний сектор` and `5 ворогів`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: room brief wording still needs human tone review, but normal start/continue coverage now catches the overwrite regression.
+
+## Iteration 22 - Target visual state made testable
+- Problem: target hit/active material changes were inline, which made future target readability tweaks easy to break without focused tests.
+- Change: added `describeTargetStatus` so active targets stay yellow/full-size and hit targets become green/smaller through a tested presenter.
+- Evidence:
+  - `npm test` PASS: 28 files / 86 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright DOM smoke previously rerun after this change: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
+- Remaining risk: target hit animation is state-tested, but target shooting feel still needs manual aim checks.
