@@ -272,3 +272,14 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-room-brief-normal-2026-04-26/report.json`: `room-brief-normal-playwright-pass`, start toast now includes `1 апгрейд` and `4 шестерні`, continue toast includes `3 апгрейди` and `3 шестерні`, with `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: `двері` is a compact game stat label; a future copy pass could switch that row to `дверний замок` if more natural specificity is desired.
+
+## Iteration 25 - First-person blaster feedback made regression-safe
+- Problem: the first-person blaster flash/recoil/coil state was visually useful but still lived inline in `Game`, making future weapon-feel polish easy to regress without focused assertions.
+- Change: extracted `describeFirstPersonBlasterState` so idle, rapid-fire, and overcharge flash/recoil/coil behavior is tested independently, then reused it from the render update.
+- Evidence:
+  - TDD red: `npm test -- src/game/blasterFeedback.test.ts` first failed because the presenter did not exist.
+  - Focused green: `npm test -- src/game/blasterFeedback.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 30 files / 91 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, first-person power/crosshair state healthy, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: exact recoil feel is still subjective and should be judged by hand while firing in first-person combat.

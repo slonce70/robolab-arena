@@ -12,6 +12,7 @@ import {
   getBossPhase,
   getEnemyStats
 } from './balance';
+import { describeFirstPersonBlasterState } from './blasterFeedback';
 import { CameraController } from './camera/CameraController';
 import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
@@ -1827,26 +1828,27 @@ export class Game {
     const flash = this.firstPersonBlaster.userData.flash as THREE.Object3D | undefined;
     const coil = this.firstPersonBlaster.userData.coil as THREE.Object3D | undefined;
     const glowMaterial = this.firstPersonBlaster.userData.glowMaterial as THREE.MeshStandardMaterial | undefined;
-    const flashActive = this.blasterFlashTimer > 0;
-    const overchargeActive = this.overchargeShots > 0;
-    const rapidActive = this.rapidTimer > 0;
+    const state = describeFirstPersonBlasterState({
+      flashTimer: this.blasterFlashTimer,
+      rapidTimer: this.rapidTimer,
+      overchargeShots: this.overchargeShots,
+      elapsed: this.elapsed
+    });
     if (glowMaterial) {
-      const color = overchargeActive ? palette.orange : rapidActive ? palette.yellow : palette.cyan;
-      glowMaterial.color.setHex(color);
-      glowMaterial.emissive.setHex(color);
-      glowMaterial.emissiveIntensity = overchargeActive ? 2.6 : rapidActive ? 2.1 : 1.5;
+      glowMaterial.color.setHex(state.color);
+      glowMaterial.emissive.setHex(state.color);
+      glowMaterial.emissiveIntensity = state.emissiveIntensity;
     }
     if (flash) {
-      flash.visible = flashActive;
-      flash.scale.setScalar(flashActive ? 1 + this.blasterFlashTimer * (overchargeActive ? 14 : 10) : 1);
+      flash.visible = state.flashVisible;
+      flash.scale.setScalar(state.flashScale);
     }
     if (coil) {
-      coil.rotation.z += delta * (rapidActive ? 16 : 7);
-      coil.scale.setScalar(overchargeActive ? 1.24 + Math.sin(this.elapsed * 10) * 0.08 : rapidActive ? 1.14 : 1);
+      coil.rotation.z += delta * state.coilRotationSpeed;
+      coil.scale.setScalar(state.coilScale);
     }
-    const kick = flashActive ? this.blasterFlashTimer / 0.12 : 0;
-    this.firstPersonBlaster.position.z = THREE.MathUtils.lerp(this.firstPersonBlaster.position.z, kick * 0.08, 1 - Math.pow(0.001, delta));
-    this.firstPersonBlaster.rotation.x = THREE.MathUtils.lerp(this.firstPersonBlaster.rotation.x, -kick * 0.08, 1 - Math.pow(0.001, delta));
+    this.firstPersonBlaster.position.z = THREE.MathUtils.lerp(this.firstPersonBlaster.position.z, state.recoilZ, 1 - Math.pow(0.001, delta));
+    this.firstPersonBlaster.rotation.x = THREE.MathUtils.lerp(this.firstPersonBlaster.rotation.x, state.recoilPitch, 1 - Math.pow(0.001, delta));
   }
 
   private updateCamera(delta: number): void {
