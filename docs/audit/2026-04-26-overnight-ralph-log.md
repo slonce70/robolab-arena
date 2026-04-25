@@ -235,3 +235,12 @@ Remaining risk:
 - Purpose: after changing room-start toast behavior and DEV room jumps, rechecked that all 12 rooms still load sequentially with HUD labels, objective text, and progress dots.
 - Evidence: Playwright DOM smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
 - Remaining risk: DOM smoke verifies continuity, not a no-jump human victory run.
+
+## Iteration 21 - Architect blocker fix: normal start keeps room brief
+- Problem found by architect: `startGame()` called `loadLevel()` and then overwrote the new room brief with generic start/continue toast copy, so normal start/continue did not reliably show pressure/support counts.
+- Change: removed the post-`loadLevel()` generic toast so `showRoomStartToast()` is the single source for room-start guidance.
+- Evidence:
+  - `npm test` PASS: 28 files / 86 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-room-brief-normal-2026-04-26/report.json`: `room-brief-normal-playwright-pass`, normal start toast includes room 1 stats, continue to room 10 toast includes `Фінальний сектор` and `5 ворогів`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: room brief wording still needs human tone review, but normal start/continue coverage now catches the overwrite regression.

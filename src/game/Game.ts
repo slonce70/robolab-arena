@@ -448,7 +448,6 @@ export class Game {
     this.levelIndex = safeStartLevel;
     this.loadLevel(safeStartLevel);
     this.requestPointerLockForFirstPerson();
-    this.showToast(safeStartLevel === 0 ? 'Вперед, Бліце! Збий мішені й знай вихід.' : `Продовження: кімната ${safeStartLevel + 1}.`, 2.8);
   }
 
 
