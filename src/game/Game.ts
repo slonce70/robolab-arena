@@ -17,6 +17,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { getPowerEffectTheme } from './effects';
+import { getLevelIntel } from './levelIntel';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeObjectiveProgress } from './objectives';
@@ -428,11 +429,19 @@ export class Game {
     this.exitPointerLock();
     this.fallbackMouseCaptured = false;
     this.state = 'paused';
+    const level = LEVELS[this.levelIndex];
+    const intel = getLevelIntel(level);
     this.overlay.innerHTML = `
       <div class="panel pause-panel">
         <p class="eyebrow">Пауза</p>
         <h1>RoboLab</h1>
-        <p class="intro">Кімната ${LEVELS[this.levelIndex].id}: ${LEVELS[this.levelIndex].name}</p>
+        <p class="intro">Кімната ${level.id}: ${level.name}</p>
+        <div class="room-intel" aria-label="План кімнати">
+          <div><strong>Ціль</strong><span>${intel.objective}</span></div>
+          <div><strong>Загрози</strong><span>${intel.threat}</span></div>
+          <div><strong>Підтримка</strong><span>${intel.support}</span></div>
+          <div><strong>Тактика</strong><span>${intel.tactic}</span></div>
+        </div>
         <div class="pause-actions" aria-label="Налаштування паузи">
           <button class="primary-action" type="button" data-action="resume">Продовжити</button>
           <button class="secondary-action" type="button" data-action="restart">Перезапустити кімнату</button>
