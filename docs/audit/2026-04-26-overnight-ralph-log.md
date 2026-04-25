@@ -149,3 +149,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-sensitivity-2026-04-26/report.json`: `sensitivity-controls-playwright-pass`, `1.0x → 1.2x → 1.0x`, persisted `mouseSensitivity: 1`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: actual mouse-look feel still needs human hand tuning; automation verifies control behavior and persistence.
+
+## Iteration 11 - Laser lanes made visually safer
+- Problem: laser damage lanes were represented by a thin beam; in hectic rooms a player could clip invisible-feeling danger at the edge.
+- Change: added a translucent orange/red floor footprint under every laser, wider than the damaging beam, while leaving actual damage math unchanged.
+- Evidence:
+  - `npm test` PASS: 19 files / 65 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-laser-lanes-2026-04-26/report.json`: `laser-lanes-playwright-pass`, room 6 loaded, objective HUD visible, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: screenshot confirms the laser-room render path stays healthy, but visual taste should still be judged by eye in the in-app browser.

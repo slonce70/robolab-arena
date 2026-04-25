@@ -18,6 +18,7 @@ import { canApplyDamage, effectiveDamage } from './combat';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { getPowerEffectTheme } from './effects';
 import { getLevelIntel } from './levelIntel';
+import { getLaserHazardFootprint } from './laserHazard';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeBossStatus } from './bossStatus';
@@ -1153,6 +1154,17 @@ export class Game {
     const group = new THREE.Group();
     const beam = new THREE.Mesh(new THREE.BoxGeometry(config.axis === 'x' ? config.length : 0.18, 0.18, config.axis === 'z' ? config.length : 0.18), material);
     beam.position.y = 0.65;
+    const footprint = getLaserHazardFootprint(config);
+    const warningMaterial = new THREE.MeshStandardMaterial({
+      color: palette.orange,
+      emissive: palette.red,
+      emissiveIntensity: 0.75,
+      transparent: true,
+      opacity: 0.32,
+      roughness: 0.5
+    });
+    const warningLane = new THREE.Mesh(new THREE.BoxGeometry(footprint.width, 0.025, footprint.depth), warningMaterial);
+    warningLane.position.y = 0.045;
     const postA = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 1.2, 14), material);
     const postB = postA.clone();
     if (config.axis === 'x') {
@@ -1162,7 +1174,7 @@ export class Game {
       postA.position.set(0, 0.55, -config.length * 0.5);
       postB.position.set(0, 0.55, config.length * 0.5);
     }
-    group.add(beam, postA, postB);
+    group.add(warningLane, beam, postA, postB);
     group.position.set(config.position.x, 0, config.position.z);
     this.dynamicRoot.add(group);
     this.lasers.push({ group, material, config, basePosition: new THREE.Vector3(config.position.x, 0, config.position.z), active: true });
@@ -1719,6 +1731,11 @@ export class Game {
       laser.active = Math.sin(this.elapsed * 2.4 + laser.config.phase) > -0.25;
       laser.group.visible = laser.active;
       laser.material.opacity = laser.active ? 0.85 : 0.18;
+      const warningLane = laser.group.children[0] as THREE.Mesh | undefined;
+      const warningMaterial = warningLane?.material as THREE.MeshStandardMaterial | undefined;
+      if (warningMaterial) {
+        warningMaterial.opacity = laser.active ? 0.32 : 0.16;
+      }
       if (!laser.active || this.playerPosition.y > 0.45) continue;
 
       const localX = this.playerPosition.x - laser.group.position.x;
