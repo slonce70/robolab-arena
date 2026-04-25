@@ -397,6 +397,19 @@ h1 {
   font-weight: 800;
 }
 
+
+.start-progress {
+  width: fit-content;
+  margin: 0 auto 14px;
+  border: 1px solid rgba(255, 209, 102, 0.34);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 209, 102, 0.1);
+  color: #fff3c5;
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .start-actions {
   display: grid;
   gap: 10px;

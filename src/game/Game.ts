@@ -266,6 +266,9 @@ export class Game {
     const continueButton = resumeRoom > 1
       ? `<button class="secondary-action" type="button" data-start-level="${resumeRoom - 1}">Продовжити з кімнати ${resumeRoom}</button>`
       : '';
+    const progressSummary = this.settings.bestScore > 0 || resumeRoom > 1
+      ? `<div class="start-progress" aria-label="Збережений прогрес">Рекорд ${this.settings.bestScore} · відкрито кімнату ${resumeRoom}/${LEVELS.length}</div>`
+      : '';
     this.root.innerHTML = `
       <main class="game-shell is-menu">
         <div class="canvas-host" aria-label="RoboLab Arena game scene"></div>
@@ -296,6 +299,7 @@ export class Game {
               <span>Вид від 1-ї особи</span>
               <span>Аптечки</span>
             </div>
+            ${progressSummary}
             <div class="start-actions">
               <button class="primary-action" type="button" data-start-level="0">Почати гру</button>
               ${continueButton}

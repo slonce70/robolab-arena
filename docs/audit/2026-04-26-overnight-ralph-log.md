@@ -80,3 +80,20 @@ Evidence:
 
 Remaining risk:
 - Canvas camera/gameplay movement is unchanged; this setting currently calms effects and UI animation, not player locomotion.
+
+## Iteration 5 - Start Progress Summary
+
+Goal: make saved progress visible before pressing play.
+
+Changes:
+- Start screen now shows best score and highest unlocked room when saved progress exists.
+- Continue button and progress summary share the same clamped saved-room value.
+
+Evidence:
+- `node .omx/tmp/robolab-start-progress-qa.mjs` -> `start-progress-playwright-pass`, displayed `Рекорд 3450 · відкрито кімнату 10/12`, bad console 0, page errors 0.
+- `npm test` -> 15 files, 54 tests passed.
+- `npm run build` -> success with the known Vite large chunk warning.
+- `git diff --check` -> clean.
+
+Remaining risk:
+- Progress summary appears only after saved progress exists; first-run menu remains clean by design.
