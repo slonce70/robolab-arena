@@ -1736,6 +1736,7 @@ export class Game {
   }
 
   private updateAimFromPointer(): void {
+    if (this.cameraController.getMode() === 'firstPerson') return;
     this.raycaster.setFromCamera(this.pointer, this.camera);
     this.raycaster.ray.intersectPlane(this.floorPlane, this.aimPoint);
   }
@@ -1755,6 +1756,10 @@ export class Game {
   };
 
   private handlePointerMove = (event: PointerEvent): void => {
+    if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
+      this.cameraController.applyFirstPersonLookDelta(event.movementX, event.movementY);
+      return;
+    }
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
@@ -1778,6 +1783,10 @@ export class Game {
     }
     if (event.code === 'KeyC' && this.state === 'playing' && !event.repeat) {
       this.cameraController.toggleMode();
+      if (this.cameraController.getMode() === 'firstPerson') {
+        const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+        this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
+      }
       this.settings = saveSettings({ preferredCameraMode: this.cameraController.getMode() });
       this.showToast(this.cameraController.getMode() === 'firstPerson' ? 'Вид від першої особи.' : 'Тактичний вид зверху.', 1.15);
       this.updateHud();

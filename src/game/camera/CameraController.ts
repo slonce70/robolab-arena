@@ -5,11 +5,17 @@ export type CameraMode = 'thirdPerson' | 'firstPerson';
 const THIRD_PERSON_OFFSET = new THREE.Vector3(0, 18, 15.5);
 const THIRD_PERSON_LOOK_OFFSET = new THREE.Vector3(0, 0.7, -2.6);
 const FIRST_PERSON_HEAD_OFFSET = new THREE.Vector3(0, 1.72, -0.08);
+const FIRST_PERSON_MOUSE_SENSITIVITY = 0.0014;
+const FIRST_PERSON_MAX_MOUSE_DELTA = 36;
+const FIRST_PERSON_MAX_PITCH = 0.44;
 
 export class CameraController {
   private mode: CameraMode = 'thirdPerson';
   private readonly camera: THREE.PerspectiveCamera;
   private snapNextUpdate = true;
+  private firstPersonYaw = 0;
+  private firstPersonPitch = 0;
+  private firstPersonLookReady = false;
 
   constructor(camera: THREE.PerspectiveCamera, initialMode: CameraMode = 'thirdPerson') {
     this.camera = camera;
@@ -23,11 +29,17 @@ export class CameraController {
   setMode(mode: CameraMode): void {
     this.mode = mode;
     this.snapNextUpdate = true;
+    if (mode === 'thirdPerson') {
+      this.firstPersonLookReady = false;
+    }
   }
 
   toggleMode(): CameraMode {
     this.mode = this.mode === 'thirdPerson' ? 'firstPerson' : 'thirdPerson';
     this.snapNextUpdate = true;
+    if (this.mode === 'thirdPerson') {
+      this.firstPersonLookReady = false;
+    }
     return this.mode;
   }
 
@@ -59,12 +71,10 @@ export class CameraController {
   updateFirstPerson(delta: number, playerPosition: THREE.Vector3, facingDirection: THREE.Vector3): void {
     this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, 62, 1 - Math.pow(0.002, delta));
     this.camera.updateProjectionMatrix();
-    const normalizedFacing = facingDirection.clone();
-    normalizedFacing.y = 0;
-    if (normalizedFacing.lengthSq() < 0.001) {
-      normalizedFacing.set(0, 0, -1);
+    if (!this.firstPersonLookReady) {
+      this.resetFirstPersonLook(facingDirection);
     }
-    normalizedFacing.normalize();
+    const normalizedFacing = this.getFirstPersonLookDirection();
     const headPosition = playerPosition.clone().add(FIRST_PERSON_HEAD_OFFSET);
     if (this.snapNextUpdate) {
       this.camera.position.copy(headPosition);
@@ -73,6 +83,39 @@ export class CameraController {
       this.camera.position.lerp(headPosition, 1 - Math.pow(0.0006, delta));
     }
     this.camera.lookAt(headPosition.clone().add(normalizedFacing.multiplyScalar(8)));
+  }
+
+  resetFirstPersonLook(direction: THREE.Vector3): void {
+    const normalized = direction.clone();
+    normalized.y = 0;
+    if (normalized.lengthSq() < 0.001) {
+      normalized.set(0, 0, -1);
+    }
+    normalized.normalize();
+    this.firstPersonYaw = Math.atan2(normalized.x, -normalized.z);
+    this.firstPersonPitch = 0;
+    this.firstPersonLookReady = true;
+  }
+
+  applyFirstPersonLookDelta(deltaX: number, deltaY: number): void {
+    const clampedX = THREE.MathUtils.clamp(deltaX, -FIRST_PERSON_MAX_MOUSE_DELTA, FIRST_PERSON_MAX_MOUSE_DELTA);
+    const clampedY = THREE.MathUtils.clamp(deltaY, -FIRST_PERSON_MAX_MOUSE_DELTA, FIRST_PERSON_MAX_MOUSE_DELTA);
+    this.firstPersonYaw += clampedX * FIRST_PERSON_MOUSE_SENSITIVITY;
+    this.firstPersonPitch = THREE.MathUtils.clamp(
+      this.firstPersonPitch - clampedY * FIRST_PERSON_MOUSE_SENSITIVITY,
+      -FIRST_PERSON_MAX_PITCH,
+      FIRST_PERSON_MAX_PITCH
+    );
+    this.firstPersonLookReady = true;
+  }
+
+  private getFirstPersonLookDirection(): THREE.Vector3 {
+    const cosPitch = Math.cos(this.firstPersonPitch);
+    return new THREE.Vector3(
+      Math.sin(this.firstPersonYaw) * cosPitch,
+      Math.sin(this.firstPersonPitch),
+      -Math.cos(this.firstPersonYaw) * cosPitch
+    ).normalize();
   }
 
   getAimDirection(thirdPersonDirection: THREE.Vector3, fallbackDirection: THREE.Vector3): THREE.Vector3 {

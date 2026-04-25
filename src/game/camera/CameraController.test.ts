@@ -29,4 +29,19 @@ describe('CameraController', () => {
     expect(direction.y).toBeCloseTo(0);
     expect(direction.z).toBeLessThan(-0.99);
   });
+
+  it('keeps tiny first-person mouse movement from spinning the camera', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+    controller.toggleMode();
+    controller.resetFirstPersonLook(new THREE.Vector3(0, 0, -1));
+
+    controller.applyFirstPersonLookDelta(5, 0);
+    controller.update(0.016, new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0));
+
+    const direction = controller.getAimDirection(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1));
+
+    expect(Math.abs(direction.x)).toBeLessThan(0.02);
+    expect(direction.z).toBeLessThan(-0.99);
+  });
 });
