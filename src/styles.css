@@ -246,17 +246,34 @@ button:focus-visible {
   right: 16px;
   top: 66px;
   display: none;
-  min-width: 190px;
+  width: min(330px, calc(100vw - 32px));
   padding: 11px 14px;
   border-color: rgba(255, 79, 163, 0.62);
   color: #ffe8f3;
   font-size: 14px;
   font-weight: 850;
+  line-height: 1.28;
   text-align: center;
 }
 
 .boss-chip.is-visible {
   display: block;
+}
+
+.boss-chip.is-phase-1 {
+  border-color: rgba(84, 241, 255, 0.58);
+  color: #dffbff;
+}
+
+.boss-chip.is-phase-2 {
+  border-color: rgba(255, 209, 102, 0.72);
+  color: #fff1c2;
+}
+
+.boss-chip.is-phase-3 {
+  border-color: rgba(255, 75, 85, 0.82);
+  color: #ffd7dc;
+  box-shadow: 0 0 26px rgba(255, 75, 85, 0.26), var(--hud-shadow);
 }
 
 .toast-chip {

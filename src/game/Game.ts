@@ -20,6 +20,7 @@ import { getPowerEffectTheme } from './effects';
 import { getLevelIntel } from './levelIntel';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
+import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
@@ -2024,10 +2025,11 @@ export class Game {
     this.toast.classList.toggle('is-visible', this.toastTimer > 0);
 
     const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
+    this.hudBoss.classList.remove('is-phase-1', 'is-phase-2', 'is-phase-3');
     if (boss) {
-      const percent = Math.max(0, Math.ceil((boss.health / boss.maxHealth) * 100));
-      this.hudBoss.textContent = `Турбо-Вартовий ${percent}%`;
-      this.hudBoss.classList.add('is-visible');
+      const status = describeBossStatus(boss.health, boss.maxHealth);
+      this.hudBoss.textContent = status.text;
+      this.hudBoss.classList.add('is-visible', status.cssClass);
     } else {
       this.hudBoss.classList.remove('is-visible');
     }

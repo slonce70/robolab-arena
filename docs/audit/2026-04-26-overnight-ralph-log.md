@@ -115,3 +115,13 @@ Evidence:
 
 Remaining risk:
 - This is intentionally dev-mode behavior; production builds do not expose the room-jump shortcut.
+
+## Iteration 7 - Boss phase readability polish
+- Problem: the final boss HUD only showed health percent, so a tired player could not tell why the arena pressure changed between boss phases.
+- Change: added `describeBossStatus` as a small pure presenter, then made the boss HUD show health, phase number, phase name, and a short tactical warning.
+- Visual polish: phase-specific HUD colors now move from cyan to amber to red glow for the final phase without changing boss balance.
+- Evidence:
+  - `npm test` PASS: 16 files / 57 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-boss-phase-2026-04-26/report.json`: `boss-phase-playwright-pass`, room 12 boss HUD text `Турбо-Вартовий 100% · Фаза 1: Розвідка · повільні черги`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: the automated browser check validates initial boss phase visibility; deeper phase transitions still require combat progression or a future deterministic boss-damage hook.
