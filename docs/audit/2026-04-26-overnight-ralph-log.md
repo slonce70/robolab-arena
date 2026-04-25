@@ -125,3 +125,13 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-boss-phase-2026-04-26/report.json`: `boss-phase-playwright-pass`, room 12 boss HUD text `Турбо-Вартовий 100% · Фаза 1: Розвідка · повільні черги`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: the automated browser check validates initial boss phase visibility; deeper phase transitions still require combat progression or a future deterministic boss-damage hook.
+
+## Iteration 8 - Player feedback vignette for shield/damage readability
+- Problem: shield and damage state had world particles, but in first-person a player could still miss whether the robot was protected, hit, lasered, or critically low.
+- Change: added a pure `describePlayerFeedback` helper and a non-interactive HUD vignette layer driven by health, invulnerability, laser contact, and shield timers.
+- Visual polish: shield now gives a cyan edge glow, bullet damage gives a red edge flash, laser contact adds scanline heat, and critical health keeps a low red/amber warning.
+- Evidence:
+  - `npm test` PASS: 17 files / 60 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-feedback-vignette-2026-04-26/report.json`: `feedback-vignette-playwright-pass`, vignette classes included `is-shielded`, power HUD showed `Щит`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: browser QA uses the DEV all-effects shortcut for deterministic shield validation; real combat damage colors are covered by helper tests and should be manually felt during a combat pass.

@@ -22,6 +22,7 @@ import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { describeBossStatus } from './bossStatus';
 import { describeObjectiveProgress } from './objectives';
+import { describePlayerFeedback } from './playerFeedback';
 import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
   beginRoom,
@@ -220,6 +221,7 @@ export class Game {
   private hudProgress!: HTMLDivElement;
   private toast!: HTMLDivElement;
   private crosshair!: HTMLDivElement;
+  private feedbackVignette!: HTMLDivElement;
 
   private state: GameState = 'menu';
   private settings: RoboLabSettings = loadSettings();
@@ -285,6 +287,7 @@ export class Game {
           </div>
           <div class="objective-chip"></div>
           <div class="boss-chip"></div>
+          <div class="feedback-vignette" aria-hidden="true"></div>
           <div class="toast-chip" aria-live="polite"></div>
           <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, C - вид, Shift - ривок, Space - стрибок, R - перезапуск</div>
           <div class="crosshair" aria-hidden="true"></div>
@@ -325,6 +328,7 @@ export class Game {
     this.hudProgress = this.requireElement('.progress-strip');
     this.toast = this.requireElement('.toast-chip');
     this.crosshair = this.requireElement('.crosshair');
+    this.feedbackVignette = this.requireElement('.feedback-vignette');
     this.canvasHost.appendChild(this.renderer.domElement);
 
     this.overlay.querySelectorAll<HTMLButtonElement>('button[data-start-level]').forEach((button) => {
@@ -2004,6 +2008,15 @@ export class Game {
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : `${this.objectiveProgressText()} - ${level.tip}`;
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
+    const feedback = describePlayerFeedback({
+      health: this.health,
+      maxHealth: PLAYER_MAX_HEALTH,
+      invulnerableTimer: this.invulnerableTimer,
+      laserContactTimer: this.laserContactTimer,
+      shieldTimer: this.shieldTimer
+    });
+    this.feedbackVignette.className = feedback.classes.join(' ');
+    this.feedbackVignette.style.setProperty('--feedback-opacity', String(feedback.opacity));
     const powers = [];
     if (this.rapidTimer > 0) powers.push(`Rapid ${Math.ceil(this.rapidTimer)}с`);
     if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);

@@ -276,6 +276,38 @@ button:focus-visible {
   box-shadow: 0 0 26px rgba(255, 75, 85, 0.26), var(--hud-shadow);
 }
 
+.feedback-vignette {
+  --feedback-opacity: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--feedback-opacity);
+  transition: opacity 140ms ease;
+  background: radial-gradient(circle at 50% 54%, transparent 36%, rgba(255, 75, 85, 0.24) 72%, rgba(255, 75, 85, 0.6) 100%);
+}
+
+.feedback-vignette.is-shielded {
+  background: radial-gradient(circle at 50% 56%, rgba(84, 241, 255, 0.06) 24%, rgba(84, 241, 255, 0.2) 68%, rgba(84, 241, 255, 0.44) 100%);
+}
+
+.feedback-vignette.is-critical {
+  background: radial-gradient(circle at 50% 54%, transparent 34%, rgba(255, 209, 102, 0.18) 70%, rgba(255, 75, 85, 0.5) 100%);
+}
+
+.feedback-vignette.is-damaged {
+  background: radial-gradient(circle at 50% 54%, transparent 32%, rgba(255, 75, 85, 0.26) 70%, rgba(255, 75, 85, 0.68) 100%);
+}
+
+.feedback-vignette.is-lasered {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 209, 102, 0.2) 0 6px, transparent 6px 18px),
+    radial-gradient(circle at 50% 54%, transparent 34%, rgba(255, 122, 89, 0.26) 70%, rgba(255, 75, 85, 0.62) 100%);
+}
+
+.game-shell.is-reduced-motion .feedback-vignette {
+  transition: none;
+}
+
 .toast-chip {
   left: 50%;
   bottom: 84px;
