@@ -58,12 +58,19 @@ button {
   inset: 0;
   z-index: 2;
   pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.game-shell.is-menu .hud {
+  opacity: 0;
 }
 
 .status-chip,
 .objective-chip,
 .hint-chip,
-.boss-chip {
+.boss-chip,
+.progress-strip,
+.toast-chip {
   position: absolute;
   border: 1px solid rgba(84, 241, 255, 0.34);
   background: var(--panel);
@@ -95,7 +102,8 @@ button {
 
 .health-chip,
 .gears-chip,
-.power-chip {
+.power-chip,
+.dash-chip {
   position: static;
   padding: 9px 12px;
   min-width: 118px;
@@ -115,6 +123,49 @@ button {
   min-width: 150px;
   border-color: rgba(255, 79, 163, 0.5);
   color: #f0fbff;
+}
+
+.dash-chip {
+  min-width: 130px;
+  border-color: rgba(84, 241, 255, 0.48);
+}
+
+.dash-chip.is-ready {
+  border-color: rgba(124, 242, 124, 0.58);
+  color: #d9ffdf;
+}
+
+.progress-strip {
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+}
+
+.progress-dot {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgba(185, 203, 226, 0.32);
+  border-radius: 999px;
+  color: rgba(244, 251, 255, 0.72);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.progress-dot.is-done {
+  border-color: rgba(124, 242, 124, 0.75);
+  background: rgba(124, 242, 124, 0.15);
+  color: #d9ffdf;
+}
+
+.progress-dot.is-current {
+  border-color: rgba(84, 241, 255, 0.9);
+  background: rgba(84, 241, 255, 0.22);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(84, 241, 255, 0.34);
 }
 
 .objective-chip {
@@ -148,7 +199,7 @@ button {
 
 .boss-chip {
   right: 16px;
-  top: 16px;
+  top: 66px;
   display: none;
   min-width: 190px;
   padding: 11px 14px;
@@ -160,6 +211,24 @@ button {
 }
 
 .boss-chip.is-visible {
+  display: block;
+}
+
+.toast-chip {
+  left: 50%;
+  bottom: 84px;
+  display: none;
+  width: min(420px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: 10px 13px;
+  border-color: rgba(255, 209, 102, 0.64);
+  color: #fff3c7;
+  font-size: 14px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.toast-chip.is-visible {
   display: block;
 }
 
@@ -216,6 +285,24 @@ h1 {
   line-height: 1.55;
 }
 
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 auto 24px;
+  max-width: 440px;
+}
+
+.start-grid span {
+  border: 1px solid rgba(84, 241, 255, 0.28);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(84, 241, 255, 0.08);
+  color: #dffbff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .primary-action {
   min-width: 180px;
   border: 0;
@@ -252,10 +339,25 @@ h1 {
 
   .health-chip,
   .gears-chip,
-  .power-chip {
+  .power-chip,
+  .dash-chip {
     min-width: 0;
     flex: 1 1 126px;
     font-size: 12px;
+  }
+
+  .progress-strip {
+    top: auto;
+    right: 10px;
+    bottom: 106px;
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .progress-dot {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
 
   .objective-chip {
@@ -277,9 +379,18 @@ h1 {
   }
 
   .boss-chip {
-    top: 106px;
+    top: 142px;
     left: 10px;
     right: auto;
     min-width: 180px;
+  }
+
+  .toast-chip {
+    bottom: 114px;
+    font-size: 13px;
+  }
+
+  .start-grid {
+    grid-template-columns: 1fr;
   }
 }

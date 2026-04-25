@@ -138,8 +138,11 @@ export class Game {
   private readonly powerUps: PowerUp[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
+  private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
+  private readonly aimMarker = new THREE.Group();
 
   private canvasHost!: HTMLDivElement;
+  private shell!: HTMLElement;
   private overlay!: HTMLDivElement;
   private hudLevel!: HTMLDivElement;
   private hudHealth!: HTMLDivElement;
@@ -148,6 +151,9 @@ export class Game {
   private hudHint!: HTMLDivElement;
   private hudBoss!: HTMLDivElement;
   private hudPower!: HTMLDivElement;
+  private hudDash!: HTMLDivElement;
+  private hudProgress!: HTMLDivElement;
+  private toast!: HTMLDivElement;
 
   private state: GameState = 'menu';
   private levelIndex = 0;
@@ -157,6 +163,8 @@ export class Game {
   private invulnerableTimer = 0;
   private rapidTimer = 0;
   private shieldTimer = 0;
+  private dashCooldown = 0;
+  private toastTimer = 0;
   private score = 0;
   private levelCompleteTimer = 0;
   private elapsed = 0;
@@ -178,24 +186,33 @@ export class Game {
 
   mount(): void {
     this.root.innerHTML = `
-      <main class="game-shell">
+      <main class="game-shell is-menu">
         <div class="canvas-host" aria-label="RoboLab Arena game scene"></div>
         <section class="hud" aria-live="polite">
           <div class="status-chip level-chip"></div>
+          <div class="progress-strip" aria-label="Прогрес кімнат"></div>
           <div class="status-row">
             <div class="status-chip health-chip"></div>
             <div class="status-chip gears-chip"></div>
             <div class="status-chip power-chip"></div>
+            <div class="status-chip dash-chip"></div>
           </div>
           <div class="objective-chip"></div>
           <div class="boss-chip"></div>
-          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, Space - стрибок, R - перезапуск кімнати</div>
+          <div class="toast-chip" aria-live="polite"></div>
+          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, Shift - ривок, Space - стрибок, R - перезапуск</div>
         </section>
         <section class="overlay is-visible">
           <div class="panel">
-            <p class="eyebrow">Перша 3D гра</p>
+            <p class="eyebrow">8 кімнат випробувань</p>
             <h1>RoboLab Arena</h1>
             <p class="intro">Допоможи роботу Бліцу пройти тренувальні кімнати, збити дронів, засвітити кнопки й перемогти Турбо-Вартового.</p>
+            <div class="start-grid" aria-label="Що є в грі">
+              <span>Енерго-бластер</span>
+              <span>Ривок на Shift</span>
+              <span>Апгрейди</span>
+              <span>Фінальний бос</span>
+            </div>
             <button class="primary-action" type="button">Почати гру</button>
           </div>
         </section>
@@ -203,6 +220,7 @@ export class Game {
     `;
 
     this.canvasHost = this.requireElement('.canvas-host');
+    this.shell = this.requireElement('.game-shell');
     this.overlay = this.requireElement('.overlay');
     this.hudLevel = this.requireElement('.level-chip');
     this.hudHealth = this.requireElement('.health-chip');
@@ -211,6 +229,9 @@ export class Game {
     this.hudHint = this.requireElement('.hint-chip');
     this.hudBoss = this.requireElement('.boss-chip');
     this.hudPower = this.requireElement('.power-chip');
+    this.hudDash = this.requireElement('.dash-chip');
+    this.hudProgress = this.requireElement('.progress-strip');
+    this.toast = this.requireElement('.toast-chip');
     this.canvasHost.appendChild(this.renderer.domElement);
 
     this.overlay.querySelector('button')?.addEventListener('click', () => this.startGame());
@@ -254,20 +275,25 @@ export class Game {
     rim.position.set(0, 5, -7);
     this.scene.add(rim);
 
-    this.scene.add(this.levelRoot, this.dynamicRoot, this.player);
+    this.scene.add(this.levelRoot, this.dynamicRoot, this.player, this.aimMarker);
     this.createPlayer();
+    this.createAimMarker();
   }
 
   private startGame(): void {
     this.state = 'playing';
+    this.shell.classList.remove('is-menu');
     this.overlay.classList.remove('is-visible');
     this.health = PLAYER_MAX_HEALTH;
     this.gears = 0;
     this.score = 0;
     this.rapidTimer = 0;
     this.shieldTimer = 0;
+    this.dashCooldown = 0;
+    this.toastTimer = 0;
     this.levelIndex = 0;
     this.loadLevel(0);
+    this.showToast('Вперед, Бліце! Збий мішені й знай вихід.', 2.8);
   }
 
   private showOverlay(title: string, text: string, button: string, action: () => void): void {
@@ -281,6 +307,7 @@ export class Game {
       </div>
     `;
     this.overlay.querySelector('button')?.addEventListener('click', action);
+    this.shell.classList.add('is-menu');
     this.overlay.classList.add('is-visible');
   }
 
@@ -500,6 +527,24 @@ export class Game {
     footA.position.set(-0.25, 0.14, -0.04);
     footB.position.set(0.25, 0.14, -0.04);
     this.player.add(body, head, face, frontLight, antenna, antennaTip, blaster, footA, footB);
+  }
+
+  private createAimMarker(): void {
+    this.aimMarker.clear();
+    const material = new THREE.MeshStandardMaterial({
+      color: palette.cyan,
+      emissive: palette.cyan,
+      emissiveIntensity: 1.1,
+      transparent: true,
+      opacity: 0.72,
+      roughness: 0.18
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.025, 8, 24), material);
+    ring.rotation.x = Math.PI * 0.5;
+    const lineA = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.025, 0.025), material);
+    const lineB = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.025, 0.74), material);
+    this.aimMarker.add(ring, lineA, lineB);
+    this.aimMarker.position.set(0, 0.08, -1);
   }
 
   private spawnTarget(config: TargetConfig): void {
@@ -801,7 +846,10 @@ export class Game {
     this.invulnerableTimer = Math.max(0, this.invulnerableTimer - delta);
     this.rapidTimer = Math.max(0, this.rapidTimer - delta);
     this.shieldTimer = Math.max(0, this.shieldTimer - delta);
+    this.dashCooldown = Math.max(0, this.dashCooldown - delta);
+    this.toastTimer = Math.max(0, this.toastTimer - delta);
     this.updateAimFromPointer();
+    this.updateAimMarker(delta);
     this.updatePlayer(delta);
     this.updateEnemies(delta);
     this.updateBullets(delta);
@@ -825,7 +873,9 @@ export class Game {
     if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) move.x += 1;
     const movementDirection = move.clone();
     if (move.lengthSq() > 0) {
-      move.normalize().multiplyScalar(PLAYER_SPEED * delta);
+      move.normalize();
+      this.lastMoveDirection.copy(move);
+      move.multiplyScalar(PLAYER_SPEED * delta);
       this.playerPosition.add(move);
     }
 
@@ -929,6 +979,7 @@ export class Game {
             enemy.alive = false;
             enemy.group.visible = false;
             this.score += enemy.kind === 'boss' ? 1000 : 180;
+            this.showToast(enemy.kind === 'boss' ? 'Боса вимкнено!' : 'Робота вимкнено!', 1.4);
             this.addSpark(enemy.group.position.clone().add(new THREE.Vector3(0, 1, 0)), palette.cyan, 1.4);
           }
           continue;
@@ -948,6 +999,8 @@ export class Game {
         target.material.color.setHex(palette.green);
         target.material.emissive.setHex(palette.green);
         target.group.scale.setScalar(0.74);
+        this.score += 90;
+        this.showToast('Мішень збито!', 1.2);
         return true;
       }
     }
@@ -992,12 +1045,15 @@ export class Game {
         this.score += 120;
         if (powerUp.kind === 'repair') {
           this.health = Math.min(PLAYER_MAX_HEALTH, this.health + 38);
+          this.showToast('Ремонт: енергія відновлена!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.green, 1.15);
         } else if (powerUp.kind === 'rapid') {
           this.rapidTimer = 8;
+          this.showToast('Швидкий бластер активний!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.yellow, 1.15);
         } else {
           this.shieldTimer = 9;
+          this.showToast('Щит увімкнено!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.cyan, 1.15);
         }
       }
@@ -1010,6 +1066,7 @@ export class Game {
         button.active = true;
         button.group.scale.y = 0.82;
         this.score += 100;
+        this.showToast('Кнопку активовано!', 1.4);
         this.addSpark(button.position.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.green);
       }
     }
@@ -1060,6 +1117,12 @@ export class Game {
     }
   }
 
+  private updateAimMarker(delta: number): void {
+    this.aimMarker.visible = this.state === 'playing';
+    this.aimMarker.position.lerp(new THREE.Vector3(this.aimPoint.x, 0.09, this.aimPoint.z), 1 - Math.pow(0.004, delta));
+    this.aimMarker.rotation.y += delta * 2.4;
+  }
+
   private updateCamera(delta: number): void {
     const targetPosition = new THREE.Vector3(this.playerPosition.x, 11.8, this.playerPosition.z + 9.5);
     this.camera.position.lerp(targetPosition, 1 - Math.pow(0.001, delta));
@@ -1091,11 +1154,12 @@ export class Game {
       this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
-    this.showOverlay('Кімнату пройдено!', 'Двері до наступного випробування відкриті. Готовий рухатись далі?', 'Наступна кімната', () => {
-      this.state = 'playing';
-      this.overlay.classList.remove('is-visible');
-      this.loadLevel(next);
-    });
+      this.showOverlay('Кімнату пройдено!', 'Двері до наступного випробування відкриті. Готовий рухатись далі?', 'Наступна кімната', () => {
+        this.state = 'playing';
+        this.shell.classList.remove('is-menu');
+        this.overlay.classList.remove('is-visible');
+        this.loadLevel(next);
+      });
   }
 
   private isObjectiveComplete(): boolean {
@@ -1132,6 +1196,28 @@ export class Game {
       life: 1.6
     });
     this.shootCooldown = this.rapidTimer > 0 ? 0.09 : 0.18;
+  }
+
+  private dash(): void {
+    if (this.state !== 'playing' || this.dashCooldown > 0) return;
+    const direction = this.lastMoveDirection.clone();
+    if (direction.lengthSq() < 0.01) {
+      direction.set(0, 0, -1);
+    }
+    direction.normalize();
+    this.playerPosition.addScaledVector(direction, 3.1);
+    this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
+    this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
+    this.player.position.copy(this.playerPosition);
+    this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
+    this.dashCooldown = 2.6;
+    this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.cyan, 1.25);
+    this.showToast('Ривок заряджається!', 1.25);
+  }
+
+  private showToast(message: string, seconds = 1.8): void {
+    this.toast.textContent = message;
+    this.toastTimer = seconds;
   }
 
   private fireEnemyBullet(origin: THREE.Vector3, direction: THREE.Vector3, damage: number): void {
@@ -1197,6 +1283,13 @@ export class Game {
     if (this.rapidTimer > 0) powers.push(`Швидкий бластер ${Math.ceil(this.rapidTimer)}с`);
     if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
     this.hudPower.textContent = powers.length > 0 ? powers.join(' + ') : 'Апгрейди -';
+    this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
+    this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
+    this.hudProgress.innerHTML = LEVELS.map((item, index) => {
+      const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
+      return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
+    }).join('');
+    this.toast.classList.toggle('is-visible', this.toastTimer > 0);
 
     const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
     if (boss) {
@@ -1243,10 +1336,14 @@ export class Game {
     this.keys.add(event.code);
     if (event.code === 'Escape' && this.state === 'playing') {
       this.state = 'paused';
-      this.showOverlay('Пауза', 'Гра зупинена. Можна перепочити й повернутися в лабораторію.', 'Продовжити', () => {
+      this.showOverlay('Пауза', 'WASD - рух, мишка - приціл, клік - постріл, Shift - ривок, Space - стрибок, R - перезапуск кімнати.', 'Продовжити', () => {
         this.state = 'playing';
+        this.shell.classList.remove('is-menu');
         this.overlay.classList.remove('is-visible');
       });
+    }
+    if ((event.code === 'ShiftLeft' || event.code === 'ShiftRight') && !event.repeat) {
+      this.dash();
     }
     if (event.code === 'KeyR' && this.state === 'playing') {
       this.health = PLAYER_MAX_HEALTH;
