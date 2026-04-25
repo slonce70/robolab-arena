@@ -16,6 +16,18 @@ describe('CameraController', () => {
     expect(controller.getHudLabel()).toBe('Вид: 1-а особа');
   });
 
+  it('can restore a saved first-person camera preference', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera, 'firstPerson');
+
+    expect(controller.getMode()).toBe('firstPerson');
+
+    controller.setMode('thirdPerson');
+
+    expect(controller.getMode()).toBe('thirdPerson');
+    expect(controller.getHudLabel()).toBe('Вид: 3-я особа');
+  });
+
   it('aims forward from the camera in first-person mode', () => {
     const camera = new THREE.PerspectiveCamera();
     const controller = new CameraController(camera);
@@ -52,6 +64,18 @@ describe('CameraController', () => {
     controller.resetFirstPersonLook(new THREE.Vector3(1, 0, 0));
 
     const movement = controller.getMovementDirection(new THREE.Vector3(0, 0, -1));
+
+    expect(movement.x).toBeGreaterThan(0.99);
+    expect(Math.abs(movement.z)).toBeLessThan(0.01);
+  });
+
+  it('keeps side movement perpendicular to first-person look direction', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+    controller.toggleMode();
+    controller.resetFirstPersonLook(new THREE.Vector3(0, 0, -1));
+
+    const movement = controller.getMovementDirection(new THREE.Vector3(1, 0, 0));
 
     expect(movement.x).toBeGreaterThan(0.99);
     expect(Math.abs(movement.z)).toBeLessThan(0.01);

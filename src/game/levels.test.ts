@@ -33,10 +33,25 @@ describe('RoboLab Arena levels', () => {
     expect(repairCount).toBeGreaterThanOrEqual(10);
   });
 
+  it('keeps every chamber stocked with optional rewards and route choices', () => {
+    for (const level of LEVELS) {
+      expect((level.collectibles?.length ?? 0) + (level.powerUps?.length ?? 0), level.name).toBeGreaterThanOrEqual(3);
+      expect(level.obstacles?.length ?? 0, level.name).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it('adds final-version mechanics to advanced chambers', () => {
     expect(LEVELS.flatMap((level) => level.enemies ?? []).some((enemy) => enemy.kind === 'shieldBot')).toBe(true);
     expect(LEVELS.flatMap((level) => level.powerUps ?? []).some((powerUp) => powerUp.kind === 'overcharge')).toBe(true);
     expect(LEVELS.flatMap((level) => level.lasers ?? []).some((laser) => laser.sweep)).toBe(true);
+  });
+
+  it('keeps the final room centered on a single boss guardian', () => {
+    const bossLevels = LEVELS.filter((level) => level.objective === 'boss');
+
+    expect(bossLevels).toHaveLength(1);
+    expect(bossLevels[0]?.id).toBe(12);
+    expect(bossLevels[0]?.enemies?.filter((enemy) => enemy.kind === 'boss')).toHaveLength(1);
   });
 
   it('does not hide duplicate buttons on the same floor pad', () => {

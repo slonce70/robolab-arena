@@ -10,4 +10,13 @@ describe('describeObjectiveProgress', () => {
   it('formats boss health as a remaining percentage', () => {
     expect(describeObjectiveProgress({ objective: 'boss', done: 64, total: 100 })).toBe('ядро боса 64%');
   });
+
+  it('clamps noisy counter inputs before rendering progress', () => {
+    expect(describeObjectiveProgress({ objective: 'buttons', done: 1.2, total: 3.1 })).toBe('2/4 кнопки');
+    expect(describeObjectiveProgress({ objective: 'targets', done: -1, total: 5 })).toBe('0/5 мішеней');
+  });
+
+  it('keeps laser-survival rooms focused on reaching the exit', () => {
+    expect(describeObjectiveProgress({ objective: 'survive-lasers', done: 0, total: 0 })).toBe('дійди до виходу');
+  });
 });
