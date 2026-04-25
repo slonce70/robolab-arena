@@ -372,6 +372,28 @@ button:focus-visible {
   display: block;
 }
 
+.crosshair.is-firing {
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 20px rgba(84, 241, 255, 0.9));
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.crosshair.is-rapid {
+  background:
+    radial-gradient(circle, rgba(255, 209, 102, 0.98) 0 2px, transparent 3px),
+    radial-gradient(circle, transparent 0 13px, rgba(255, 209, 102, 0.34) 14px 15px, transparent 16px);
+}
+
+.crosshair.is-overcharged {
+  background:
+    radial-gradient(circle, rgba(255, 159, 67, 0.98) 0 3px, transparent 4px),
+    radial-gradient(circle, transparent 0 12px, rgba(255, 79, 163, 0.38) 14px 17px, transparent 18px);
+  filter: drop-shadow(0 0 12px rgba(255, 159, 67, 0.9));
+}
+
+.game-shell.is-reduced-motion .crosshair.is-firing {
+  transform: translate(-50%, -50%);
+}
+
 .overlay {
   position: absolute;
   inset: 0;

@@ -185,3 +185,12 @@ Remaining risk:
   - `npm run build` PASS; only the existing Vite chunk-size warning.
   - Playwright QA `output/playwright/overnight-laser-lanes-2026-04-26/report.json`: `laser-lanes-playwright-pass`, room 6 loaded, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: Playwright smoke validates the room render path; the exact inactive warning-lane visual is protected by unit state tests and should still be judged by eye in a live browser pass.
+
+## Iteration 15 - First-person crosshair weapon-state polish
+- Problem: first-person weapon state was visible on the blaster model, but the crosshair did not reflect rapid/overcharge/firing feedback.
+- Change: added a pure `getCrosshairClasses` presenter and crosshair visual states for firing, rapid fire, and overcharge, with reduced-motion behavior preserving the calmer mode.
+- Evidence:
+  - `npm test` PASS: 23 files / 75 tests.
+  - `npm run build` PASS; only the existing Vite chunk-size warning.
+  - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, first-person crosshair classes included `is-visible`, `is-rapid`, `is-overcharged`, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: automated QA validates state classes; actual firing pulse timing should be judged by eye during manual first-person combat.

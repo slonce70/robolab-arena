@@ -38,6 +38,7 @@ import {
   type RunStats
 } from './runStats';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
+import { getCrosshairClasses } from './weaponFeedback';
 import type {
   ButtonConfig,
   DoorConfig,
@@ -2062,7 +2063,12 @@ export class Game {
     this.shell.classList.toggle('is-reduced-motion', this.settings.reducedMotion);
     this.shell.classList.toggle('is-pointer-locked', this.pointerLocked);
     this.shell.classList.toggle('is-mouse-captured', this.isFirstPersonMouseCaptured());
-    this.crosshair.classList.toggle('is-visible', this.state === 'playing' && isFirstPerson);
+    this.crosshair.className = getCrosshairClasses({
+      visible: this.state === 'playing' && isFirstPerson,
+      flashTimer: this.blasterFlashTimer,
+      rapidTimer: this.rapidTimer,
+      overchargeShots: this.overchargeShots
+    }).join(' ');
     this.hudProgress.innerHTML = LEVELS.map((item, index) => {
       const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
       return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
