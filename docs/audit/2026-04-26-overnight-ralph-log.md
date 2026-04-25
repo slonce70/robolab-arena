@@ -261,3 +261,14 @@ Remaining risk:
   - `npm test` PASS: 29 files / 87 tests.
   - `npm run build` PASS with no large-chunk warning; JS split into app chunk around 81 kB and `three` chunk around 487 kB.
 - Remaining risk: local Vite production build is verified; real CDN/browser-cache behavior was not measured.
+
+## Iteration 24 - Room brief Ukrainian count polish
+- Problem: room-start stats were mechanically correct but sounded rough in Ukrainian, e.g. `3 ворогів`, `1 апгрейдів`, and `1 дверей`.
+- Change: added a small count formatter for room-brief nouns and locked common one/few/many forms with tests.
+- Evidence:
+  - TDD red: `npm test -- src/game/roomBrief.test.ts` failed on the old awkward count strings.
+  - Focused green: `npm test -- src/game/roomBrief.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 29 files / 88 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-room-brief-normal-2026-04-26/report.json`: `room-brief-normal-playwright-pass`, start toast now includes `1 апгрейд` and `4 шестерні`, continue toast includes `3 апгрейди` and `3 шестерні`, with `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: `двері` is a compact game stat label; a future copy pass could switch that row to `дверний замок` if more natural specificity is desired.
