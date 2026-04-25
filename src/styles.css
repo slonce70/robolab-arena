@@ -83,7 +83,7 @@ button {
 .level-chip {
   top: 16px;
   left: 16px;
-  max-width: min(390px, calc(100vw - 32px));
+  max-width: min(420px, calc(100vw - 32px));
   padding: 11px 14px;
   font-size: 14px;
   font-weight: 800;
@@ -321,6 +321,17 @@ h1 {
 
 .primary-action:active {
   transform: translateY(1px);
+}
+
+@media (max-width: 1120px) {
+  .objective-chip {
+    top: 112px;
+    width: min(620px, calc(100vw - 32px));
+  }
+
+  .status-row {
+    max-width: min(620px, calc(100vw - 32px));
+  }
 }
 
 @media (max-width: 760px) {

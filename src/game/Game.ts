@@ -8,6 +8,7 @@ import type {
   EnemyKind,
   LaserConfig,
   LevelConfig,
+  ObstacleConfig,
   PowerUpConfig,
   PowerUpKind,
   TargetConfig
@@ -83,6 +84,13 @@ type PowerUp = {
   collected: boolean;
 };
 
+type Obstacle = {
+  mesh: THREE.Mesh;
+  position: THREE.Vector3;
+  halfWidth: number;
+  halfDepth: number;
+};
+
 type LevelTheme = {
   floor: number;
   wall: number;
@@ -91,8 +99,8 @@ type LevelTheme = {
   fog: number;
 };
 
-const ROOM_HALF_WIDTH = 9;
-const ROOM_HALF_DEPTH = 10;
+const ROOM_HALF_WIDTH = 18;
+const ROOM_HALF_DEPTH = 24;
 const PLAYER_RADIUS = 0.55;
 const PLAYER_SPEED = 6.3;
 const BULLET_SPEED = 15;
@@ -136,6 +144,7 @@ export class Game {
   private readonly buttons: LabButton[] = [];
   private readonly lasers: Laser[] = [];
   private readonly powerUps: PowerUp[] = [];
+  private readonly obstacles: Obstacle[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
@@ -204,14 +213,14 @@ export class Game {
         </section>
         <section class="overlay is-visible">
           <div class="panel">
-            <p class="eyebrow">8 кімнат випробувань</p>
+            <p class="eyebrow">12 великих арен</p>
             <h1>RoboLab Arena</h1>
-            <p class="intro">Допоможи роботу Бліцу пройти тренувальні кімнати, збити дронів, засвітити кнопки й перемогти Турбо-Вартового.</p>
+            <p class="intro">Допоможи роботу Бліцу пройти 12 великих лабораторних арен, збити дронів, знайти аптечки й перемогти Турбо-Вартового XL.</p>
             <div class="start-grid" aria-label="Що є в грі">
               <span>Енерго-бластер</span>
               <span>Ривок на Shift</span>
-              <span>Апгрейди</span>
-              <span>Фінальний бос</span>
+              <span>Аптечки</span>
+              <span>Великі арени</span>
             </div>
             <button class="primary-action" type="button">Почати гру</button>
           </div>
@@ -264,11 +273,11 @@ export class Game {
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
-    key.shadow.camera.far = 45;
-    key.shadow.camera.left = -16;
-    key.shadow.camera.right = 16;
-    key.shadow.camera.top = 16;
-    key.shadow.camera.bottom = -16;
+    key.shadow.camera.far = 70;
+    key.shadow.camera.left = -34;
+    key.shadow.camera.right = 34;
+    key.shadow.camera.top = 38;
+    key.shadow.camera.bottom = -38;
     this.scene.add(key);
 
     const rim = new THREE.PointLight(palette.cyan, 35, 30, 1.5);
@@ -346,6 +355,7 @@ export class Game {
     this.buttons.length = 0;
     this.lasers.length = 0;
     this.powerUps.length = 0;
+    this.obstacles.length = 0;
     this.bullets.length = 0;
     this.sparks.length = 0;
   }
@@ -353,14 +363,14 @@ export class Game {
   private buildRoom(level: LevelConfig): void {
     const theme = this.getTheme(level.id);
     this.scene.background = new THREE.Color(theme.fog);
-    this.scene.fog = new THREE.Fog(theme.fog, 24, 54);
+    this.scene.fog = new THREE.Fog(theme.fog, 38, 86);
 
     const floorMaterial = new THREE.MeshStandardMaterial({
       color: theme.floor,
       metalness: 0.28,
       roughness: 0.48
     });
-    const floor = new THREE.Mesh(new THREE.BoxGeometry(18, 0.4, 20), floorMaterial);
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(ROOM_HALF_WIDTH * 2, 0.4, ROOM_HALF_DEPTH * 2), floorMaterial);
     floor.position.y = -0.25;
     floor.receiveShadow = true;
     this.levelRoot.add(floor);
@@ -372,13 +382,13 @@ export class Game {
       metalness: 0.3,
       roughness: 0.35
     });
-    for (let x = -8; x <= 8; x += 4) {
-      const strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 18), gridMaterial);
+    for (let x = -16; x <= 16; x += 4) {
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, ROOM_HALF_DEPTH * 2 - 4), gridMaterial);
       strip.position.set(x, 0.02, 0);
       this.levelRoot.add(strip);
     }
-    for (let z = -8; z <= 8; z += 4) {
-      const strip = new THREE.Mesh(new THREE.BoxGeometry(16, 0.04, 0.06), gridMaterial);
+    for (let z = -20; z <= 20; z += 4) {
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(ROOM_HALF_WIDTH * 2 - 4, 0.04, 0.06), gridMaterial);
       strip.position.set(0, 0.03, z);
       this.levelRoot.add(strip);
     }
@@ -388,16 +398,17 @@ export class Game {
       metalness: 0.42,
       roughness: 0.44
     });
-    this.addWall(0, -10.25, 18.5, 0.5, wallMaterial);
-    this.addWall(0, 10.25, 18.5, 0.5, wallMaterial);
-    this.addWall(-9.25, 0, 0.5, 20.5, wallMaterial);
-    this.addWall(9.25, 0, 0.5, 20.5, wallMaterial);
+    this.addWall(0, -ROOM_HALF_DEPTH - 0.25, ROOM_HALF_WIDTH * 2 + 0.5, 0.5, wallMaterial);
+    this.addWall(0, ROOM_HALF_DEPTH + 0.25, ROOM_HALF_WIDTH * 2 + 0.5, 0.5, wallMaterial);
+    this.addWall(-ROOM_HALF_WIDTH - 0.25, 0, 0.5, ROOM_HALF_DEPTH * 2 + 0.5, wallMaterial);
+    this.addWall(ROOM_HALF_WIDTH + 0.25, 0, 0.5, ROOM_HALF_DEPTH * 2 + 0.5, wallMaterial);
+    level.obstacles?.forEach((obstacle) => this.spawnObstacle(obstacle, wallMaterial));
     this.addRoomDecorations(level, theme);
 
     const exit = this.createPad(level.exit.x, level.exit.z, palette.green, 'ВИХІД');
     this.levelRoot.add(exit);
 
-    const titlePad = this.createFloatingLabel(level.name, 0, 0.08, 9.2);
+    const titlePad = this.createFloatingLabel(level.name, 0, 0.08, ROOM_HALF_DEPTH - 2.8);
     this.levelRoot.add(titlePad);
   }
 
@@ -407,6 +418,21 @@ export class Game {
     wall.castShadow = true;
     wall.receiveShadow = true;
     this.levelRoot.add(wall);
+  }
+
+  private spawnObstacle(config: ObstacleConfig, material: THREE.Material): void {
+    const height = config.height ?? 1.25;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(config.size.width, height, config.size.depth), material);
+    mesh.position.set(config.position.x, height * 0.5 - 0.05, config.position.z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    this.levelRoot.add(mesh);
+    this.obstacles.push({
+      mesh,
+      position: new THREE.Vector3(config.position.x, 0, config.position.z),
+      halfWidth: config.size.width * 0.5,
+      halfDepth: config.size.depth * 0.5
+    });
   }
 
   private getTheme(levelId: number): LevelTheme {
@@ -437,8 +463,8 @@ export class Game {
       roughness: 0.38
     });
 
-    for (const x of [-7.6, 7.6]) {
-      for (const z of [-7.2, 0, 7.2]) {
+    for (const x of [-16, -8, 8, 16]) {
+      for (const z of [-20, -10, 0, 10, 20]) {
         const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.34, 2.4, 14), metalMaterial);
         pillar.position.set(x, 1.1, z);
         pillar.castShadow = true;
@@ -450,10 +476,12 @@ export class Game {
     }
 
     const consolePositions = [
-      { x: -7.4, z: -8.6 },
-      { x: 7.4, z: -8.6 },
-      { x: -7.4, z: 8.6 },
-      { x: 7.4, z: 8.6 }
+      { x: -15.5, z: -21.5 },
+      { x: 15.5, z: -21.5 },
+      { x: -15.5, z: 21.5 },
+      { x: 15.5, z: 21.5 },
+      { x: -15.5, z: 0 },
+      { x: 15.5, z: 0 }
     ];
     for (const position of consolePositions) {
       const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.7), metalMaterial);
@@ -480,8 +508,8 @@ export class Game {
     }
 
     if (level.id >= 7) {
-      for (const z of [4.8, 2.3, -0.2, -2.7, -5.2]) {
-        const warning = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.05, 0.08), panelMaterial);
+      for (const z of [16, 11, 6, 1, -4, -9, -14]) {
+        const warning = new THREE.Mesh(new THREE.BoxGeometry(12, 0.05, 0.08), panelMaterial);
         warning.position.set(0, 0.08, z + 0.55);
         this.levelRoot.add(warning);
       }
@@ -895,6 +923,7 @@ export class Game {
 
     this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
     this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
+    this.resolveObstacleCollisions(this.playerPosition);
     for (const door of this.doors) {
       if (!door.open && this.distance2D(this.playerPosition, door.position) < 2.25) {
         this.playerPosition.z += this.playerPosition.z > door.position.z ? 0.12 : -0.12;
@@ -953,13 +982,39 @@ export class Game {
     }
   }
 
+  private resolveObstacleCollisions(position: THREE.Vector3): void {
+    for (const obstacle of this.obstacles) {
+      const dx = position.x - obstacle.position.x;
+      const dz = position.z - obstacle.position.z;
+      const overlapX = obstacle.halfWidth + PLAYER_RADIUS - Math.abs(dx);
+      const overlapZ = obstacle.halfDepth + PLAYER_RADIUS - Math.abs(dz);
+
+      if (overlapX <= 0 || overlapZ <= 0) continue;
+
+      if (overlapX < overlapZ) {
+        position.x += dx >= 0 ? overlapX : -overlapX;
+      } else {
+        position.z += dz >= 0 ? overlapZ : -overlapZ;
+      }
+    }
+  }
+
+  private pointHitsObstacle(position: THREE.Vector3, radius = 0.18): boolean {
+    return this.obstacles.some((obstacle) => {
+      return (
+        Math.abs(position.x - obstacle.position.x) < obstacle.halfWidth + radius &&
+        Math.abs(position.z - obstacle.position.z) < obstacle.halfDepth + radius
+      );
+    });
+  }
+
   private updateBullets(delta: number): void {
     for (let i = this.bullets.length - 1; i >= 0; i -= 1) {
       const bullet = this.bullets[i];
       bullet.life -= delta;
       bullet.mesh.position.addScaledVector(bullet.velocity, delta);
       const outOfBounds = Math.abs(bullet.mesh.position.x) > ROOM_HALF_WIDTH + 2 || Math.abs(bullet.mesh.position.z) > ROOM_HALF_DEPTH + 2;
-      if (bullet.life <= 0 || outOfBounds) {
+      if (bullet.life <= 0 || outOfBounds || this.pointHitsObstacle(bullet.mesh.position)) {
         this.removeBullet(i);
         continue;
       }
@@ -1045,7 +1100,7 @@ export class Game {
         this.score += 120;
         if (powerUp.kind === 'repair') {
           this.health = Math.min(PLAYER_MAX_HEALTH, this.health + 38);
-          this.showToast('Ремонт: енергія відновлена!', 1.8);
+          this.showToast('Аптечка: енергія відновлена!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.green, 1.15);
         } else if (powerUp.kind === 'rapid') {
           this.rapidTimer = 8;
@@ -1124,9 +1179,9 @@ export class Game {
   }
 
   private updateCamera(delta: number): void {
-    const targetPosition = new THREE.Vector3(this.playerPosition.x, 11.8, this.playerPosition.z + 9.5);
+    const targetPosition = new THREE.Vector3(this.playerPosition.x, 18, this.playerPosition.z + 15.5);
     this.camera.position.lerp(targetPosition, 1 - Math.pow(0.001, delta));
-    const lookAt = new THREE.Vector3(this.playerPosition.x, 0.7, this.playerPosition.z - 1.6);
+    const lookAt = new THREE.Vector3(this.playerPosition.x, 0.7, this.playerPosition.z - 2.6);
     this.camera.lookAt(lookAt);
   }
 
@@ -1168,7 +1223,7 @@ export class Game {
     if (level.objective === 'enemies') return this.enemies.every((enemy) => !enemy.alive);
     if (level.objective === 'buttons') return this.buttons.every((button) => button.active);
     if (level.objective === 'boss') return this.enemies.every((enemy) => !enemy.alive);
-    return this.playerPosition.z < -7.2;
+    return this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 2.2;
   }
 
   private shoot(): void {
@@ -1208,6 +1263,7 @@ export class Game {
     this.playerPosition.addScaledVector(direction, 3.1);
     this.playerPosition.x = THREE.MathUtils.clamp(this.playerPosition.x, -ROOM_HALF_WIDTH + PLAYER_RADIUS, ROOM_HALF_WIDTH - PLAYER_RADIUS);
     this.playerPosition.z = THREE.MathUtils.clamp(this.playerPosition.z, -ROOM_HALF_DEPTH + PLAYER_RADIUS, ROOM_HALF_DEPTH - PLAYER_RADIUS);
+    this.resolveObstacleCollisions(this.playerPosition);
     this.player.position.copy(this.playerPosition);
     this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
     this.dashCooldown = 2.6;

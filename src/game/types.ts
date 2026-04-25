@@ -42,6 +42,15 @@ export type PowerUpConfig = {
   position: Vec2;
 };
 
+export type ObstacleConfig = {
+  position: Vec2;
+  size: {
+    width: number;
+    depth: number;
+  };
+  height?: number;
+};
+
 export type LevelObjective = 'targets' | 'enemies' | 'buttons' | 'survive-lasers' | 'boss';
 
 export type LevelConfig = {
@@ -58,4 +67,5 @@ export type LevelConfig = {
   doors?: DoorConfig[];
   lasers?: LaserConfig[];
   powerUps?: PowerUpConfig[];
+  obstacles?: ObstacleConfig[];
 };
