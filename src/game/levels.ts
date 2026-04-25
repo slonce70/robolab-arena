@@ -140,6 +140,7 @@ export const LEVELS: LevelConfig[] = [
     enemies: [
       { kind: 'turret', position: { x: -14, z: 8 } },
       { kind: 'turret', position: { x: 14, z: 8 } },
+      { kind: 'shieldBot', position: { x: 0, z: 6 } },
       { kind: 'beetle', position: { x: -8, z: 1 } },
       { kind: 'beetle', position: { x: 8, z: 1 } },
       { kind: 'drone', position: { x: -11, z: -10 } },
@@ -154,6 +155,7 @@ export const LEVELS: LevelConfig[] = [
     powerUps: [
       { kind: 'rapid', position: { x: 0, z: 11 } },
       { kind: 'shield', position: { x: 0, z: -4 } },
+      { kind: 'overcharge', position: { x: 0, z: -16 } },
       { kind: 'repair', position: { x: -15, z: -4 } },
       { kind: 'repair', position: { x: 15, z: -4 } }
     ],
@@ -179,7 +181,7 @@ export const LEVELS: LevelConfig[] = [
     ],
     doors: [{ id: 'reactor', position: { x: 0, z: -18 } }],
     lasers: [
-      { position: { x: 0, z: 5 }, length: 30, axis: 'x', phase: 0.5 },
+      { position: { x: 0, z: 5 }, length: 30, axis: 'x', phase: 0.5, sweep: { distance: 3, speed: 1.2 } },
       { position: { x: 0, z: -4 }, length: 30, axis: 'x', phase: 1.7 },
       { position: { x: 0, z: 0 }, length: 34, axis: 'z', phase: 2.8 }
     ],
@@ -196,6 +198,7 @@ export const LEVELS: LevelConfig[] = [
     ],
     powerUps: [
       { kind: 'repair', position: { x: 0, z: 16 } },
+      { kind: 'overcharge', position: { x: -11, z: 0 } },
       { kind: 'shield', position: { x: 0, z: -10 } }
     ],
     obstacles: [
@@ -215,7 +218,7 @@ export const LEVELS: LevelConfig[] = [
     lasers: [
       { position: { x: 0, z: 15 }, length: 32, axis: 'x', phase: 0 },
       { position: { x: 0, z: 10 }, length: 32, axis: 'x', phase: 0.9 },
-      { position: { x: 0, z: 5 }, length: 32, axis: 'x', phase: 1.8 },
+      { position: { x: 0, z: 5 }, length: 32, axis: 'x', phase: 1.8, sweep: { distance: 3.5, speed: 1.35 } },
       { position: { x: 0, z: 0 }, length: 32, axis: 'x', phase: 2.7 },
       { position: { x: 0, z: -5 }, length: 32, axis: 'x', phase: 3.6 },
       { position: { x: 0, z: -10 }, length: 32, axis: 'x', phase: 4.5 },
@@ -234,6 +237,7 @@ export const LEVELS: LevelConfig[] = [
     ],
     powerUps: [
       { kind: 'shield', position: { x: 0, z: 12 } },
+      { kind: 'overcharge', position: { x: -12, z: -17 } },
       { kind: 'repair', position: { x: 0, z: -13 } }
     ],
     obstacles: [
@@ -254,6 +258,7 @@ export const LEVELS: LevelConfig[] = [
     enemies: [
       { kind: 'turret', position: { x: -12, z: 9 } },
       { kind: 'turret', position: { x: 12, z: 9 } },
+      { kind: 'shieldBot', position: { x: 0, z: 12 } },
       { kind: 'turret', position: { x: -12, z: -9 } },
       { kind: 'turret', position: { x: 12, z: -9 } },
       { kind: 'drone', position: { x: 0, z: 3 } },
@@ -267,6 +272,7 @@ export const LEVELS: LevelConfig[] = [
     powerUps: [
       { kind: 'repair', position: { x: -15, z: 15 } },
       { kind: 'repair', position: { x: 15, z: 15 } },
+      { kind: 'overcharge', position: { x: 0, z: 0 } },
       { kind: 'rapid', position: { x: 0, z: 12 } }
     ],
     obstacles: [
@@ -372,6 +378,7 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'drone', position: { x: 13, z: 12 } },
       { kind: 'drone', position: { x: -13, z: -8 } },
       { kind: 'drone', position: { x: 13, z: -8 } },
+      { kind: 'shieldBot', position: { x: 0, z: 0 } },
       { kind: 'beetle', position: { x: -5, z: 4 } },
       { kind: 'beetle', position: { x: 5, z: 4 } },
       { kind: 'turret', position: { x: 0, z: -15 } }
@@ -386,6 +393,7 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'repair', position: { x: -15, z: 16 } },
       { kind: 'repair', position: { x: 15, z: 16 } },
       { kind: 'shield', position: { x: 0, z: 11 } },
+      { kind: 'overcharge', position: { x: 0, z: -17 } },
       { kind: 'rapid', position: { x: 0, z: -5 } }
     ],
     obstacles: [

@@ -3,7 +3,7 @@ export type Vec2 = {
   z: number;
 };
 
-export type EnemyKind = 'drone' | 'turret' | 'beetle' | 'boss';
+export type EnemyKind = 'drone' | 'turret' | 'beetle' | 'shieldBot' | 'boss';
 
 export type EnemyConfig = {
   kind: EnemyKind;
@@ -33,9 +33,13 @@ export type LaserConfig = {
   length: number;
   axis: 'x' | 'z';
   phase: number;
+  sweep?: {
+    distance: number;
+    speed: number;
+  };
 };
 
-export type PowerUpKind = 'repair' | 'rapid' | 'shield';
+export type PowerUpKind = 'repair' | 'rapid' | 'shield' | 'overcharge';
 
 export type PowerUpConfig = {
   kind: PowerUpKind;

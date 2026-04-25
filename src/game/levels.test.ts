@@ -32,4 +32,10 @@ describe('RoboLab Arena levels', () => {
     const repairCount = LEVELS.flatMap((level) => level.powerUps ?? []).filter((powerUp) => powerUp.kind === 'repair').length;
     expect(repairCount).toBeGreaterThanOrEqual(10);
   });
+
+  it('adds final-version mechanics to advanced chambers', () => {
+    expect(LEVELS.flatMap((level) => level.enemies ?? []).some((enemy) => enemy.kind === 'shieldBot')).toBe(true);
+    expect(LEVELS.flatMap((level) => level.powerUps ?? []).some((powerUp) => powerUp.kind === 'overcharge')).toBe(true);
+    expect(LEVELS.flatMap((level) => level.lasers ?? []).some((laser) => laser.sweep)).toBe(true);
+  });
 });

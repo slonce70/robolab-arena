@@ -1,7 +1,11 @@
 import * as THREE from 'three';
+import { AudioManager } from './audio';
+import { CameraController } from './camera/CameraController';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
+import { describeObjectiveProgress } from './objectives';
+import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import type {
   ButtonConfig,
   DoorConfig,
@@ -62,6 +66,7 @@ type Laser = {
   group: THREE.Group;
   material: THREE.MeshStandardMaterial;
   config: LaserConfig;
+  basePosition: THREE.Vector3;
   active: boolean;
 };
 
@@ -138,6 +143,8 @@ export class Game {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(50, 1, 0.1, 120);
+  private readonly cameraController = new CameraController(this.camera);
+  private readonly audio = new AudioManager();
   private readonly floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   private readonly levelRoot = new THREE.Group();
   private readonly dynamicRoot = new THREE.Group();
@@ -156,6 +163,7 @@ export class Game {
   private readonly sparks: Spark[] = [];
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
+  private readonly firstPersonBlaster = new THREE.Group();
   private readonly playerAnimationParts: THREE.Object3D[] = [];
 
   private canvasHost!: HTMLDivElement;
@@ -169,10 +177,13 @@ export class Game {
   private hudBoss!: HTMLDivElement;
   private hudPower!: HTMLDivElement;
   private hudDash!: HTMLDivElement;
+  private hudCamera!: HTMLDivElement;
   private hudProgress!: HTMLDivElement;
   private toast!: HTMLDivElement;
+  private crosshair!: HTMLDivElement;
 
   private state: GameState = 'menu';
+  private settings: RoboLabSettings = loadSettings();
   private levelIndex = 0;
   private health = PLAYER_MAX_HEALTH;
   private gears = 0;
@@ -180,6 +191,7 @@ export class Game {
   private invulnerableTimer = 0;
   private rapidTimer = 0;
   private shieldTimer = 0;
+  private overchargeShots = 0;
   private dashCooldown = 0;
   private toastTimer = 0;
   private laserContactTimer = 0;
@@ -200,6 +212,8 @@ export class Game {
     this.renderer.toneMappingExposure = 1.08;
     this.scene.background = new THREE.Color(0x07111f);
     this.scene.fog = new THREE.Fog(0x07111f, 22, 48);
+    this.cameraController.setMode(this.settings.preferredCameraMode);
+    this.audio.setEnabled(this.settings.soundOn);
   }
 
   mount(): void {
@@ -214,11 +228,13 @@ export class Game {
             <div class="status-chip gears-chip"></div>
             <div class="status-chip power-chip"></div>
             <div class="status-chip dash-chip"></div>
+            <div class="status-chip camera-chip"></div>
           </div>
           <div class="objective-chip"></div>
           <div class="boss-chip"></div>
           <div class="toast-chip" aria-live="polite"></div>
-          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, Shift - ривок, Space - стрибок, R - перезапуск</div>
+          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, C - вид, Shift - ривок, Space - стрибок, R - перезапуск</div>
+          <div class="crosshair" aria-hidden="true"></div>
         </section>
         <section class="overlay is-visible">
           <div class="panel">
@@ -228,8 +244,8 @@ export class Game {
             <div class="start-grid" aria-label="Що є в грі">
               <span>Енерго-бластер</span>
               <span>Ривок на Shift</span>
+              <span>Вид від 1-ї особи</span>
               <span>Аптечки</span>
-              <span>Великі арени</span>
             </div>
             <button class="primary-action" type="button">Почати гру</button>
           </div>
@@ -248,8 +264,10 @@ export class Game {
     this.hudBoss = this.requireElement('.boss-chip');
     this.hudPower = this.requireElement('.power-chip');
     this.hudDash = this.requireElement('.dash-chip');
+    this.hudCamera = this.requireElement('.camera-chip');
     this.hudProgress = this.requireElement('.progress-strip');
     this.toast = this.requireElement('.toast-chip');
+    this.crosshair = this.requireElement('.crosshair');
     this.canvasHost.appendChild(this.renderer.domElement);
 
     this.overlay.querySelector('button')?.addEventListener('click', () => this.startGame());
@@ -293,12 +311,42 @@ export class Game {
     rim.position.set(0, 5, -7);
     this.scene.add(rim);
 
-    this.scene.add(this.levelRoot, this.dynamicRoot, this.player, this.aimMarker);
+    this.scene.add(this.levelRoot, this.dynamicRoot, this.player, this.aimMarker, this.camera);
     this.createPlayer();
     this.createAimMarker();
+    this.createFirstPersonBlaster();
   }
 
-  private startGame(): void {
+  private createFirstPersonBlaster(): void {
+    this.firstPersonBlaster.clear();
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+      color: palette.blue,
+      emissive: 0x0c3d88,
+      emissiveIntensity: 0.55,
+      metalness: 0.55,
+      roughness: 0.24
+    });
+    const glowMaterial = new THREE.MeshStandardMaterial({
+      color: palette.cyan,
+      emissive: palette.cyan,
+      emissiveIntensity: 1.5,
+      roughness: 0.16
+    });
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.2), bodyMaterial);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.72, 16), glowMaterial);
+    const coil = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.02, 8, 20), glowMaterial);
+    grip.position.set(0.42, -0.36, -0.58);
+    barrel.position.set(0.46, -0.24, -0.88);
+    barrel.rotation.x = Math.PI * 0.5;
+    coil.position.set(0.46, -0.24, -0.58);
+    coil.rotation.x = Math.PI * 0.5;
+    this.firstPersonBlaster.add(grip, barrel, coil);
+    this.firstPersonBlaster.visible = false;
+    this.camera.add(this.firstPersonBlaster);
+  }
+
+  private async startGame(): Promise<void> {
+    await this.audio.unlock();
     this.state = 'playing';
     this.shell.classList.remove('is-menu');
     this.overlay.classList.remove('is-visible');
@@ -307,6 +355,7 @@ export class Game {
     this.score = 0;
     this.rapidTimer = 0;
     this.shieldTimer = 0;
+    this.overchargeShots = 0;
     this.dashCooldown = 0;
     this.toastTimer = 0;
     this.levelIndex = 0;
@@ -352,6 +401,7 @@ export class Game {
     level.powerUps?.forEach((powerUp) => this.spawnPowerUp(powerUp));
 
     this.updateHud();
+    this.showToast(level.tip, 2.6);
   }
 
   private clearLevel(): void {
@@ -586,11 +636,23 @@ export class Game {
     armB.rotation.z = -0.22;
     const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.72, 0.22), darkMaterial);
     backpack.position.set(0, 0.92, 0.46);
+    const shieldShellMaterial = new THREE.MeshStandardMaterial({
+      color: palette.cyan,
+      emissive: palette.cyan,
+      emissiveIntensity: 0.65,
+      transparent: true,
+      opacity: 0.2,
+      roughness: 0.12
+    });
+    const shieldShell = new THREE.Mesh(new THREE.SphereGeometry(0.95, 24, 14), shieldShellMaterial);
+    shieldShell.position.y = 1.05;
+    shieldShell.visible = false;
     const footA = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.46), bodyMaterial);
     const footB = footA.clone();
     footA.position.set(-0.25, 0.14, -0.04);
     footB.position.set(0.25, 0.14, -0.04);
-    this.player.add(body, chest, head, face, eyeA, eyeB, frontLight, antenna, antennaTip, blaster, shoulderA, shoulderB, armA, armB, backpack, footA, footB);
+    this.player.add(body, chest, head, face, eyeA, eyeB, frontLight, antenna, antennaTip, blaster, shoulderA, shoulderB, armA, armB, backpack, footA, footB, shieldShell);
+    this.player.userData.shieldShell = shieldShell;
     this.player.scale.setScalar(1.18);
     this.playerAnimationParts.push(head, antennaTip, armA, armB, footA, footB);
   }
@@ -668,6 +730,9 @@ export class Game {
     if (config.kind === 'boss') {
       health = 180;
       radius = 1.5;
+    } else if (config.kind === 'shieldBot') {
+      health = 70;
+      radius = 0.9;
     } else if (config.kind === 'turret') {
       health = 55;
       radius = 0.85;
@@ -677,8 +742,8 @@ export class Game {
     }
 
     const material = new THREE.MeshStandardMaterial({
-      color: config.kind === 'boss' ? palette.purple : palette.pink,
-      emissive: config.kind === 'boss' ? 0x2a0f63 : 0x611138,
+      color: config.kind === 'boss' ? palette.purple : config.kind === 'shieldBot' ? palette.cyan : palette.pink,
+      emissive: config.kind === 'boss' ? 0x2a0f63 : config.kind === 'shieldBot' ? 0x0a4f63 : 0x611138,
       emissiveIntensity: 0.55,
       metalness: 0.45,
       roughness: 0.32
@@ -733,6 +798,24 @@ export class Game {
       group.add(baseMesh, head, barrel, shield);
       group.userData.pulse = shield;
       group.position.copy(base);
+    } else if (config.kind === 'shieldBot') {
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.46, 0.78, 6, 18), material);
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.18, 0.06), eyeMaterial);
+      const domeMaterial = new THREE.MeshStandardMaterial({
+        color: palette.cyan,
+        emissive: palette.cyan,
+        emissiveIntensity: 0.7,
+        transparent: true,
+        opacity: 0.23,
+        roughness: 0.18
+      });
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(1.25, 28, 14), domeMaterial);
+      body.position.y = 0.95;
+      visor.position.set(0, 1.2, -0.43);
+      dome.position.y = 0.95;
+      group.add(body, visor, dome);
+      group.userData.dome = dome;
+      group.position.copy(base);
     } else if (config.kind === 'boss') {
       const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 1.7), material);
       const core = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 16), eyeMaterial);
@@ -775,7 +858,7 @@ export class Game {
       group.position.copy(base);
     }
 
-    if (config.kind !== 'beetle') {
+    if (config.kind !== 'beetle' && config.kind !== 'shieldBot') {
       const warningMaterial = new THREE.MeshStandardMaterial({
         color: palette.red,
         emissive: palette.red,
@@ -879,14 +962,15 @@ export class Game {
     group.add(beam, postA, postB);
     group.position.set(config.position.x, 0, config.position.z);
     this.dynamicRoot.add(group);
-    this.lasers.push({ group, material, config, active: true });
+    this.lasers.push({ group, material, config, basePosition: new THREE.Vector3(config.position.x, 0, config.position.z), active: true });
   }
 
   private spawnPowerUp(config: PowerUpConfig): void {
     const colors: Record<PowerUpKind, number> = {
       repair: palette.green,
       rapid: palette.yellow,
-      shield: palette.cyan
+      shield: palette.cyan,
+      overcharge: palette.orange
     };
     const color = colors[config.kind];
     const material = new THREE.MeshStandardMaterial({
@@ -924,6 +1008,13 @@ export class Game {
       halo.rotation.x = Math.PI * 0.5;
       group.add(medkit, handle, crossA, crossB, halo);
       group.userData.pulse = halo;
+    } else if (config.kind === 'overcharge') {
+      const bolt = new THREE.Mesh(new THREE.OctahedronGeometry(0.38), material);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.045, 8, 28), material);
+      const spark = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.5, 5), material);
+      ring.rotation.x = Math.PI * 0.5;
+      spark.position.y = 0.44;
+      group.add(bolt, ring, spark);
     } else {
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.07, 10, 28), material);
       const coreGeometry = config.kind === 'rapid' ? new THREE.OctahedronGeometry(0.32) : new THREE.SphereGeometry(0.28, 18, 12);
@@ -1086,6 +1177,11 @@ export class Game {
       footA.rotation.x = Math.sin(this.elapsed * 11) * (moving ? 0.2 : 0.03);
       footB.rotation.x = -footA.rotation.x;
     }
+    const shieldShell = this.player.userData.shieldShell as THREE.Object3D | undefined;
+    if (shieldShell) {
+      shieldShell.visible = this.shieldTimer > 0;
+      shieldShell.scale.setScalar(1 + Math.sin(this.elapsed * 8) * 0.035);
+    }
   }
 
   private movePlayer(deltaMove: THREE.Vector3): void {
@@ -1135,6 +1231,15 @@ export class Game {
         if (enemy.shootTimer <= 0 && distance < 13) {
           this.fireEnemyBullet(enemy.group.position.clone().add(new THREE.Vector3(0, 0.9, 0)), toPlayer.normalize(), 16);
           enemy.shootTimer = 1.8;
+        }
+      } else if (enemy.kind === 'shieldBot') {
+        const dome = enemy.group.userData.dome as THREE.Object3D | undefined;
+        if (dome) {
+          dome.scale.setScalar(1 + Math.sin(this.elapsed * 4.5) * 0.08);
+        }
+        if (distance > 6) {
+          enemy.group.position.add(toPlayer.normalize().multiplyScalar(delta * 1.25));
+          this.resolveObstacleCollisions(enemy.group.position, 0.7);
         }
       } else if (enemy.kind === 'boss') {
         enemy.group.position.y = Math.sin(this.elapsed * 1.8) * 0.08;
@@ -1207,6 +1312,13 @@ export class Game {
     });
   }
 
+  private isEnemyProtected(enemy: Enemy): boolean {
+    if (enemy.kind === 'shieldBot') return false;
+    return this.enemies.some((candidate) => {
+      return candidate.alive && candidate.kind === 'shieldBot' && this.distance2D(candidate.group.position, enemy.group.position) < 5.8;
+    });
+  }
+
   private updateBullets(delta: number): void {
     for (let i = this.bullets.length - 1; i >= 0; i -= 1) {
       const bullet = this.bullets[i];
@@ -1226,7 +1338,14 @@ export class Game {
         }
         const enemy = this.enemies.find((candidate) => candidate.alive && this.distance2D(candidate.group.position, bullet.mesh.position) < candidate.radius);
         if (enemy) {
+          if (this.isEnemyProtected(enemy) && bullet.damage < 70) {
+            this.addSpark(bullet.mesh.position, palette.cyan);
+            this.showToast('Щит-бот блокує постріл!', 0.9);
+            this.removeBullet(i);
+            continue;
+          }
           enemy.health -= bullet.damage;
+          this.audio.play(enemy.kind === 'boss' ? 'boss' : 'hit');
           this.addSpark(bullet.mesh.position, enemy.kind === 'boss' ? palette.purple : palette.pink);
           this.removeBullet(i);
           if (enemy.health <= 0) {
@@ -1281,6 +1400,7 @@ export class Game {
         collectible.group.visible = false;
         this.gears += 1;
         this.score += 50;
+        this.audio.play('pickup');
         this.addSpark(collectible.position.clone().add(new THREE.Vector3(0, 0.7, 0)), palette.yellow);
       }
     }
@@ -1313,11 +1433,16 @@ export class Game {
           this.rapidTimer = 8;
           this.showToast('Швидкий бластер активний!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.yellow, 1.15);
-        } else {
+        } else if (powerUp.kind === 'shield') {
           this.shieldTimer = 9;
           this.showToast('Щит увімкнено!', 1.8);
           this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.cyan, 1.15);
+        } else {
+          this.overchargeShots += 1;
+          this.showToast('Заряджений постріл готовий!', 1.8);
+          this.addSpark(powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0)), palette.orange, 1.25);
         }
+        this.audio.play('pickup');
       }
     }
   }
@@ -1329,6 +1454,7 @@ export class Game {
         button.group.scale.y = 0.82;
         this.score += 100;
         this.showToast('Кнопку активовано!', 1.4);
+        this.audio.play('door');
         this.addSpark(button.position.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.green);
       }
     }
@@ -1348,18 +1474,27 @@ export class Game {
 
   private updateLasers(delta: number): void {
     for (const laser of this.lasers) {
+      if (laser.config.sweep) {
+        const offset = Math.sin(this.elapsed * laser.config.sweep.speed + laser.config.phase) * laser.config.sweep.distance;
+        if (laser.config.axis === 'x') {
+          laser.group.position.z = laser.basePosition.z + offset;
+        } else {
+          laser.group.position.x = laser.basePosition.x + offset;
+        }
+      }
       laser.active = Math.sin(this.elapsed * 2.4 + laser.config.phase) > -0.25;
       laser.group.visible = laser.active;
       laser.material.opacity = laser.active ? 0.85 : 0.18;
       if (!laser.active || this.playerPosition.y > 0.45) continue;
 
-      const localX = this.playerPosition.x - laser.config.position.x;
-      const localZ = this.playerPosition.z - laser.config.position.z;
+      const localX = this.playerPosition.x - laser.group.position.x;
+      const localZ = this.playerPosition.z - laser.group.position.z;
       const nearBeam =
         laser.config.axis === 'x'
           ? Math.abs(localZ) < 0.35 && Math.abs(localX) < laser.config.length * 0.5
           : Math.abs(localX) < 0.35 && Math.abs(localZ) < laser.config.length * 0.5;
       if (nearBeam) {
+        this.audio.play('laser');
         this.damagePlayer(48 * delta, { continuous: true });
       }
     }
@@ -1380,16 +1515,15 @@ export class Game {
   }
 
   private updateAimMarker(delta: number): void {
-    this.aimMarker.visible = this.state === 'playing';
+    this.aimMarker.visible = this.state === 'playing' && this.cameraController.getMode() === 'thirdPerson';
     this.aimMarker.position.lerp(new THREE.Vector3(this.aimPoint.x, 0.09, this.aimPoint.z), 1 - Math.pow(0.004, delta));
     this.aimMarker.rotation.y += delta * 2.4;
   }
 
   private updateCamera(delta: number): void {
-    const targetPosition = new THREE.Vector3(this.playerPosition.x, 18, this.playerPosition.z + 15.5);
-    this.camera.position.lerp(targetPosition, 1 - Math.pow(0.001, delta));
-    const lookAt = new THREE.Vector3(this.playerPosition.x, 0.7, this.playerPosition.z - 2.6);
-    this.camera.lookAt(lookAt);
+    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    this.cameraController.update(delta, this.playerPosition, aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
+    this.firstPersonBlaster.visible = this.state === 'playing' && this.cameraController.getMode() === 'firstPerson';
   }
 
   private checkExit(delta: number): void {
@@ -1412,7 +1546,12 @@ export class Game {
   private completeLevel(): void {
     this.state = 'levelComplete';
     const next = this.levelIndex + 1;
+    this.settings = saveSettings({
+      bestScore: Math.max(this.settings.bestScore, this.score),
+      highestUnlockedRoom: Math.max(this.settings.highestUnlockedRoom, Math.min(next + 1, LEVELS.length))
+    });
     if (next >= LEVELS.length) {
+      this.audio.play('victory');
       this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
@@ -1433,14 +1572,29 @@ export class Game {
     return this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 2.2;
   }
 
+  private objectiveProgressText(): string {
+    const level = LEVELS[this.levelIndex];
+    if (level.objective === 'targets') {
+      return describeObjectiveProgress({ objective: level.objective, done: this.targets.filter((target) => target.hit).length, total: this.targets.length });
+    }
+    if (level.objective === 'enemies') {
+      return describeObjectiveProgress({ objective: level.objective, done: this.enemies.filter((enemy) => !enemy.alive).length, total: this.enemies.length });
+    }
+    if (level.objective === 'buttons') {
+      return describeObjectiveProgress({ objective: level.objective, done: this.buttons.filter((button) => button.active).length, total: this.buttons.length });
+    }
+    if (level.objective === 'boss') {
+      const boss = this.enemies.find((enemy) => enemy.kind === 'boss');
+      const percent = boss ? Math.max(0, Math.ceil((boss.health / boss.maxHealth) * 100)) : 0;
+      return describeObjectiveProgress({ objective: level.objective, done: percent, total: 100 });
+    }
+    return describeObjectiveProgress({ objective: level.objective, done: 0, total: 0 });
+  }
+
   private shoot(): void {
     if (this.shootCooldown > 0 || this.state !== 'playing') return;
-    const direction = this.aimPoint.clone().sub(this.playerPosition);
-    direction.y = 0;
-    if (direction.lengthSq() < 0.1) {
-      direction.set(0, 0, -1);
-    }
-    direction.normalize();
+    const thirdPersonDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const direction = this.cameraController.getAimDirection(thirdPersonDirection, this.lastMoveDirection);
     const material = new THREE.MeshStandardMaterial({
       color: palette.cyan,
       emissive: palette.cyan,
@@ -1450,13 +1604,18 @@ export class Game {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), material);
     mesh.position.copy(this.playerPosition).add(new THREE.Vector3(direction.x * 0.7, 1.1, direction.z * 0.7));
     this.dynamicRoot.add(mesh);
+    const overcharged = this.overchargeShots > 0;
+    if (overcharged) {
+      this.overchargeShots -= 1;
+    }
     this.bullets.push({
       mesh,
-      velocity: direction.multiplyScalar(BULLET_SPEED),
+      velocity: direction.clone().multiplyScalar(BULLET_SPEED),
       owner: 'player',
-      damage: this.rapidTimer > 0 ? 20 : 26,
+      damage: overcharged ? 92 : this.rapidTimer > 0 ? 20 : 26,
       life: 1.6
     });
+    this.audio.play('shot');
     this.shootCooldown = this.rapidTimer > 0 ? 0.09 : 0.18;
   }
 
@@ -1472,6 +1631,7 @@ export class Game {
     this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
     this.dashCooldown = 2.6;
     this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.cyan, 1.25);
+    this.audio.play('dash');
     this.showToast('Ривок заряджається!', 1.25);
   }
 
@@ -1542,14 +1702,19 @@ export class Game {
     this.hudLevel.textContent = `Кімната ${level.id}/${LEVELS.length}: ${level.name}`;
     this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
-    this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : level.tip;
+    this.hudObjective.textContent = objectiveDone ? 'Ціль виконано. Біжи до зеленого виходу!' : `${this.objectiveProgressText()} - ${level.tip}`;
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const powers = [];
     if (this.rapidTimer > 0) powers.push(`Швидкий бластер ${Math.ceil(this.rapidTimer)}с`);
     if (this.shieldTimer > 0) powers.push(`Щит ${Math.ceil(this.shieldTimer)}с`);
+    if (this.overchargeShots > 0) powers.push(`Overcharge x${this.overchargeShots}`);
     this.hudPower.textContent = powers.length > 0 ? powers.join(' + ') : 'Апгрейди -';
     this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
+    this.hudCamera.textContent = this.cameraController.getHudLabel();
+    const isFirstPerson = this.cameraController.getMode() === 'firstPerson';
+    this.shell.classList.toggle('is-first-person', isFirstPerson);
+    this.crosshair.classList.toggle('is-visible', this.state === 'playing' && isFirstPerson);
     this.hudProgress.innerHTML = LEVELS.map((item, index) => {
       const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
       return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
@@ -1601,11 +1766,22 @@ export class Game {
     this.keys.add(event.code);
     if (event.code === 'Escape' && this.state === 'playing') {
       this.state = 'paused';
-      this.showOverlay('Пауза', 'WASD - рух, мишка - приціл, клік - постріл, Shift - ривок, Space - стрибок, R - перезапуск кімнати.', 'Продовжити', () => {
+      this.showOverlay('Пауза', 'WASD - рух, мишка - приціл, клік - постріл, C - змінити вид, M - звук, Shift - ривок, Space - стрибок, R - перезапуск кімнати.', 'Продовжити', () => {
         this.state = 'playing';
         this.shell.classList.remove('is-menu');
         this.overlay.classList.remove('is-visible');
       });
+    }
+    if (event.code === 'KeyC' && this.state === 'playing' && !event.repeat) {
+      this.cameraController.toggleMode();
+      this.settings = saveSettings({ preferredCameraMode: this.cameraController.getMode() });
+      this.showToast(this.cameraController.getMode() === 'firstPerson' ? 'Вид від першої особи.' : 'Тактичний вид зверху.', 1.15);
+      this.updateHud();
+    }
+    if (event.code === 'KeyM' && !event.repeat) {
+      this.settings = saveSettings({ soundOn: !this.settings.soundOn });
+      this.audio.setEnabled(this.settings.soundOn);
+      this.showToast(this.settings.soundOn ? 'Звук увімкнено.' : 'Звук вимкнено.', 1.15);
     }
     if ((event.code === 'ShiftLeft' || event.code === 'ShiftRight') && !event.repeat) {
       this.dash();

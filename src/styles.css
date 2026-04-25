@@ -70,7 +70,8 @@ button {
 .hint-chip,
 .boss-chip,
 .progress-strip,
-.toast-chip {
+.toast-chip,
+.crosshair {
   position: absolute;
   border: 1px solid rgba(84, 241, 255, 0.34);
   background: var(--panel);
@@ -103,7 +104,8 @@ button {
 .health-chip,
 .gears-chip,
 .power-chip,
-.dash-chip {
+.dash-chip,
+.camera-chip {
   position: static;
   padding: 9px 12px;
   min-width: 118px;
@@ -133,6 +135,11 @@ button {
 .dash-chip.is-ready {
   border-color: rgba(124, 242, 124, 0.58);
   color: #d9ffdf;
+}
+
+.camera-chip {
+  min-width: 128px;
+  border-color: rgba(84, 241, 255, 0.54);
 }
 
 .progress-strip {
@@ -229,6 +236,46 @@ button {
 }
 
 .toast-chip.is-visible {
+  display: block;
+}
+
+.crosshair {
+  left: 50%;
+  top: 50%;
+  display: none;
+  width: 38px;
+  height: 38px;
+  transform: translate(-50%, -50%);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.crosshair::before,
+.crosshair::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  content: "";
+  border-radius: 999px;
+  background: rgba(244, 251, 255, 0.94);
+  box-shadow: 0 0 12px rgba(84, 241, 255, 0.65);
+}
+
+.crosshair::before {
+  width: 28px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+}
+
+.crosshair::after {
+  width: 2px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+}
+
+.crosshair.is-visible {
   display: block;
 }
 
@@ -351,7 +398,8 @@ h1 {
   .health-chip,
   .gears-chip,
   .power-chip,
-  .dash-chip {
+  .dash-chip,
+  .camera-chip {
     min-width: 0;
     flex: 1 1 126px;
     font-size: 12px;
