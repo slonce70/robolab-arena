@@ -54,4 +54,19 @@ describe('first-person blaster feedback', () => {
     expect(state.recoilZ).toBeCloseTo(0.04);
     expect(state.recoilPitch).toBeCloseTo(-0.04);
   });
+
+  it('calms flash and recoil when reduced motion is enabled', () => {
+    const state = describeFirstPersonBlasterState({
+      flashTimer: 0.06,
+      rapidTimer: 3,
+      overchargeShots: 1,
+      elapsed: Math.PI / 20,
+      reducedMotion: true
+    });
+
+    expect(state.flashScale).toBeCloseTo(1.3);
+    expect(state.coilScale).toBe(1.08);
+    expect(state.recoilZ).toBe(0);
+    expect(state.recoilPitch).toBe(0);
+  });
 });

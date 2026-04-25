@@ -1833,7 +1833,8 @@ export class Game {
       flashTimer: this.blasterFlashTimer,
       rapidTimer: this.rapidTimer,
       overchargeShots: this.overchargeShots,
-      elapsed: this.elapsed
+      elapsed: this.elapsed,
+      reducedMotion: this.settings.reducedMotion
     });
     if (glowMaterial) {
       glowMaterial.color.setHex(state.color);

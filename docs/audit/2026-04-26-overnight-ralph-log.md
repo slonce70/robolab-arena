@@ -317,3 +317,14 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, power text now `Прискорення 8с + Щит 9с + Заряд x1`, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: active power wording is now localized; final subjective HUD brevity should be judged during manual combat.
+
+## Iteration 29 - Reduced-motion blaster feedback
+- Problem: calmer effects reduced CSS/crosshair motion, but first-person blaster flash/recoil still used the full overcharge kick.
+- Change: extended `describeFirstPersonBlasterState` with `reducedMotion`, calming flash scale, coil scale, and recoil while preserving normal idle/rapid/overcharge behavior.
+- Evidence:
+  - TDD red: `npm test -- src/game/blasterFeedback.test.ts` failed on the new reduced-motion expectation before implementation.
+  - Focused green: `npm test -- src/game/blasterFeedback.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 32 files / 96 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, localized power text intact, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: reduced-motion blaster math is state-tested; subjective comfort still needs a human reduced-motion play pass.
