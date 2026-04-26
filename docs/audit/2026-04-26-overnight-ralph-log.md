@@ -1284,3 +1284,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: engagement reachability is static geometry evidence and still does not prove aim/combat difficulty in a human no-shortcut run.
+
+## Iteration 111 - Enemy line-of-fire route guard
+- Problem: the new enemy engagement route guard could still false-positive if a nearby reachable point existed but an obstacle blocked the direct shot line.
+- Change: added a sampled line-of-fire check from each candidate engagement point to the enemy center, using the same static solid boxes as the route guard, so every enemy/boss must have at least one reachable and unobstructed firing position after doors are open.
+- Evidence:
+  - TDD red: `npm test -- src/game/campaignPlaythrough.test.ts` failed first with `hasLineOfFire is not defined` after the guard expression required line-of-fire.
+  - Focused green: `npm test -- src/game/campaignPlaythrough.test.ts` PASS: 1 file / 1 test.
+  - Full regression: `npm test` PASS: 40 files / 162 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: line-of-fire is a static 2D sampled approximation and does not model moving enemies/projectiles or player aim skill.

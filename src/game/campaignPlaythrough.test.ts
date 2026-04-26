@@ -42,7 +42,7 @@ function validateLevelRoute(level: LevelConfig): string[] {
 
   for (const enemy of requiredEnemyEngagements(level)) {
     const engagementPoints = getEnemyEngagementPoints(enemy.position);
-    const reachableEngagement = engagementPoints.some((point) => hasReachableStandingPoint(point, openReachable, openSolids));
+    const reachableEngagement = engagementPoints.some((point) => hasReachableStandingPoint(point, openReachable, openSolids) && hasLineOfFire(point, enemy.position, openSolids));
     if (!reachableEngagement) {
       failures.push(`Level ${level.id} enemy at (${enemy.position.x}, ${enemy.position.z}) has no reachable engagement point after doors open.`);
     }
@@ -142,6 +142,20 @@ function hasReachableStandingPoint(point: Vec2, reachable: Set<string>, solids: 
     }
   }
   return false;
+}
+
+function hasLineOfFire(from: Vec2, to: Vec2, solids: PlaySolid[]): boolean {
+  const distanceToTarget = distance(from, to);
+  const samples = Math.max(1, Math.ceil(distanceToTarget / 0.25));
+  for (let step = 1; step < samples; step += 1) {
+    const progress = step / samples;
+    const point = {
+      x: from.x + (to.x - from.x) * progress,
+      z: from.z + (to.z - from.z) * progress
+    };
+    if (!isWalkable(point, solids)) return false;
+  }
+  return true;
 }
 
 function isWalkable(point: Vec2, solids: PlaySolid[]): boolean {
