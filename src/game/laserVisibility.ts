@@ -6,7 +6,7 @@ export type LaserVisibilityState = {
   warningEmissiveIntensity: number;
 };
 
-const LASER_ACTIVE_THRESHOLD = -0.25;
+export const LASER_ACTIVE_THRESHOLD = -0.25;
 const LASER_WAVE_MINIMUM = -1;
 
 function clamp01(value: number): number {

@@ -25,7 +25,7 @@ import { describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
-import { calculateLaserWarningCharge, describeLaserVisibility } from './laserVisibility';
+import { LASER_ACTIVE_THRESHOLD, calculateLaserWarningCharge, describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
@@ -1846,7 +1846,7 @@ export class Game {
         }
       }
       const laserWave = Math.sin(this.elapsed * 2.4 + laser.config.phase);
-      laser.active = laserWave > -0.25;
+      laser.active = laserWave > LASER_ACTIVE_THRESHOLD;
       const laserVisibility = describeLaserVisibility(laser.active, calculateLaserWarningCharge(laserWave));
       laser.group.visible = laserVisibility.groupVisible;
       const [warningLane, beam, postA, postB] = laser.group.children as THREE.Object3D[];

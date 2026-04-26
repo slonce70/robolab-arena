@@ -1237,3 +1237,15 @@ Remaining risk:
   - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass`.
   - `git diff --check` PASS.
 - Remaining risk: warning ramp is state-tested and browser-smoked, but exact visual timing still needs human eye/hand feel in rooms 6/10/12.
+
+## Iteration 107 - Shared laser activation threshold cleanup
+- Cleanup plan: keep behavior unchanged, touch only the duplicated laser activation threshold noted by architect, and rerun laser/full/browser gates to prove no timing drift.
+- Change: exported `LASER_ACTIVE_THRESHOLD` from `laserVisibility.ts` and reused it in `Game.updateLasers()` so warning charge and actual beam activation share one source of truth.
+- Evidence:
+  - Focused regression: `npm test -- src/game/laserVisibility.test.ts src/game/laserHazard.test.ts` PASS: 2 files / 10 tests.
+  - Full regression: `npm test` PASS: 40 files / 162 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Laser browser smoke `node .omx/tmp/robolab-laser-lane-qa.mjs` PASS: `laser-warning-ramp-playwright-pass`, room 6 loaded, `badConsoleMessages: []`, `pageErrors: []`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: behavior-neutral cleanup; it still does not provide a human laser timing feel pass.
