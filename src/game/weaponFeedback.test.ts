@@ -34,6 +34,6 @@ describe('player projectile theme', () => {
 
   it('tints rapid shots and lets overcharge take visual precedence', () => {
     expect(getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 0 })).toEqual({ color: 0xffd166, emissiveIntensity: 1.9, radius: 0.17 });
-    expect(getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 1 }).color).toBe(0xff9f43);
+    expect(getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 1 })).toEqual({ color: 0xff9f43, emissiveIntensity: 2.35, radius: 0.23 });
   });
 });

@@ -874,3 +874,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this is test hardening only; no new human gameplay evidence added.
+
+## Iteration 77 - Projectile precedence test hardening
+- Problem: architect review approved the feedback helper tests but noted rapid+overcharge precedence only asserted color, leaving radius/emissive precedence less explicit.
+- Change: changed the rapid+overcharge projectile test to assert the full overcharge theme object.
+- Evidence:
+  - Focused verification: `npm test -- src/game/weaponFeedback.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 38 files / 135 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this is test hardening only; no new human gameplay evidence added.
