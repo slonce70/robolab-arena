@@ -519,3 +519,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: reward placement is geometry-guarded and room-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 47 - Laser spawn guard uses runtime beam footprint
+- Problem: architect review found the room-start laser invariant only measured distance to laser centers, while runtime damage is a long beam segment with optional sweep; this could miss unfair spawn damage from long lasers.
+- Change: added `getLaserDangerClearance` beside the laser footprint presenter, covering damaging beam length, 0.35 half-width, and full sweep envelope; changed the spawn-pressure guard to use that runtime-shaped clearance.
+- Evidence:
+  - TDD red: `npm test -- src/game/laserHazard.test.ts` failed because `getLaserDangerClearance` did not exist, with regression cases showing a point >4 units from the laser center but still inside the damaging beam.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts src/game/laserHazard.test.ts` PASS: 2 files / 10 tests.
+  - Full regression: `npm test` PASS: 35 files / 110 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: laser spawn safety is now runtime-footprint guarded, but this still does not claim a full normal human no-jump victory run.

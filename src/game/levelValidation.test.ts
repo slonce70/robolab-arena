@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from './levels';
+import { getLaserDangerClearance } from './laserHazard';
 import { validateLevel } from './levelValidation';
 
 describe('final level validation', () => {
@@ -65,7 +66,7 @@ describe('final level validation', () => {
         expect(Math.hypot(start.x - enemy.position.x, start.z - enemy.position.z), `${level.name} enemy spawn distance`).toBeGreaterThanOrEqual(5);
       }
       for (const laser of level.lasers ?? []) {
-        expect(Math.hypot(start.x - laser.position.x, start.z - laser.position.z), `${level.name} laser spawn distance`).toBeGreaterThanOrEqual(4);
+        expect(getLaserDangerClearance(start, laser), `${level.name} laser spawn clearance`).toBeGreaterThanOrEqual(1.2);
       }
       for (const obstacle of level.obstacles ?? []) {
         const clearanceX = Math.abs(start.x - obstacle.position.x) - obstacle.size.width * 0.5;
