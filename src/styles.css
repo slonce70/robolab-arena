@@ -176,6 +176,22 @@ button:focus-visible {
   max-width: 300px;
   border-color: rgba(255, 79, 163, 0.5);
   color: #f0fbff;
+  transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+.power-chip.is-rapid {
+  border-color: rgba(255, 209, 102, 0.7);
+  box-shadow: 0 0 18px rgba(255, 209, 102, 0.18), var(--hud-shadow);
+}
+
+.power-chip.is-shielded {
+  border-color: rgba(84, 241, 255, 0.7);
+  box-shadow: 0 0 18px rgba(84, 241, 255, 0.2), var(--hud-shadow);
+}
+
+.power-chip.is-overcharged {
+  border-color: rgba(255, 79, 163, 0.78);
+  box-shadow: 0 0 20px rgba(255, 79, 163, 0.24), var(--hud-shadow);
 }
 
 .dash-chip {

@@ -32,7 +32,7 @@ import { describeBossPhaseVisual } from './bossPhaseVisual';
 import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
 import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
-import { describePowerStatus } from './powerStatus';
+import { describePowerHud } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import { getPointerLockToast, shouldRefreshFirstPersonCaptureOnResume, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
@@ -2122,11 +2122,13 @@ export class Game {
     });
     this.feedbackVignette.className = feedback.classes.join(' ');
     this.feedbackVignette.style.setProperty('--feedback-opacity', String(feedback.opacity));
-    this.hudPower.textContent = describePowerStatus({
+    const powerHud = describePowerHud({
       rapidTimer: this.rapidTimer,
       shieldTimer: this.shieldTimer,
       overchargeShots: this.overchargeShots
     });
+    this.hudPower.textContent = powerHud.text;
+    this.hudPower.className = powerHud.classes.join(' ');
     this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
     this.hudCamera.textContent = this.cameraController.getHudLabel();

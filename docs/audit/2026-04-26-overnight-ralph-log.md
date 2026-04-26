@@ -767,3 +767,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: layered HUD glow is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 68 - Power chip active-state glow
+- Problem: active upgrades were listed as text, but the power HUD chip stayed visually flat, so rapid fire, shield, and overcharge were not as glanceable as the new health states.
+- Change: added `describePowerHud`, wired `Game.updateHud()` to apply active upgrade classes to the power chip, and added rapid/shield/overcharge glow styles.
+- Evidence:
+  - TDD red: `npm test -- src/game/powerStatus.test.ts` failed because `describePowerHud` did not exist before implementation.
+  - Focused green: `npm test -- src/game/powerStatus.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 36 files / 125 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: power chip states are unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.

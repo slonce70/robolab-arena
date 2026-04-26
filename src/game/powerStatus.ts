@@ -12,3 +12,20 @@ export function describePowerStatus(input: PowerStatusInput): string {
 
   return powers.length > 0 ? powers.join(' + ') : 'Апгрейди —';
 }
+
+export type PowerHud = {
+  text: string;
+  classes: string[];
+};
+
+export function describePowerHud(input: PowerStatusInput): PowerHud {
+  const classes = ['status-chip', 'power-chip'];
+  if (input.rapidTimer > 0) classes.push('is-rapid');
+  if (input.shieldTimer > 0) classes.push('is-shielded');
+  if (input.overchargeShots > 0) classes.push('is-overcharged');
+
+  return {
+    text: describePowerStatus(input),
+    classes
+  };
+}
