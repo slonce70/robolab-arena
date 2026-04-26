@@ -387,3 +387,15 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
 - Change: no code change; broad regression evidence only.
 - Remaining risk: still not a normal human no-jump victory run; it is a room-load/HUD continuity smoke.
+
+## Iteration 36 - Pause intel label color protected
+- Problem: pause-room intel labels referenced an undefined CSS token (`--accent`), so the intended cyan label color depended on CSS fallback/inheritance instead of the design token system.
+- Change: changed the pause intel label color to the existing `--cyan` token and added a regression test that fails on any undefined CSS custom-property reference in `src/styles.css`.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed with missing token `accent` before the CSS fix.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 1 test.
+  - Full regression: `npm test` PASS: 34 files / 99 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning after the test was changed to use Vite `?raw` instead of Node-only imports.
+  - Playwright QA `output/playwright/overnight-pause-label-color-2026-04-26/report.json`: `pause-label-color-pass`, all four pause intel labels computed as `rgb(84, 241, 255)`, `badConsole: []`, `pageErrors: []`.
+  - `git diff --check` PASS.
+- Remaining risk: this protects CSS token hygiene and pause label color; it does not replace a full human no-jump victory run.

@@ -547,7 +547,7 @@ h1 {
 .room-intel strong {
   display: block;
   margin-bottom: 5px;
-  color: var(--accent);
+  color: var(--cyan);
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
