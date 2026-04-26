@@ -910,3 +910,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: difficulty currently persists as a setting scaffold only; no damage/speed rebalance is claimed.
+
+## Iteration 80 - Difficulty affects incoming damage
+- Problem: the pause difficulty setting existed as a visible preference, but it did not yet make the balance more forgiving or more challenging for players who need it.
+- Change: wired difficulty into incoming player damage only. Normal remains the original balance (`1.0x`), easy reduces incoming damage to `0.8x`, and hard increases it to `1.2x`; shield math still applies predictably before the difficulty multiplier.
+- Evidence:
+  - TDD red: `npm test -- src/game/combat.test.ts` failed on easy/hard damage expectations before the multiplier existed.
+  - Focused green: `npm test -- src/game/difficulty.test.ts src/game/combat.test.ts` PASS: 2 files / 6 tests.
+  - Full regression: `npm test` PASS: 39 files / 140 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Browser pause/settings smoke: `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS with visible difficulty cycle `Нормально` -> `Важко` and persisted `hard`.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this changes damage only, not enemy speed/health; a later balance pass should decide whether difficulty should also affect enemy pacing.

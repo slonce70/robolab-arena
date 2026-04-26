@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDifficultyLabel, nextDifficulty } from './difficulty';
+import { getDifficultyLabel, getIncomingDamageMultiplier, nextDifficulty } from './difficulty';
 
 describe('difficulty settings', () => {
   it('cycles through approachable Ukrainian labels', () => {
@@ -10,5 +10,11 @@ describe('difficulty settings', () => {
     expect(nextDifficulty('easy')).toBe('normal');
     expect(nextDifficulty('normal')).toBe('hard');
     expect(nextDifficulty('hard')).toBe('easy');
+  });
+
+  it('keeps normal damage unchanged while easy and hard are explicit modifiers', () => {
+    expect(getIncomingDamageMultiplier('easy')).toBe(0.8);
+    expect(getIncomingDamageMultiplier('normal')).toBe(1);
+    expect(getIncomingDamageMultiplier('hard')).toBe(1.2);
   });
 });

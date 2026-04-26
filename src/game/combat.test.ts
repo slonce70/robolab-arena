@@ -13,4 +13,11 @@ describe('combat damage rules', () => {
   it('reduces damage while shield is active', () => {
     expect(effectiveDamage(40, true)).toBeCloseTo(14);
   });
+
+  it('scales incoming damage by selected difficulty while preserving normal balance', () => {
+    expect(effectiveDamage(50, false, 'normal')).toBe(50);
+    expect(effectiveDamage(50, false, 'easy')).toBe(40);
+    expect(effectiveDamage(50, false, 'hard')).toBe(60);
+    expect(effectiveDamage(50, true, 'easy')).toBeCloseTo(14);
+  });
 });

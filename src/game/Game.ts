@@ -2073,7 +2073,7 @@ export class Game {
   private damagePlayer(amount: number, options: DamageOptions = {}): void {
     const continuous = options.continuous ?? false;
     if (!canApplyDamage(this.invulnerableTimer, continuous)) return;
-    const finalAmount = effectiveDamage(amount, this.shieldTimer > 0);
+    const finalAmount = effectiveDamage(amount, this.shieldTimer > 0, this.settings.difficulty);
     this.health = Math.max(0, this.health - finalAmount);
     if (this.shieldTimer > 0 && !continuous) {
       const shieldTheme = getPowerEffectTheme('shield');

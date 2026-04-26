@@ -15,3 +15,9 @@ export function nextDifficulty(difficulty: Difficulty): Difficulty {
   const current = DIFFICULTY_ORDER.indexOf(difficulty);
   return DIFFICULTY_ORDER[(current + 1) % DIFFICULTY_ORDER.length];
 }
+
+export function getIncomingDamageMultiplier(difficulty: Difficulty): number {
+  if (difficulty === 'easy') return 0.8;
+  if (difficulty === 'hard') return 1.2;
+  return 1;
+}
