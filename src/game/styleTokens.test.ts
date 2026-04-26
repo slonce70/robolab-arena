@@ -40,6 +40,13 @@ describe('CSS custom properties', () => {
     }
   });
 
+  it('makes expiring powers pulse with a warning glow', () => {
+    const rule = getCssRule('.power-chip.is-expiring');
+
+    expect(rule).toContain('rgba(255, 159, 67');
+    expect(rule).toContain('power-expiring');
+  });
+
   it('makes the victory panel visibly celebratory', () => {
     const rule = getCssRule('.victory-panel');
 

@@ -70,7 +70,8 @@ button:focus-visible {
 
 
 .game-shell.is-reduced-motion .toast-chip,
-.game-shell.is-reduced-motion .overlay {
+.game-shell.is-reduced-motion .overlay,
+.game-shell.is-reduced-motion :is(.power-chip.is-expiring) {
   animation-duration: 0.01ms;
 }
 
@@ -192,6 +193,13 @@ button:focus-visible {
 .power-chip.is-overcharged {
   border-color: rgba(255, 79, 163, 0.78);
   box-shadow: 0 0 20px rgba(255, 79, 163, 0.24), var(--hud-shadow);
+}
+
+.power-chip.is-expiring {
+  color: #fff3df;
+  border-color: rgba(255, 159, 67, 0.86);
+  box-shadow: 0 0 22px rgba(255, 159, 67, 0.32), var(--hud-shadow);
+  animation: power-expiring 620ms ease-in-out infinite alternate;
 }
 
 .power-chip.is-rapid.is-shielded {
@@ -712,6 +720,16 @@ h1 {
 
   to {
     opacity: 1;
+  }
+}
+
+@keyframes power-expiring {
+  from {
+    filter: saturate(1);
+  }
+
+  to {
+    filter: saturate(1.25) brightness(1.12);
   }
 }
 

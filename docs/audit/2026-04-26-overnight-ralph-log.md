@@ -1100,3 +1100,17 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: the smoke still uses DEV shortcuts (`KeyB` and `KeyN`) and is not a human no-shortcut 1-12 victory run, but it now exercises the production victory overlay path instead of DOM injection.
+
+## Iteration 96 - Expiring power warning glow
+- Problem: timed powers had strong active-state glow, but the last seconds did not visually warn the player that rapid/shield effects were about to drop.
+- Change: `describePowerHud()` now adds `is-expiring` when rapid or shield timers are in their final two seconds, and CSS gives that state an orange warning pulse while respecting reduced-motion mode.
+- Evidence:
+  - TDD red: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` failed until `is-expiring` and `.power-chip.is-expiring` styling existed.
+  - Focused green: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 9 tests.
+  - Full regression: `npm test` PASS: 40 files / 154 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass` with difficulty status visible and saved.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: no pixel-matched screenshot assertion for the pulse; coverage is unit/style-token plus smoke tests.

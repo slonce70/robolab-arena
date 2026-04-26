@@ -23,9 +23,14 @@ export function describePowerHud(input: PowerStatusInput): PowerHud {
   if (input.rapidTimer > 0) classes.push('is-rapid');
   if (input.shieldTimer > 0) classes.push('is-shielded');
   if (input.overchargeShots > 0) classes.push('is-overcharged');
+  if (isExpiringTimer(input.rapidTimer) || isExpiringTimer(input.shieldTimer)) classes.push('is-expiring');
 
   return {
     text: describePowerStatus(input),
     classes
   };
+}
+
+function isExpiringTimer(seconds: number): boolean {
+  return seconds > 0 && seconds <= 2;
 }
