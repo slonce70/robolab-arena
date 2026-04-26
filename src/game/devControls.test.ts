@@ -27,4 +27,15 @@ describe('getDevLevelTarget', () => {
     expect(getDevBossTarget('KeyP')).toBe('phase-three');
     expect(getDevBossTarget('KeyM')).toBeUndefined();
   });
+
+  it('keeps player-facing controls out of the DEV shortcut map', () => {
+    const playerFacingCodes = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyE', 'KeyC', 'KeyM', 'KeyR', 'ShiftLeft', 'ShiftRight'];
+
+    for (const code of playerFacingCodes) {
+      expect(getDevLevelTarget(code, 1, 12), code).toBeUndefined();
+      expect(getDevEffectTarget(code), code).toBeUndefined();
+      expect(getDevCompletionTarget(code), code).toBeUndefined();
+      expect(getDevBossTarget(code), code).toBeUndefined();
+    }
+  });
 });

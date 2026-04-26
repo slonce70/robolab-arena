@@ -1415,3 +1415,14 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: phase-3 browser evidence uses a DEV shortcut for health setup; it is still not a human no-shortcut boss fight.
+
+## Iteration 121 - DEV shortcut conflict regression
+- Problem: architect review approved the boss phase QA shortcut and noted that future DEV shortcut growth could accidentally steal player-facing controls.
+- Change: added a table-style regression proving current player-facing controls (`WASD`, jump, camera, sound, restart, dash) are not mapped by level/effect/completion/boss DEV shortcuts.
+- Evidence:
+  - Focused green: `npm test -- src/game/devControls.test.ts` PASS: 1 file / 6 tests.
+  - Full regression: `npm test` PASS: 40 files / 173 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Final boss phase browser smoke `node .omx/tmp/robolab-boss-final-phase-qa.mjs` PASS: `boss-final-phase-playwright-pass`, no bad console messages or page errors.
+  - `git diff --check` PASS.
+- Remaining risk: this is guardrail test coverage for DEV shortcuts; it does not add human boss-fight evidence.
