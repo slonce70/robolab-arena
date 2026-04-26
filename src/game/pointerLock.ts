@@ -6,6 +6,10 @@ export function shouldRequestPointerLock(state: PointerLockState, mode: CameraMo
   return pointerLockAvailable && state === 'playing' && mode === 'firstPerson' && !pointerLocked;
 }
 
+export function shouldRefreshFirstPersonCaptureOnResume(mode: CameraMode, pointerLocked: boolean): boolean {
+  return mode === 'firstPerson' && !pointerLocked;
+}
+
 export function shouldUseFirstPersonMouseLook(
   state: PointerLockState,
   mode: CameraMode,

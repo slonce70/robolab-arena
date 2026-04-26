@@ -34,7 +34,7 @@ import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFee
 import { describePowerAuraState } from './powerAura';
 import { describePowerStatus } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
-import { getPointerLockToast, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
+import { getPointerLockToast, shouldRefreshFirstPersonCaptureOnResume, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
   beginRoom,
   completeRoom,
@@ -559,6 +559,9 @@ export class Game {
     this.shell.classList.remove('is-menu');
     this.overlay.classList.remove('is-visible');
     this.updateHud();
+    if (shouldRefreshFirstPersonCaptureOnResume(this.cameraController.getMode(), this.pointerLocked)) {
+      this.requestPointerLockForFirstPerson();
+    }
   }
 
   private restartCurrentLevel(): void {

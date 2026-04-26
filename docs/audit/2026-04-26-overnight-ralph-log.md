@@ -681,3 +681,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: door-open copy is helper-covered and smoke-tested; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 61 - First-person resume recaptures aim
+- Problem: after pausing in first-person, the player could press `Продовжити` and remain in first-person view without immediately refreshing pointer capture, forcing an extra arena click before mouse-look felt right.
+- Change: added a pointer-lock resume rule and made `resumeFromPause()` request first-person capture again after hiding the pause overlay.
+- Evidence:
+  - TDD red: `npm test -- src/game/pointerLock.test.ts` failed because `shouldRefreshFirstPersonCaptureOnResume` did not exist before implementation.
+  - Focused green: `npm test -- src/game/pointerLock.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 36 files / 119 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: pointer-lock APIs remain browser-permission dependent; this keeps resume best-effort and still does not claim a full normal human no-jump victory run.
