@@ -22,7 +22,7 @@ import { describeDoorVisualStatus } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
-import { getLaserHazardFootprint, isPointInLaserDamage } from './laserHazard';
+import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
 import { describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
@@ -1774,6 +1774,13 @@ export class Game {
       postA.visible = laserVisibility.postVisible;
       postB.visible = laserVisibility.postVisible;
       laser.material.opacity = laser.active ? 0.85 : 0.18;
+      const warningOffset = getLaserWarningLaneOffset(
+        laser.config,
+        { x: laser.basePosition.x, z: laser.basePosition.z },
+        { x: laser.group.position.x, z: laser.group.position.z }
+      );
+      warningLane.position.x = warningOffset.x;
+      warningLane.position.z = warningOffset.z;
       const warningMaterial = (warningLane as THREE.Mesh | undefined)?.material as THREE.MeshStandardMaterial | undefined;
       if (warningMaterial) {
         warningMaterial.opacity = laserVisibility.warningOpacity;

@@ -17,6 +17,15 @@ export function getLaserHazardFootprint(config: LaserConfig): LaserHazardFootpri
     : { width: warningWidth, depth: config.length };
 }
 
+export function getLaserWarningLaneOffset(config: LaserConfig, basePosition: Vec2, currentPosition: Vec2): Vec2 {
+  if (!config.sweep) return { x: 0, z: 0 };
+
+  return {
+    x: Number((basePosition.x - currentPosition.x).toFixed(5)),
+    z: Number((basePosition.z - currentPosition.z).toFixed(5))
+  };
+}
+
 export function getLaserDangerClearance(point: Vec2, config: LaserConfig): number {
   const sweepDistance = config.sweep?.distance ?? 0;
   const halfWidth = config.axis === 'x'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getLaserDangerClearance, getLaserHazardFootprint, isPointInLaserDamage } from './laserHazard';
+import { getLaserDangerClearance, getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
 
 describe('laser hazard footprint', () => {
   it('marks horizontal laser lanes wider than the damaging beam', () => {
@@ -59,6 +59,20 @@ describe('laser hazard footprint', () => {
       width: 4.72,
       depth: 24
     });
+  });
+
+  it('keeps a sweeping warning lane visually anchored to the base corridor', () => {
+    expect(getLaserWarningLaneOffset(
+      { position: { x: 0, z: 5 }, length: 30, axis: 'x', phase: 0, sweep: { distance: 3, speed: 1.2 } },
+      { x: 0, z: 5 },
+      { x: 0, z: 8 }
+    )).toEqual({ x: 0, z: -3 });
+
+    expect(getLaserWarningLaneOffset(
+      { position: { x: -8, z: 0 }, length: 24, axis: 'z', phase: 0.6, sweep: { distance: 2, speed: 1 } },
+      { x: -8, z: 0 },
+      { x: -6, z: 0 }
+    )).toEqual({ x: -2, z: 0 });
   });
 
   it('shares the instantaneous runtime damage check with the game loop', () => {

@@ -579,3 +579,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: sweep warning geometry is unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 52 - Static sweep warning corridor anchoring
+- Problem: architect review correctly blocked Iteration 51 because the widened warning lane was still a child of the moving laser group, so the full corridor shifted with the beam instead of staying centered on the base sweep envelope.
+- Change: added `getLaserWarningLaneOffset` and applied it in `Game.updateLasers` so sweeping warning lanes remain visually anchored to `basePosition` while beam/posts keep moving.
+- Evidence:
+  - TDD red: `npm test -- src/game/laserHazard.test.ts` failed because `getLaserWarningLaneOffset` did not exist before implementation.
+  - Focused green: `npm test -- src/game/laserHazard.test.ts` PASS: 7 tests.
+  - Full regression: `npm test` PASS: 35 files / 114 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: static sweep warning anchoring is helper-covered and browser-smoked; this still does not claim a full normal human no-jump victory run.
