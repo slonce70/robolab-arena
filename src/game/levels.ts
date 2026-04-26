@@ -197,9 +197,9 @@ export const LEVELS: LevelConfig[] = [
       { position: { x: 4, z: -12 } }
     ],
     powerUps: [
-      { kind: 'repair', position: { x: 0, z: 16 } },
+      { kind: 'repair', position: { x: 4, z: 16 } },
       { kind: 'overcharge', position: { x: -11, z: 0 } },
-      { kind: 'shield', position: { x: 0, z: -10 } }
+      { kind: 'shield', position: { x: 4, z: -10 } }
     ],
     obstacles: [
       { position: { x: -6, z: 7 }, size: { width: 1.2, depth: 9 } },
@@ -230,8 +230,8 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'drone', position: { x: 0, z: -8 } }
     ],
     collectibles: [
-      { position: { x: -14, z: 8 } },
-      { position: { x: 14, z: 3 } },
+      { position: { x: -14, z: 13 } },
+      { position: { x: 14, z: 13 } },
       { position: { x: -14, z: -7 } },
       { position: { x: 14, z: -12 } }
     ],

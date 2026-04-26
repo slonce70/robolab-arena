@@ -88,6 +88,9 @@ describe('final level validation', () => {
           const clearanceZ = Math.abs(reward.position.z - obstacle.position.z) - obstacle.size.depth * 0.5;
           expect(Math.max(clearanceX, clearanceZ), `${level.name} reward/obstacle overlap`).toBeGreaterThanOrEqual(0.25);
         }
+        for (const laser of level.lasers ?? []) {
+          expect(getLaserDangerClearance(reward.position, laser), `${level.name} reward/laser overlap`).toBeGreaterThanOrEqual(1.2);
+        }
       }
     }
   });

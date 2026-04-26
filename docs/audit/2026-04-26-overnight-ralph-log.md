@@ -531,3 +531,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: laser spawn safety is now runtime-footprint guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 48 - Rewards avoid active laser lanes
+- Problem: after the runtime-shaped laser clearance helper existed, the reward readability guard still covered enemies and obstacles but not active/sweeping laser lanes; room 6 support pickups and room 7 gears sat inside damaging laser envelopes.
+- Change: extended the reward readability invariant to require laser clearance, then moved room 6 support pickups off the vertical reactor beam and room 7 early gears out of the sweeping tunnel lane.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed on `Секретний реактор reward/laser overlap: expected -0.35 to be greater than or equal to 1.2` after adding the reward/laser guard.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 35 files / 110 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: reward/laser placement is geometry-guarded and smoke-tested; this still does not claim a full normal human no-jump victory run.
