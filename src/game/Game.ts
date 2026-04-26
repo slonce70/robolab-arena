@@ -221,6 +221,7 @@ export class Game {
   private readonly firstPersonBlaster = new THREE.Group();
   private exitPad?: THREE.Mesh;
   private exitPadMaterial?: THREE.MeshStandardMaterial;
+  private exitLabel?: THREE.Sprite;
   private readonly playerAnimationParts: THREE.Object3D[] = [];
 
   private canvasHost!: HTMLDivElement;
@@ -609,6 +610,7 @@ export class Game {
     this.pulses.length = 0;
     this.exitPad = undefined;
     this.exitPadMaterial = undefined;
+    this.exitLabel = undefined;
   }
 
   private buildRoom(level: LevelConfig): void {
@@ -656,9 +658,10 @@ export class Game {
     level.obstacles?.forEach((obstacle) => this.spawnObstacle(obstacle, wallMaterial));
     this.addRoomDecorations(level, theme);
 
-    const exit = this.createPad(level.exit.x, level.exit.z, palette.green, 'ВИХІД');
+    const exit = this.createPad(level.exit.x, level.exit.z, palette.green, describeExitPadStatus(false).label);
     this.exitPad = exit.userData.pad as THREE.Mesh;
     this.exitPadMaterial = exit.userData.padMaterial as THREE.MeshStandardMaterial;
+    this.exitLabel = exit.userData.label as THREE.Sprite;
     this.levelRoot.add(exit);
 
     const titlePad = this.createFloatingLabel(level.name, -11.8, 0.08, ROOM_HALF_DEPTH - 3.1);
@@ -1288,6 +1291,7 @@ export class Game {
     group.add(pad, sign);
     group.userData.pad = pad;
     group.userData.padMaterial = material;
+    group.userData.label = sign;
     group.position.set(x, 0, z);
     return group;
   }
@@ -1314,6 +1318,7 @@ export class Game {
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
     const sprite = new THREE.Sprite(material);
+    sprite.userData.text = text;
     sprite.position.set(x, y + 1.4, z);
     sprite.scale.set(3.8, 0.95, 1);
     return sprite;
@@ -2147,6 +2152,20 @@ export class Game {
     this.exitPadMaterial.emissive.setHex(status.color);
     this.exitPadMaterial.emissiveIntensity = status.emissiveIntensity;
     this.exitPad.scale.setScalar(status.scale);
+    const currentLabel = this.exitLabel;
+    if (currentLabel && currentLabel.userData.text !== status.label) {
+      const nextLabel = this.createFloatingLabel(status.label, 0, 0.38, 0);
+      nextLabel.position.copy(currentLabel.position);
+      nextLabel.scale.copy(currentLabel.scale);
+      const parent = currentLabel.parent;
+      const currentMaterial = currentLabel.material;
+      const currentMap = currentMaterial.map;
+      parent?.add(nextLabel);
+      parent?.remove(currentLabel);
+      currentMap?.dispose();
+      currentMaterial.dispose();
+      this.exitLabel = nextLabel;
+    }
   }
 
   private updateAimFromPointer(): void {

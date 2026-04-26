@@ -657,3 +657,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: cleanup is behavior-neutral and smoke-tested; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 59 - Exit pad locked/open label clarity
+- Problem: the exit pad color/pulse changed when the room objective opened, but the floating label could still look like a generic exit sign before the player was allowed to leave.
+- Change: added player-facing exit labels to `describeExitPadStatus`, initialized room exit signs as `ЗАЧИНЕНО`, and swapped the sprite to `ВИХІД` when the objective completes while disposing the old sprite material/texture.
+- Evidence:
+  - TDD red: `npm test -- src/game/exitStatus.test.ts` failed before implementation because `status.label` was undefined for the open state.
+  - Focused green: `npm test -- src/game/exitStatus.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: exit label text is presenter-covered and browser-smoked, but canvas sprite text is not DOM-readable and this still does not claim a full normal human no-jump victory run.

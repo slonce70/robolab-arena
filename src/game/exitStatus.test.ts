@@ -7,7 +7,8 @@ describe('exit pad status', () => {
       color: EXIT_LOCKED_COLOR,
       emissiveIntensity: 0.48,
       scale: 0.94,
-      hint: 'locked'
+      hint: 'locked',
+      label: 'ЗАЧИНЕНО'
     });
   });
 
@@ -18,5 +19,6 @@ describe('exit pad status', () => {
     expect(status.emissiveIntensity).toBeGreaterThan(1);
     expect(status.scale).toBeGreaterThan(1);
     expect(status.hint).toBe('open');
+    expect(status.label).toBe('ВИХІД');
   });
 });
