@@ -29,9 +29,10 @@ describe('boss phase visual state', () => {
     expect(Math.abs(reduced.coreScale - 1)).toBeLessThan(Math.abs(normal.coreScale - 1));
   });
   it('describes a stronger phase-change burst for later boss phases', () => {
-    expect(describeBossPhaseTransitionBurst(2, false)).toMatchObject({ color: 0xff9f43, ringCount: 2, maxScale: 2.25 });
-    expect(describeBossPhaseTransitionBurst(3, false)).toMatchObject({ color: 0xff4fa3, ringCount: 3, maxScale: 2.9 });
-    expect(describeBossPhaseTransitionBurst(3, true)).toMatchObject({ ringCount: 1, maxScale: 1.65 });
+    expect(describeBossPhaseTransitionBurst(2, false)).toMatchObject({ color: 0xff9f43, ringCount: 2, maxScale: 2.25, sparkScale: 1.24 });
+    expect(describeBossPhaseTransitionBurst(3, false)).toMatchObject({ color: 0xff4fa3, ringCount: 3, maxScale: 2.9, sparkScale: 1.59 });
+    expect(describeBossPhaseTransitionBurst(2, true)).toMatchObject({ ringCount: 1, maxScale: 1.45, sparkScale: 0.8 });
+    expect(describeBossPhaseTransitionBurst(3, true)).toMatchObject({ ringCount: 1, maxScale: 1.65, sparkScale: 0.91 });
   });
 
 });

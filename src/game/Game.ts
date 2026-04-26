@@ -1555,7 +1555,7 @@ export class Game {
           for (let ring = 0; ring < burst.ringCount; ring += 1) {
             this.addPulseRing(burstPosition, burst.color, burst.maxScale * (1 + ring * 0.14));
           }
-          this.addSpark(burstPosition, burst.color, burst.maxScale * 0.55);
+          this.addSpark(burstPosition, burst.color, burst.sparkScale);
           this.showToast(phase.index === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!', 1.5);
         }
         const phaseVisual = describeBossPhaseVisual(phase.index, this.elapsed, this.settings.reducedMotion);

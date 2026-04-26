@@ -948,3 +948,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: label visibility is unit-covered; the browser smoke still exercises pause difficulty persistence rather than a dedicated HUD assertion.
+
+## Iteration 83 - Lock full boss burst constants
+- Problem: boss phase burst tests covered ring count and ring scale, but the emitted spark still used an implicit `maxScale * 0.55` calculation in `Game`, leaving part of the visual cue unowned by the helper contract.
+- Change: moved `sparkScale` into `describeBossPhaseTransitionBurst`, added reduced-motion phase-2 coverage, and wired `Game` to use the helper-provided spark scale.
+- Evidence:
+  - TDD red: `npm test -- src/game/bossPhaseVisual.test.ts` failed until `sparkScale` existed in the burst descriptor.
+  - Focused green: `npm test -- src/game/bossPhaseVisual.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 39 files / 142 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: constants are unit-covered; final appearance is still validated by smoke rather than pixel matching.

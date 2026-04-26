@@ -30,16 +30,20 @@ export type BossPhaseTransitionBurst = {
   color: number;
   ringCount: number;
   maxScale: number;
+  sparkScale: number;
 };
 
 export function describeBossPhaseTransitionBurst(phaseIndex: BossPhaseIndex, reducedMotion = false): BossPhaseTransitionBurst {
   const visual = PHASE_VISUALS[phaseIndex];
   if (reducedMotion) {
-    return { color: visual.coreColor, ringCount: 1, maxScale: phaseIndex === 3 ? 1.65 : 1.45 };
+    const maxScale = phaseIndex === 3 ? 1.65 : 1.45;
+    return { color: visual.coreColor, ringCount: 1, maxScale, sparkScale: Number((maxScale * 0.55).toFixed(2)) };
   }
+  const maxScale = phaseIndex === 3 ? 2.9 : 2.25;
   return {
     color: visual.coreColor,
     ringCount: phaseIndex === 3 ? 3 : 2,
-    maxScale: phaseIndex === 3 ? 2.9 : 2.25
+    maxScale,
+    sparkScale: Number((maxScale * 0.55).toFixed(2))
   };
 }
