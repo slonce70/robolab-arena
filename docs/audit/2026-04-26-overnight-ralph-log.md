@@ -717,3 +717,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: final support placement is test/reachability guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 64 - Boss overcharge balance fix
+- Problem: architect review blocked the first boss-overcharge placement because `(0, 15)` was only 5 units from spawn and could become an immediate boss opener when combined with carried overcharge shots.
+- Change: added `validateBossOverchargeSupport`, required exactly one boss overcharge away from both spawn and boss core, and moved the room 12 pickup to a side-risk position at `(-14, 1)`.
+- Evidence:
+  - Architect rejection: commit `dfe35ab` was blocked for immediate-spawn overcharge placement and weak existence-only pacing tests.
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` first failed because `validateBossOverchargeSupport` did not exist, then failed with `Level 12 boss overcharge is too close to spawn.`
+  - Focused green: `npm test -- src/game/levelPacing.test.ts src/game/campaignPlaythrough.test.ts src/game/levelValidation.test.ts` PASS: 3 files / 10 tests.
+  - Full regression: `npm test` PASS: 36 files / 121 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: boss support placement is now stricter-test guarded, but this still does not claim a full normal human no-jump victory run.

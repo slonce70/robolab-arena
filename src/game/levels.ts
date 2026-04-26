@@ -429,7 +429,7 @@ export const LEVELS: LevelConfig[] = [
     powerUps: [
       { kind: 'rapid', position: { x: -5, z: 12 } },
       { kind: 'shield', position: { x: 5, z: 12 } },
-      { kind: 'overcharge', position: { x: 0, z: 15 } },
+      { kind: 'overcharge', position: { x: -14, z: 1 } },
       { kind: 'repair', position: { x: -14, z: -3 } },
       { kind: 'repair', position: { x: 14, z: -3 } },
       { kind: 'repair', position: { x: 0, z: -18 } }

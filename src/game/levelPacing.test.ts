@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from './levels';
-import { summarizeLevelPacing, validateLateRoomSupport } from './levelPacing';
+import { summarizeLevelPacing, validateBossOverchargeSupport, validateLateRoomSupport } from './levelPacing';
 
 describe('late-room pacing support', () => {
   it('keeps the pressure rooms stocked with repair and power-up support', () => {
@@ -21,9 +21,10 @@ describe('late-room pacing support', () => {
     });
   });
 
-  it('puts a high-impact overcharge pickup in the final boss arena', () => {
+  it('puts exactly one high-impact overcharge pickup in a risky final-boss position', () => {
     const boss = LEVELS.find((level) => level.objective === 'boss');
 
-    expect(boss?.powerUps?.some((powerUp) => powerUp.kind === 'overcharge')).toBe(true);
+    expect(boss).toBeDefined();
+    expect(validateBossOverchargeSupport(boss!)).toEqual([]);
   });
 });

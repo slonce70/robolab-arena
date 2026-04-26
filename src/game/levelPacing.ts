@@ -34,3 +34,28 @@ export function validateLateRoomSupport(level: LevelConfig): string[] {
 
   return failures;
 }
+
+export function validateBossOverchargeSupport(level: LevelConfig): string[] {
+  if (!summarizeLevelPacing(level).hasBoss) return [];
+
+  const failures: string[] = [];
+  const overcharges = (level.powerUps ?? []).filter((powerUp) => powerUp.kind === 'overcharge');
+  if (overcharges.length !== 1) {
+    failures.push(`Level ${level.id} boss arena needs exactly one overcharge pickup.`);
+  }
+
+  for (const overcharge of overcharges) {
+    const spawnDistance = Math.hypot(overcharge.position.x - level.playerStart.x, overcharge.position.z - level.playerStart.z);
+    const boss = level.enemies?.find((enemy) => enemy.kind === 'boss');
+    const bossDistance = boss ? Math.hypot(overcharge.position.x - boss.position.x, overcharge.position.z - boss.position.z) : 0;
+
+    if (spawnDistance < 9) {
+      failures.push(`Level ${level.id} boss overcharge is too close to spawn.`);
+    }
+    if (boss && bossDistance < 6) {
+      failures.push(`Level ${level.id} boss overcharge is too close to the boss core.`);
+    }
+  }
+
+  return failures;
+}
