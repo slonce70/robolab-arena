@@ -791,3 +791,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: combined HUD glow is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 70 - Pairwise power glow coverage
+- Problem: architect review caught that the all-three power glow selector still left pairwise power combinations to collapse into the later single-state CSS rule.
+- Change: added pairwise rapid+shield, rapid+overcharge, and shield+overcharge layered selectors, then expanded the stylesheet test to require every emitted multi-state combination to preserve its colors.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed on `.power-chip.is-rapid.is-overcharged` before pairwise selectors existed.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 36 files / 126 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: pairwise CSS composition is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.

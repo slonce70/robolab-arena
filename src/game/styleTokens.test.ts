@@ -22,11 +22,17 @@ describe('CSS custom properties', () => {
   });
 
   it('keeps simultaneous power chip states visually layered', () => {
-    const selectorStart = css.indexOf('.power-chip.is-rapid.is-shielded.is-overcharged');
-    const combinedPowerRule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+    const requiredLayeredPowerRules = [
+      ['.power-chip.is-rapid.is-shielded', ['rgba(255, 209, 102', 'rgba(84, 241, 255']],
+      ['.power-chip.is-rapid.is-overcharged', ['rgba(255, 209, 102', 'rgba(255, 79, 163']],
+      ['.power-chip.is-shielded.is-overcharged', ['rgba(84, 241, 255', 'rgba(255, 79, 163']],
+      ['.power-chip.is-rapid.is-shielded.is-overcharged', ['rgba(255, 209, 102', 'rgba(84, 241, 255', 'rgba(255, 79, 163']]
+    ] as const;
 
-    expect(combinedPowerRule).toContain('rgba(255, 209, 102');
-    expect(combinedPowerRule).toContain('rgba(84, 241, 255');
-    expect(combinedPowerRule).toContain('rgba(255, 79, 163');
+    for (const [selector, colors] of requiredLayeredPowerRules) {
+      const selectorStart = css.indexOf(selector);
+      const rule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+      for (const color of colors) expect(rule, selector).toContain(color);
+    }
   });
 });
