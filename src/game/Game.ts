@@ -913,7 +913,7 @@ export class Game {
   }
 
   private createEffectMaterial(color: number, opacity: number, emissiveIntensity: number): THREE.MeshStandardMaterial {
-    return new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color,
       emissive: color,
       emissiveIntensity,
@@ -921,6 +921,8 @@ export class Game {
       opacity,
       roughness: 0.16
     });
+    material.userData.baseOpacity = opacity;
+    return material;
   }
 
   private createAimMarker(): void {
@@ -1466,24 +1468,39 @@ export class Game {
     const shieldVisible = this.shieldTimer > 0 || this.invulnerableTimer > 0;
     const rapidVisible = this.rapidTimer > 0;
     const overchargeVisible = this.overchargeShots > 0;
+    const shieldExpiring = this.shieldTimer > 0 && this.shieldTimer <= 2;
+    const rapidExpiring = this.rapidTimer > 0 && this.rapidTimer <= 2;
 
     shieldObjects.forEach((object, index) => {
-      const aura = describePowerAuraState(shieldVisible, index === 0 ? 1.9 : -1.35, this.elapsed, index, this.settings.reducedMotion);
-      object.visible = aura.visible;
-      object.rotation.y += delta * aura.rotationSpeed;
-      object.scale.setScalar(aura.scale);
+      const aura = describePowerAuraState(shieldVisible, index === 0 ? 1.9 : -1.35, this.elapsed, index, this.settings.reducedMotion, shieldExpiring);
+      this.applyPowerAuraState(object, aura, delta);
     });
     rapidObjects.forEach((object, index) => {
-      const aura = describePowerAuraState(rapidVisible, 4.8 + index, this.elapsed, index, this.settings.reducedMotion);
-      object.visible = aura.visible;
-      object.rotation.y += delta * aura.rotationSpeed;
-      object.scale.setScalar(aura.scale);
+      const aura = describePowerAuraState(rapidVisible, 4.8 + index, this.elapsed, index, this.settings.reducedMotion, rapidExpiring);
+      this.applyPowerAuraState(object, aura, delta);
     });
     overchargeObjects.forEach((object, index) => {
       const aura = describePowerAuraState(overchargeVisible, 2.2 + index, this.elapsed, index, this.settings.reducedMotion);
-      object.visible = aura.visible;
-      object.rotation.y += delta * aura.rotationSpeed;
-      object.scale.setScalar(aura.scale);
+      this.applyPowerAuraState(object, aura, delta);
+    });
+  }
+
+  private applyPowerAuraState(object: THREE.Object3D, aura: ReturnType<typeof describePowerAuraState>, delta: number): void {
+    object.visible = aura.visible;
+    object.rotation.y += delta * aura.rotationSpeed;
+    object.scale.setScalar(aura.scale);
+    this.setObjectOpacityMultiplier(object, aura.opacityMultiplier);
+  }
+
+  private setObjectOpacityMultiplier(object: THREE.Object3D, multiplier: number): void {
+    object.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((material) => {
+        const baseOpacity = typeof material.userData.baseOpacity === 'number' ? material.userData.baseOpacity : material.opacity;
+        material.userData.baseOpacity = baseOpacity;
+        material.opacity = Math.min(0.82, baseOpacity * multiplier);
+      });
     });
   }
 

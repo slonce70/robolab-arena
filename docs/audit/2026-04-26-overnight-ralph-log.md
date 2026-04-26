@@ -1362,3 +1362,19 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: the guard is static spawn-spacing evidence; it does not model later enemy movement convergence during live combat.
+
+## Iteration 117 - Expiring power aura urgency polish
+- Problem: timed powers already pulsed in the HUD, but the active 3D aura around the player did not get a stronger visual cue in the final seconds, making shield/rapid expiry easier to miss in first-person combat.
+- Change: `describePowerAuraState()` now exposes an opacity multiplier and marks expiring timed powers brighter without increasing motion speed; runtime aura materials keep their base opacity and apply the multiplier to shield/rapid rings when their timers fall to two seconds or less.
+- Evidence:
+  - TDD red: `npm test -- src/game/powerAura.test.ts` failed first because aura states had no `opacityMultiplier` and expiring states were not brighter.
+  - Focused green: `npm test -- src/game/powerAura.test.ts` PASS: 1 file / 4 tests.
+  - Build check: `npm run build` PASS after runtime material integration.
+  - Browser smoke fix: `.omx/tmp/robolab-power-aura-qa.mjs` had stale English `Rapid` copy; updated the ignored smoke script to the current Ukrainian `Прискорення` HUD text and reran it.
+  - Full regression: `npm test` PASS: 40 files / 168 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Power-aura browser smoke `node .omx/tmp/robolab-power-aura-qa.mjs` PASS: `power-aura-playwright-pass`, no bad console messages or page errors.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: the smoke verifies HUD/effect activation and screenshot capture, not pixel-level comparison of aura brightness.

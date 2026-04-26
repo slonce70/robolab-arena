@@ -3,7 +3,7 @@ import { describePowerAuraState } from './powerAura';
 
 describe('power aura state', () => {
   it('hides inactive auras without accumulating rotation', () => {
-    expect(describePowerAuraState(false, 4, 3)).toEqual({ visible: false, rotationSpeed: 0, scale: 1 });
+    expect(describePowerAuraState(false, 4, 3)).toEqual({ visible: false, rotationSpeed: 0, scale: 1, opacityMultiplier: 0 });
   });
 
   it('keeps active auras visible and animated', () => {
@@ -12,9 +12,18 @@ describe('power aura state', () => {
     expect(state.visible).toBe(true);
     expect(state.rotationSpeed).toBe(4);
     expect(state.scale).not.toBe(1);
+    expect(state.opacityMultiplier).toBe(1);
   });
 
   it('respects calmer effects by reducing rotation speed', () => {
     expect(describePowerAuraState(true, 4, 1, 0, true).rotationSpeed).toBeLessThan(4);
+  });
+
+  it('makes expiring timed powers visibly brighter without increasing motion', () => {
+    const steady = describePowerAuraState(true, 4, 1, 0, false, false);
+    const expiring = describePowerAuraState(true, 4, 1, 0, false, true);
+
+    expect(expiring.opacityMultiplier).toBeGreaterThan(steady.opacityMultiplier);
+    expect(expiring.rotationSpeed).toBe(steady.rotationSpeed);
   });
 });
