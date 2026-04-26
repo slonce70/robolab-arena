@@ -26,4 +26,13 @@ describe('power aura state', () => {
     expect(expiring.opacityMultiplier).toBeGreaterThan(steady.opacityMultiplier);
     expect(expiring.rotationSpeed).toBe(steady.rotationSpeed);
   });
+
+  it('keeps expiring reduced-motion auras brighter but calm', () => {
+    const steadyReduced = describePowerAuraState(true, 4, 1, 0, true, false);
+    const expiringReduced = describePowerAuraState(true, 4, 1, 0, true, true);
+
+    expect(expiringReduced.opacityMultiplier).toBeGreaterThan(steadyReduced.opacityMultiplier);
+    expect(expiringReduced.rotationSpeed).toBe(steadyReduced.rotationSpeed);
+    expect(expiringReduced.rotationSpeed).toBeLessThan(4);
+  });
 });

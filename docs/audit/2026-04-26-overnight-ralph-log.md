@@ -1378,3 +1378,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: the smoke verifies HUD/effect activation and screenshot capture, not pixel-level comparison of aura brightness.
+
+## Iteration 118 - Reduced-motion expiring aura regression lock
+- Problem: architect review approved iteration 117 but recommended explicitly locking the combined expiring + reduced-motion case if the helper grows.
+- Change: added a targeted regression proving expiring reduced-motion auras still brighten while keeping the calmer reduced rotation speed.
+- Evidence:
+  - Focused green: `npm test -- src/game/powerAura.test.ts` PASS: 1 file / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 169 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Power-aura browser smoke `node .omx/tmp/robolab-power-aura-qa.mjs` PASS: `power-aura-playwright-pass`, no bad console messages or page errors.
+  - `git diff --check` PASS.
+- Remaining risk: this is test reinforcement only; pixel-level aura brightness comparison remains unverified.
