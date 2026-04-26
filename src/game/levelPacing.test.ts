@@ -27,4 +27,14 @@ describe('late-room pacing support', () => {
     expect(boss).toBeDefined();
     expect(validateBossOverchargeSupport(boss!)).toEqual([]);
   });
+
+  it('includes boss overcharge policy in the late-room support guard', () => {
+    const boss = LEVELS.find((level) => level.objective === 'boss');
+
+    expect(boss).toBeDefined();
+    expect(validateLateRoomSupport({
+      ...boss!,
+      powerUps: (boss!.powerUps ?? []).filter((powerUp) => powerUp.kind !== 'overcharge')
+    })).toContain(`Level ${boss!.id} boss arena needs exactly one overcharge pickup.`);
+  });
 });

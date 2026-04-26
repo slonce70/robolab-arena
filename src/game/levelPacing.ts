@@ -31,6 +31,7 @@ export function validateLateRoomSupport(level: LevelConfig): string[] {
   if (summary.hasBoss && summary.repairCount < 3) {
     failures.push(`Level ${level.id} boss arena needs at least three repair pickups.`);
   }
+  failures.push(...validateBossOverchargeSupport(level));
 
   return failures;
 }

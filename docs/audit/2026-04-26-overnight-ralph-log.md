@@ -730,3 +730,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: boss support placement is now stricter-test guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 65 - Fold boss overcharge policy into late-room guard
+- Problem: the boss-overcharge placement policy was only covered by a dedicated test, while the main `validateLateRoomSupport` guard could still miss future boss arenas without the required comeback pickup.
+- Change: made `validateLateRoomSupport` include `validateBossOverchargeSupport` and added a regression that removes the boss overcharge from room 12 to prove the guard reports the issue.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` failed because `validateLateRoomSupport` returned `[]` when the boss overcharge was removed.
+  - Focused green: `npm test -- src/game/levelPacing.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 36 files / 122 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: late-room support guard is stronger, but this still does not claim a full normal human no-jump victory run.
