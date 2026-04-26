@@ -7,9 +7,10 @@ describe('getDevLevelTarget', () => {
     expect(getDevLevelTarget('BracketLeft', 3, 12)).toBe(2);
   });
 
-  it('jumps to important QA rooms', () => {
-    expect(getDevLevelTarget('KeyM', 1, 12)).toBe(6);
+  it('jumps to important QA rooms without stealing player-facing shortcuts', () => {
+    expect(getDevLevelTarget('Digit6', 1, 12)).toBe(6);
     expect(getDevLevelTarget('KeyB', 1, 12)).toBe(12);
+    expect(getDevLevelTarget('KeyM', 1, 12)).toBeUndefined();
   });
 
   it('exposes a visual-effects QA shortcut', () => {

@@ -1172,3 +1172,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: copy is longer; narrow/mobile wrapping should be visually reviewed if the HUD feels crowded.
+
+## Iteration 102 - Resolve sound hint DEV shortcut collision
+- Problem: architect review found the new `M — звук` hint was truthful in production intent but wrong in DEV play mode because `KeyM` was still a middle-room QA jump and was handled before the sound toggle.
+- Change: moved the middle-room DEV jump from `KeyM` to `Digit6`, added tests that `KeyM` is not swallowed by dev level shortcuts, and kept `M — звук` as the player-facing sound toggle.
+- Evidence:
+  - TDD red: `npm test -- src/game/controlsHint.test.ts src/game/devControls.test.ts` failed while `KeyM` still mapped to a dev room jump and `Digit6` did not.
+  - Focused green: `npm test -- src/game/controlsHint.test.ts src/game/devControls.test.ts` PASS: 2 files / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 158 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Browser shortcut smoke PASS: pressing `M` saved `soundOn: false` while staying in room 1; pressing `Digit6` then jumped to room 6; no bad console messages or page errors.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: narrow HUD wrapping of the longer hint remains visual-only; mobile/short-height CSS hides the hint.
