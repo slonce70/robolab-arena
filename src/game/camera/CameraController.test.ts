@@ -8,12 +8,12 @@ describe('CameraController', () => {
     const controller = new CameraController(camera);
 
     expect(controller.getMode()).toBe('thirdPerson');
-    expect(controller.getHudLabel()).toBe('Вид: 3-я особа');
+    expect(controller.getHudLabel()).toBe('Вид: від 3-ї особи');
 
     controller.toggleMode();
 
     expect(controller.getMode()).toBe('firstPerson');
-    expect(controller.getHudLabel()).toBe('Вид: 1-а особа');
+    expect(controller.getHudLabel()).toBe('Вид: від 1-ї особи');
   });
 
   it('can restore a saved first-person camera preference', () => {
@@ -25,7 +25,7 @@ describe('CameraController', () => {
     controller.setMode('thirdPerson');
 
     expect(controller.getMode()).toBe('thirdPerson');
-    expect(controller.getHudLabel()).toBe('Вид: 3-я особа');
+    expect(controller.getHudLabel()).toBe('Вид: від 3-ї особи');
   });
 
   it('aims forward from the camera in first-person mode', () => {

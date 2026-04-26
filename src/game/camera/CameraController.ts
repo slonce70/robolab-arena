@@ -45,7 +45,7 @@ export class CameraController {
   }
 
   getHudLabel(): string {
-    return this.mode === 'thirdPerson' ? 'Вид: 3-я особа' : 'Вид: 1-а особа';
+    return this.mode === 'thirdPerson' ? 'Вид: від 3-ї особи' : 'Вид: від 1-ї особи';
   }
 
   getMouseSensitivity(): number {

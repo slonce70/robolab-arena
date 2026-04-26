@@ -399,3 +399,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-pause-label-color-2026-04-26/report.json`: `pause-label-color-pass`, all four pause intel labels computed as `rgb(84, 241, 255)`, `badConsole: []`, `pageErrors: []`.
   - `git diff --check` PASS.
 - Remaining risk: this protects CSS token hygiene and pause label color; it does not replace a full human no-jump victory run.
+
+## Iteration 37 - Camera HUD copy fully Ukrainian
+- Problem: the live HUD and pause camera button still used mixed `3-я/1-а особа` wording, which was understandable but less polished than the rest of the Ukrainian interface.
+- Change: updated the camera presenter copy to `Вид: від 3-ї особи` / `Вид: від 1-ї особи` and locked it in `CameraController` tests.
+- Evidence:
+  - TDD red: `npm test -- src/game/camera/CameraController.test.ts` failed when the test expected the polished Ukrainian labels and production still returned the old mixed wording.
+  - Focused green: `npm test -- src/game/camera/CameraController.test.ts` PASS: 7 tests.
+  - Full regression: `npm test` PASS: 34 files / 99 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-camera-label-2026-04-26/report.json`: `camera-label-pass`; HUD showed `Вид: від 3-ї особи`, after camera toggle `Вид: від 1-ї особи`, and pause camera button also showed `Вид: від 1-ї особи`; `badConsole: []`, `pageErrors: []`.
+  - `git diff --check` PASS.
+- Remaining risk: labels are verified in HUD and pause overlay; this still does not claim a full normal human no-jump victory run.
