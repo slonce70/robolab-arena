@@ -423,3 +423,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-objective-copy-2026-04-26/report.json`: `objective-copy-pass`; room 1 objective started with `0 з 5 мішеней`, room 3 objective started with `0 з 3 кнопок`, `badConsole: []`, `pageErrors: []`.
   - `git diff --check` PASS.
 - Remaining risk: objective copy is more natural and browser-smoked in rooms 1 and 3; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 39 - Power HUD typography polish
+- Problem: the power HUD still used technical typography (`Апгрейди -`, `Заряд x2`) while the rest of the UI had moved toward polished localized copy.
+- Change: changed the empty power state to `Апгрейди —` and overcharge counts to `Заряд ×N`.
+- Evidence:
+  - TDD red: `npm test -- src/game/powerStatus.test.ts` failed when tests expected the em dash and multiplication sign while production still returned hyphen/Latin `x`.
+  - Focused green: `npm test -- src/game/powerStatus.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 34 files / 100 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, active power text now `Прискорення 8с + Щит 9с + Заряд ×1`, `badConsoleMessages: []`, `pageErrors: []`.
+  - `git diff --check` PASS.
+- Remaining risk: typographic HUD polish is verified; it still does not replace a full normal human no-jump victory run.
