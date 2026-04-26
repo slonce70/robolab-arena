@@ -863,3 +863,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: enemy hit flash math is unit/build/smoke covered, but exact flash feel still needs a human combat pass.
+
+## Iteration 76 - Feedback helper contract hardening
+- Problem: recent projectile and enemy-hit feedback helpers were behaviorally covered, but tests mostly used relative assertions, which could allow accidental color/intensity drift.
+- Change: tightened projectile theme tests to exact base/rapid/overcharge values and added enemy-hit exact/clamp coverage for negative and over-window timers.
+- Evidence:
+  - Focused verification: `npm test -- src/game/enemyFeedback.test.ts src/game/weaponFeedback.test.ts` PASS: 2 files / 10 tests.
+  - Full regression: `npm test` PASS: 38 files / 135 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this is test hardening only; no new human gameplay evidence added.

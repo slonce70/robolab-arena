@@ -7,10 +7,12 @@ describe('enemy hit feedback', () => {
   });
 
   it('briefly boosts enemy glow and scale after a hit', () => {
-    const feedback = describeEnemyHitFeedback(0.12, false);
+    expect(describeEnemyHitFeedback(0.12, false)).toEqual({ emissiveIntensity: 1.64, scale: 1.064 });
+  });
 
-    expect(feedback.emissiveIntensity).toBeGreaterThan(0.55);
-    expect(feedback.scale).toBeGreaterThan(1);
+  it('clamps timers outside the flash window', () => {
+    expect(describeEnemyHitFeedback(-0.1, false)).toEqual({ emissiveIntensity: 0.55, scale: 1 });
+    expect(describeEnemyHitFeedback(9, false)).toEqual({ emissiveIntensity: 2, scale: 1.085 });
   });
 
   it('keeps reduced-motion hit flash calmer', () => {

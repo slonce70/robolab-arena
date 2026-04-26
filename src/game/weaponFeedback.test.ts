@@ -27,20 +27,13 @@ describe('weapon feedback classes', () => {
 });
 
 describe('player projectile theme', () => {
-  it('makes overcharge shots visibly larger and hotter than base shots', () => {
-    const base = getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 0 });
-    const overcharged = getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 1 });
-
-    expect(overcharged.color).not.toBe(base.color);
-    expect(overcharged.radius).toBeGreaterThan(base.radius);
-    expect(overcharged.emissiveIntensity).toBeGreaterThan(base.emissiveIntensity);
+  it('uses exact base and overcharge projectile themes', () => {
+    expect(getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 0 })).toEqual({ color: 0x54f1ff, emissiveIntensity: 1.6, radius: 0.16 });
+    expect(getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 1 })).toEqual({ color: 0xff9f43, emissiveIntensity: 2.35, radius: 0.23 });
   });
 
-  it('tints rapid shots without making them as large as overcharge shots', () => {
-    const rapid = getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 0 });
-    const overcharged = getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 1 });
-
-    expect(rapid.color).toBe(0xffd166);
-    expect(rapid.radius).toBeLessThan(overcharged.radius);
+  it('tints rapid shots and lets overcharge take visual precedence', () => {
+    expect(getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 0 })).toEqual({ color: 0xffd166, emissiveIntensity: 1.9, radius: 0.17 });
+    expect(getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 1 }).color).toBe(0xff9f43);
   });
 });
