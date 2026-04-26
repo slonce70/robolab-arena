@@ -227,6 +227,13 @@ button:focus-visible {
   font-weight: 700;
 }
 
+.objective-chip.is-complete {
+  border-color: rgba(124, 242, 124, 0.78);
+  background: linear-gradient(135deg, rgba(28, 95, 61, 0.82), rgba(7, 17, 31, 0.78));
+  color: #f4fff4;
+  box-shadow: 0 0 24px rgba(124, 242, 124, 0.32), inset 0 0 18px rgba(124, 242, 124, 0.1);
+}
+
 .hint-chip {
   left: 16px;
   bottom: 16px;

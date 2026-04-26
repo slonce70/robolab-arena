@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeObjectiveProgress } from './objectives';
+import { describeObjectiveHud, describeObjectiveProgress } from './objectives';
 
 describe('describeObjectiveProgress', () => {
   it('formats target and enemy counters for the HUD', () => {
@@ -18,5 +18,13 @@ describe('describeObjectiveProgress', () => {
 
   it('keeps laser-survival rooms focused on reaching the exit', () => {
     expect(describeObjectiveProgress({ objective: 'survive-lasers', done: 0, total: 0 })).toBe('дійди до виходу');
+  });
+
+  it('marks completed objectives for stronger HUD feedback', () => {
+    expect(describeObjectiveHud(false)).toMatchObject({ text: '', classes: ['objective-chip'] });
+    expect(describeObjectiveHud(true)).toMatchObject({
+      text: 'Ціль виконано. Біжи до зеленого виходу!',
+      classes: ['objective-chip', 'is-complete']
+    });
   });
 });

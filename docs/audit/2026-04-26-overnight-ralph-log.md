@@ -328,3 +328,14 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, localized power text intact, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: reduced-motion blaster math is state-tested; subjective comfort still needs a human reduced-motion play pass.
+
+## Iteration 30 - Objective-complete HUD glow
+- Problem: completed objectives changed text and opened the exit pad, but the central objective chip did not get a stronger visual success state.
+- Change: added `describeObjectiveHud`, applied an `is-complete` class when the objective is done, and styled it with a green glow so the exit-ready moment is easier to notice.
+- Evidence:
+  - TDD red: `npm test -- src/game/objectives.test.ts` failed before `describeObjectiveHud` existed.
+  - Focused green: `npm test -- src/game/objectives.test.ts` PASS: 5 tests.
+  - Full regression: `npm test` PASS: 32 files / 97 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, room 1 objective HUD still renders, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: smoke verifies the HUD render path; the exact green success glow should still be judged visually after completing a room.
