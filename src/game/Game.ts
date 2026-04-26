@@ -16,6 +16,7 @@ import { describeFirstPersonBlasterState } from './blasterFeedback';
 import { CameraController } from './camera/CameraController';
 import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
+import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDoorVisualStatus } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
@@ -303,7 +304,7 @@ export class Game {
           <div class="boss-chip"></div>
           <div class="feedback-vignette" aria-hidden="true"></div>
           <div class="toast-chip" aria-live="polite"></div>
-          <div class="hint-chip">WASD - рух, мишка - приціл, клік - постріл, C - вид, Shift - ривок, Space - стрибок, R - перезапуск</div>
+          <div class="hint-chip">${getControlsHint()}</div>
           <div class="crosshair" aria-hidden="true"></div>
         </section>
         <section class="overlay is-visible">

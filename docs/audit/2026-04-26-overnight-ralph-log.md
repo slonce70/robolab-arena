@@ -349,3 +349,14 @@ Remaining risk:
   - Full regression: `npm test` PASS: 32 files / 97 tests.
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
 - Remaining risk: final victory copy is string-tested, but the complete victory overlay still needs a true normal full-run playthrough to judge pacing.
+
+## Iteration 32 - Controls hint matches actual inputs
+- Problem: the HUD hint listed Space for jump but the gameplay code also supports `E`, and it did not mention Escape pause.
+- Change: extracted `getControlsHint` and updated the HUD hint to include `Space/E - стрибок` and `Esc - пауза`.
+- Evidence:
+  - TDD red: `npm test -- src/game/controlsHint.test.ts` failed before the helper existed.
+  - Focused green: `npm test -- src/game/controlsHint.test.ts` PASS: 1 test.
+  - Full regression: `npm test` PASS: 33 files / 98 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, first room HUD still renders, `badConsoleMessages: []`, `pageErrors: []`.
+- Remaining risk: hint text is more complete; narrow/mobile HUD wrapping still needs visual review on very small screens.
