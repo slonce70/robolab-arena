@@ -998,3 +998,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: the Browser QA script is an ignored OMX artifact, so the committed coverage is still unit/build plus logged browser evidence rather than a tracked test file.
+
+## Iteration 87 - Semantic repair guard for laser-button pressure
+- Problem: the late-room repair validator still used room ids 6/10, so a future late laser-button pressure room could miss required repair support after a map reshuffle.
+- Change: replaced the id-only repair rule with the same semantic late laser-button pressure shape used by the shield guard: late room, button objective, and at least two lasers.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` failed for a synthetic late laser-button room without repair support.
+  - Focused green: `npm test -- src/game/levelPacing.test.ts` PASS: 1 file / 7 tests.
+  - Full regression: `npm test` PASS: 39 files / 145 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: static pacing guards still do not replace a true manual human no-jump 1-12 playthrough.

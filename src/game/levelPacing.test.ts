@@ -42,6 +42,28 @@ describe('late-room pacing support', () => {
     })).toContain('Level 9 needs a shield pickup for laser/button pressure.');
   });
 
+  it('requires repair support for any late laser-button pressure room, not only current room ids', () => {
+    expect(validateLateRoomSupport({
+      id: 9,
+      name: 'Synthetic repair pressure room',
+      objective: 'buttons',
+      tip: 'test',
+      playerStart: { x: 0, z: 20 },
+      exit: { x: 0, z: -21 },
+      buttons: [
+        { position: { x: -10, z: 10 }, opensDoorId: 'a' },
+        { position: { x: 10, z: 10 }, opensDoorId: 'a' },
+        { position: { x: -10, z: 0 }, opensDoorId: 'a' },
+        { position: { x: 10, z: 0 }, opensDoorId: 'a' }
+      ],
+      lasers: [
+        { position: { x: -8, z: 0 }, length: 24, axis: 'z', phase: 0 },
+        { position: { x: 8, z: 0 }, length: 24, axis: 'z', phase: 1 }
+      ],
+      powerUps: [{ kind: 'shield', position: { x: 0, z: 0 } }]
+    })).toContain('Level 9 needs at least one repair pickup for laser/button pressure.');
+  });
+
   it('documents why the final boss arena is forgiving enough for a full run', () => {
     const boss = LEVELS.find((level) => level.objective === 'boss');
 

@@ -25,11 +25,12 @@ export function validateLateRoomSupport(level: LevelConfig): string[] {
   if (level.id >= 6 && summary.powerUpCount === 0) {
     failures.push(`Level ${level.id} has no support power-ups.`);
   }
-  if ((level.id === 6 || level.id === 10) && summary.repairCount < 1) {
+  const isLateLaserButtonPressure = level.id >= 6 && level.objective === 'buttons' && summary.laserCount >= 2;
+  if (isLateLaserButtonPressure && summary.repairCount < 1) {
     failures.push(`Level ${level.id} needs at least one repair pickup for laser/button pressure.`);
   }
-  const isLateLaserButtonPressure = level.id >= 6 && level.objective === 'buttons' && (level.buttons?.length ?? 0) >= 5 && summary.laserCount >= 2;
-  if (isLateLaserButtonPressure && !(level.powerUps ?? []).some((powerUp) => powerUp.kind === 'shield')) {
+  const needsShieldForDenseLaserButtons = isLateLaserButtonPressure && (level.buttons?.length ?? 0) >= 5;
+  if (needsShieldForDenseLaserButtons && !(level.powerUps ?? []).some((powerUp) => powerUp.kind === 'shield')) {
     failures.push(`Level ${level.id} needs a shield pickup for laser/button pressure.`);
   }
   if (summary.hasBoss && summary.repairCount < 3) {
