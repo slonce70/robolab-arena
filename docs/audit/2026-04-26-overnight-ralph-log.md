@@ -1124,3 +1124,17 @@ Remaining risk:
   - Focused regression: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 11 tests.
   - `git diff --check` PASS.
 - Remaining risk: browser smoke/pixel evidence will run in the next combined verification pass after the door-label WIP is finished.
+
+## Iteration 98 - In-arena door state labels
+- Problem: pressure doors were visually bright/opening, but the arena geometry did not label whether a door was currently closed or open, which could make button-room routes less obvious.
+- Change: added `describeDoorLabel()` and attached floating labels to doors; labels update from `Двері закриті` to `Двері відкриті` when button logic opens the route.
+- Evidence:
+  - TDD red: `npm test -- src/game/doorStatus.test.ts` failed until `describeDoorLabel()` existed.
+  - Focused green: `npm test -- src/game/doorStatus.test.ts` PASS: 1 file / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 157 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass`.
+  - `git diff --check` PASS.
+- Remaining risk: smoke validates that rooms still mount without page errors; it does not assert the 3D door label text via rendered pixels.

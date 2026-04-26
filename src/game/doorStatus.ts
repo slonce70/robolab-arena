@@ -23,3 +23,7 @@ export function describeDoorOpenedToast(openedCount: number): string {
 export function shouldPlayDoorOpenAudio(openedCount: number): boolean {
   return openedCount > 0;
 }
+
+export function describeDoorLabel(open: boolean): string {
+  return open ? 'Двері відкриті' : 'Двері закриті';
+}

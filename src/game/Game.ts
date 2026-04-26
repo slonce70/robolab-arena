@@ -19,7 +19,7 @@ import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDifficultyChange, getDifficultyLabel, nextDifficulty } from './difficulty';
-import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
+import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
@@ -99,6 +99,7 @@ type Door = {
   id: string;
   group: THREE.Group;
   material: THREE.MeshStandardMaterial;
+  label: THREE.Sprite;
   position: THREE.Vector3;
   halfWidth: number;
   halfDepth: number;
@@ -1149,13 +1150,16 @@ export class Game {
     });
     const panel = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, 2.5, 0.34), material);
     panel.position.y = 1.25;
-    group.add(panel);
+    const label = this.createFloatingLabel(describeDoorLabel(false), 0, 1.35, 0);
+    label.scale.set(3.2, 0.8, 1);
+    group.add(panel, label);
     group.position.set(config.position.x, 0, config.position.z);
     this.dynamicRoot.add(group);
     this.doors.push({
       id: config.id,
       group,
       material,
+      label,
       position: new THREE.Vector3(config.position.x, 0, config.position.z),
       halfWidth: doorWidth * 0.5,
       halfDepth: 0.28,
@@ -1807,6 +1811,18 @@ export class Game {
         this.addSpark(door.position.clone().add(new THREE.Vector3(0, 1.2, 0)), palette.green, 1.05);
       }
       const visual = describeDoorVisualStatus(door.open);
+      const label = describeDoorLabel(door.open);
+      if (door.label.userData.text !== label) {
+        const nextLabel = this.createFloatingLabel(label, 0, 1.35, 0);
+        nextLabel.position.copy(door.label.position);
+        nextLabel.scale.copy(door.label.scale);
+        door.group.add(nextLabel);
+        door.group.remove(door.label);
+        const currentMaterial = door.label.material;
+        currentMaterial.map?.dispose();
+        currentMaterial.dispose();
+        door.label = nextLabel;
+      }
       door.material.opacity = visual.opacity;
       door.material.emissiveIntensity = visual.emissiveIntensity;
       door.group.position.y = THREE.MathUtils.lerp(door.group.position.y, visual.targetY, delta * 4);

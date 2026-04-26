@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
+import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 
 describe('door visual status', () => {
   it('keeps closed doors bright and blocking', () => {
@@ -32,4 +32,8 @@ describe('door visual status', () => {
     expect(shouldPlayDoorOpenAudio(3)).toBe(true);
   });
 
+  it('labels closed and opened doors clearly in the arena', () => {
+    expect(describeDoorLabel(false)).toBe('Двері закриті');
+    expect(describeDoorLabel(true)).toBe('Двері відкриті');
+  });
 });
