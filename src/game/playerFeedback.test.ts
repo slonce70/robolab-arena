@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describePlayerFeedback } from './playerFeedback';
+import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 
 const baseState = {
   health: 100,
@@ -35,5 +35,11 @@ describe('player feedback vignette state', () => {
 
     expect(feedback.classes).toContain('is-critical');
     expect(feedback.opacity).toBe(0.22);
+  });
+
+  it('throttles continuous laser audio while the contact flash is still active', () => {
+    expect(shouldPlayLaserContactAudio(0)).toBe(true);
+    expect(shouldPlayLaserContactAudio(0.01)).toBe(false);
+    expect(shouldPlayLaserContactAudio(0.18)).toBe(false);
   });
 });

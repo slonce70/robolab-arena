@@ -36,3 +36,7 @@ export function describePlayerFeedback(input: PlayerFeedbackInput): PlayerFeedba
     intensity: Number(intensity.toFixed(2))
   };
 }
+
+export function shouldPlayLaserContactAudio(laserContactTimer: number): boolean {
+  return laserContactTimer <= 0;
+}

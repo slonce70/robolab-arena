@@ -555,3 +555,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: runtime laser damage math is now shared and test-covered; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 50 - Laser contact audio cooldown
+- Problem: continuous laser damage could call the laser sound every frame while the player stood in the beam, making laser contact feel noisy instead of readable.
+- Change: added `shouldPlayLaserContactAudio` so laser damage remains continuous, but the laser sound only fires when the existing contact flash timer has cooled down.
+- Evidence:
+  - TDD red: `npm test -- src/game/playerFeedback.test.ts` failed because `shouldPlayLaserContactAudio` did not exist before implementation.
+  - Focused green: `npm test -- src/game/playerFeedback.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 35 files / 112 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: laser audio is throttled through the existing feedback timer, but this still does not claim a full normal human no-jump victory run.

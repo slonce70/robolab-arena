@@ -29,7 +29,7 @@ import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
 import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
-import { describePlayerFeedback } from './playerFeedback';
+import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerStatus } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
@@ -1786,7 +1786,9 @@ export class Game {
         laser.config
       );
       if (nearBeam) {
-        this.audio.play('laser');
+        if (shouldPlayLaserContactAudio(this.laserContactTimer)) {
+          this.audio.play('laser');
+        }
         this.damagePlayer(LASER_DAMAGE_PER_SECOND * delta, { continuous: true });
       }
     }
