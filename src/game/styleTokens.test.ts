@@ -5,6 +5,12 @@ import { describe, expect, it } from 'vitest';
 const cssPath = fileURLToPath(new URL('../styles.css', import.meta.url));
 const css = readFileSync(cssPath, 'utf8');
 
+function getCssRule(selector: string): string {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
+  return match?.[1] ?? '';
+}
+
 describe('CSS custom properties', () => {
   it('does not reference undefined custom properties', () => {
     const defined = new Set([...css.matchAll(/--([a-z0-9-]+)\s*:/gi)].map((match) => match[1]));
@@ -14,8 +20,7 @@ describe('CSS custom properties', () => {
   });
 
   it('keeps the critical shield health chip visually layered', () => {
-    const selectorStart = css.indexOf('.health-chip.is-critical.is-shielded');
-    const criticalShieldRule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+    const criticalShieldRule = getCssRule('.health-chip.is-critical.is-shielded');
 
     expect(criticalShieldRule).toContain('rgba(255, 75, 85');
     expect(criticalShieldRule).toContain('rgba(84, 241, 255');
@@ -30,8 +35,7 @@ describe('CSS custom properties', () => {
     ] as const;
 
     for (const [selector, colors] of requiredLayeredPowerRules) {
-      const selectorStart = css.indexOf(selector);
-      const rule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+      const rule = getCssRule(selector);
       for (const color of colors) expect(rule, selector).toContain(color);
     }
   });

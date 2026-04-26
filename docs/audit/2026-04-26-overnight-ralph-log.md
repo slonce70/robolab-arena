@@ -803,3 +803,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: pairwise CSS composition is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 71 - Exact selector CSS test hardening
+- Problem: architect review confirmed runtime power-glow CSS was fixed, but the regression test used prefix matching, so one pairwise selector could be deleted while the all-three selector still made the test pass.
+- Change: replaced prefix slicing with exact selector block extraction in the stylesheet test.
+- Evidence:
+  - TDD red: first exact-selector edit failed on an invalid escape expression, proving the test file was executed rather than silently skipped.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 36 files / 126 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: test hardening is focused/full/smoke verified, but this still does not claim a full normal human no-jump victory run.
