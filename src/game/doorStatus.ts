@@ -19,3 +19,7 @@ export function describeDoorOpenedToast(openedCount: number): string {
   const doors = formatUkrainianCount(openedCount, { one: 'двері', few: 'двері', many: 'дверей' });
   return `Відкрито ${doors} — маршрут вільний.`;
 }
+
+export function shouldPlayDoorOpenAudio(openedCount: number): boolean {
+  return openedCount > 0;
+}

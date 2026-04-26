@@ -693,3 +693,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: pointer-lock APIs remain browser-permission dependent; this keeps resume best-effort and still does not claim a full normal human no-jump victory run.
+
+## Iteration 62 - Grouped door-open audio
+- Problem: multi-door rooms could play one door sound per opened panel in the same frame, stacking identical audio on top of the new aggregated door-open toast.
+- Change: moved door-open audio to the same grouped feedback branch as the toast and added `shouldPlayDoorOpenAudio` to keep the policy testable.
+- Evidence:
+  - TDD red: `npm test -- src/game/doorStatus.test.ts` failed because `shouldPlayDoorOpenAudio` did not exist before implementation.
+  - Focused green: `npm test -- src/game/doorStatus.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 36 files / 120 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: audio is policy/unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.

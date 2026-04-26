@@ -18,7 +18,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
-import { describeDoorOpenedToast, describeDoorVisualStatus } from './doorStatus';
+import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
@@ -1756,7 +1756,6 @@ export class Game {
         button.group.scale.y = 0.82;
         this.score += 100;
         this.showToast('Кнопку активовано!', 1.4);
-        this.audio.play('door');
         this.addSpark(button.position.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.green);
       }
     }
@@ -1770,7 +1769,6 @@ export class Game {
       if (shouldOpen && !door.open) {
         door.open = true;
         openedThisFrame += 1;
-        this.audio.play('door');
         this.addSpark(door.position.clone().add(new THREE.Vector3(0, 1.2, 0)), palette.green, 1.05);
       }
       const visual = describeDoorVisualStatus(door.open);
@@ -1778,7 +1776,8 @@ export class Game {
       door.material.emissiveIntensity = visual.emissiveIntensity;
       door.group.position.y = THREE.MathUtils.lerp(door.group.position.y, visual.targetY, delta * 4);
     }
-    if (openedThisFrame > 0) {
+    if (shouldPlayDoorOpenAudio(openedThisFrame)) {
+      this.audio.play('door');
       this.showToast(describeDoorOpenedToast(openedThisFrame), 1.7);
     }
   }
