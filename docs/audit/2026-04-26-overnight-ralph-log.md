@@ -705,3 +705,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: audio is policy/unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 63 - Final boss overcharge support
+- Problem: the final boss arena had repairs, rapid fire, and shield support, but no high-impact overcharge pickup to make the finale feel more explosive and forgiving after a long run.
+- Change: added an overcharge pickup to room 12 near the starting half of the arena and locked it with pacing, geometry, and reachability checks.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` failed because the boss arena did not contain an `overcharge` pickup.
+  - Focused green: `npm test -- src/game/levelPacing.test.ts src/game/campaignPlaythrough.test.ts src/game/levelValidation.test.ts` PASS: 3 files / 10 tests.
+  - Full regression: `npm test` PASS: 36 files / 121 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: final support placement is test/reachability guarded, but this still does not claim a full normal human no-jump victory run.

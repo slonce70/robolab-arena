@@ -16,8 +16,14 @@ describe('late-room pacing support', () => {
     expect(summarizeLevelPacing(boss!)).toMatchObject({
       hasBoss: true,
       repairCount: 3,
-      powerUpCount: 5,
+      powerUpCount: 6,
       enemyCount: 7
     });
+  });
+
+  it('puts a high-impact overcharge pickup in the final boss arena', () => {
+    const boss = LEVELS.find((level) => level.objective === 'boss');
+
+    expect(boss?.powerUps?.some((powerUp) => powerUp.kind === 'overcharge')).toBe(true);
   });
 });
