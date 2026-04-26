@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from './levels';
 import { summarizeLevelPacing, validateBossOverchargeSupport, validateLateRoomSupport } from './levelPacing';
+import type { LevelConfig } from './types';
 
 describe('late-room pacing support', () => {
   it('keeps the pressure rooms stocked with repair and power-up support', () => {
@@ -20,7 +21,7 @@ describe('late-room pacing support', () => {
   });
 
   it('requires shield support for any late multi-button laser room, not only room 10', () => {
-    expect(validateLateRoomSupport({
+    const pressureRoom = {
       id: 9,
       name: 'Synthetic pressure room',
       objective: 'buttons',
@@ -34,16 +35,19 @@ describe('late-room pacing support', () => {
         { position: { x: 10, z: 0 }, opensDoorId: 'a' },
         { position: { x: 0, z: -10 }, opensDoorId: 'a' }
       ],
+      doors: [{ id: 'a', position: { x: 0, z: -18 } }],
       lasers: [
         { position: { x: -8, z: 0 }, length: 24, axis: 'z', phase: 0 },
         { position: { x: 8, z: 0 }, length: 24, axis: 'z', phase: 1 }
       ],
       powerUps: [{ kind: 'repair', position: { x: 0, z: 0 } }]
-    })).toContain('Level 9 needs a shield pickup for laser/button pressure.');
+    } satisfies LevelConfig;
+
+    expect(validateLateRoomSupport(pressureRoom)).toContain('Level 9 needs a shield pickup for laser/button pressure.');
   });
 
   it('requires repair support for any late laser-button pressure room, not only current room ids', () => {
-    expect(validateLateRoomSupport({
+    const pressureRoom = {
       id: 9,
       name: 'Synthetic repair pressure room',
       objective: 'buttons',
@@ -56,12 +60,15 @@ describe('late-room pacing support', () => {
         { position: { x: -10, z: 0 }, opensDoorId: 'a' },
         { position: { x: 10, z: 0 }, opensDoorId: 'a' }
       ],
+      doors: [{ id: 'a', position: { x: 0, z: -18 } }],
       lasers: [
         { position: { x: -8, z: 0 }, length: 24, axis: 'z', phase: 0 },
         { position: { x: 8, z: 0 }, length: 24, axis: 'z', phase: 1 }
       ],
       powerUps: [{ kind: 'shield', position: { x: 0, z: 0 } }]
-    })).toContain('Level 9 needs at least one repair pickup for laser/button pressure.');
+    } satisfies LevelConfig;
+
+    expect(validateLateRoomSupport(pressureRoom)).toContain('Level 9 needs at least one repair pickup for laser/button pressure.');
   });
 
   it('documents why the final boss arena is forgiving enough for a full run', () => {

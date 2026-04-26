@@ -1010,3 +1010,11 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: static pacing guards still do not replace a true manual human no-jump 1-12 playthrough.
+
+## Iteration 88 - Type-safe synthetic pacing fixtures
+- Problem: synthetic late-room pressure fixtures caught pacing regressions, but they were plain object literals inside function calls, so future `LevelConfig` schema drift would be less obvious.
+- Change: converted the synthetic shield/repair pressure fixtures to named `satisfies LevelConfig` objects and added matching door data, making the tests closer to real button-room structure.
+- Evidence:
+  - Focused regression: `npm test -- src/game/levelPacing.test.ts` PASS: 1 file / 7 tests.
+  - `npm run build` PASS with TypeScript checking the new `satisfies LevelConfig` fixtures.
+- Remaining risk: this is a test-hardening pass only; it does not change runtime route balance.
