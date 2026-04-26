@@ -624,3 +624,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: HUD hint typography is unit/browser covered; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 56 - Support pickup route guard
+- Purpose: strengthen the full-campaign geometry guard so optional support is not only present and well-placed, but actually reachable during normal play.
+- Change: extended `campaignPlaythrough.test.ts` to include collectibles and power-ups in the reachable route validation after doors are open.
+- Evidence:
+  - Focused guard: `npm test -- src/game/campaignPlaythrough.test.ts` PASS: support pickups in all 12 rooms are reachable with current geometry.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: support reachability is now geometry-guarded, but this still does not claim a full normal human no-jump victory run.

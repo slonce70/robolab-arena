@@ -40,11 +40,24 @@ function validateLevelRoute(level: LevelConfig): string[] {
     }
   }
 
+  for (const point of optionalSupportPickups(level)) {
+    if (!hasReachableStandingPoint(point, openReachable, openSolids)) {
+      failures.push(`Level ${level.id} support pickup at (${point.x}, ${point.z}) cannot be reached during normal play.`);
+    }
+  }
+
   if (!hasReachableStandingPoint(level.exit, openReachable, openSolids)) {
     failures.push(`Level ${level.id} exit cannot be reached after objective completion.`);
   }
 
   return failures;
+}
+
+function optionalSupportPickups(level: LevelConfig): Vec2[] {
+  return [
+    ...(level.collectibles ?? []).map((collectible) => collectible.position),
+    ...(level.powerUps ?? []).map((powerUp) => powerUp.position)
+  ];
 }
 
 function requiredClosedDoorInteractions(level: LevelConfig): Vec2[] {
