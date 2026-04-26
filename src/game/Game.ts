@@ -33,7 +33,7 @@ import { describePlayerFeedback } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerStatus } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
-import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
+import { getPointerLockToast, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 import {
   beginRoom,
   completeRoom,
@@ -2193,7 +2193,7 @@ export class Game {
       this.exitPointerLock();
       this.fallbackMouseCaptured = false;
       this.shell.classList.remove('is-mouse-captured');
-      this.showToast('Курсор вільний. Клік по арені - повернути приціл.', 1.4);
+      this.showToast(getPointerLockToast('released'), 1.4);
       return;
     }
     if (event.code === 'Escape' && this.state === 'playing') {
@@ -2278,7 +2278,7 @@ export class Game {
     if (wasPointerLocked && !this.pointerLocked) {
       this.lastPointerUnlockAt = performance.now();
       if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
-        this.showToast('Клік по арені - повернути приціл.', 1.4);
+        this.showToast(getPointerLockToast('returnAim'), 1.4);
       }
     }
     this.shell.classList.toggle('is-pointer-locked', this.pointerLocked);
@@ -2294,7 +2294,7 @@ export class Game {
     if (this.state === 'playing' && this.cameraController.getMode() === 'firstPerson') {
       this.fallbackMouseCaptured = true;
       this.shell.classList.add('is-mouse-captured');
-      this.showToast('Приціл активний. Esc - показати курсор.', 1.4);
+      this.showToast(getPointerLockToast('captured'), 1.4);
     }
   }
 

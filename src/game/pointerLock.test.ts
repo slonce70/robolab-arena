@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
+import { getPointerLockToast, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
 
 describe('pointer lock rules', () => {
   it('requests pointer lock only while playing in first-person', () => {
@@ -15,5 +15,11 @@ describe('pointer lock rules', () => {
     expect(shouldUseFirstPersonMouseLook('playing', 'firstPerson', false, true)).toBe(true);
     expect(shouldUseFirstPersonMouseLook('playing', 'firstPerson', false, false)).toBe(false);
     expect(shouldUseFirstPersonMouseLook('playing', 'thirdPerson', true, true)).toBe(false);
+  });
+
+  it('keeps first-person capture toasts polished and truthful', () => {
+    expect(getPointerLockToast('released')).toBe('Курсор вільний. Клік по арені — повернути приціл.');
+    expect(getPointerLockToast('returnAim')).toBe('Клік по арені — повернути приціл.');
+    expect(getPointerLockToast('captured')).toBe('Приціл активний. Esc — показати курсор.');
   });
 });

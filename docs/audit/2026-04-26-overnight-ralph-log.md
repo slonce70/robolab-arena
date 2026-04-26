@@ -472,3 +472,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-objective-copy-2026-04-26/report.json`: `objective-copy-pass`; room 1 objective rendered `0 з 5 мішеней — ...`, room 3 rendered `0 з 3 кнопок — ...`, `badConsole: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: objective HUD typography is browser-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 43 - First-person cursor toast copy polished
+- Problem: first-person pointer/cursor toasts still used plain hyphens in prose and kept those strings inline in `Game`, making future copy polish easy to miss.
+- Change: added `getPointerLockToast` next to the pointer-lock rules and changed first-person capture/release toasts to use em dash separators.
+- Evidence:
+  - TDD red: `npm test -- src/game/pointerLock.test.ts` failed because `getPointerLockToast` did not exist before implementation.
+  - Focused green: `npm test -- src/game/pointerLock.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 34 files / 104 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-pointer-toast-2026-04-26/report.json`: `pointer-toast-pass`; first-person capture toast `Приціл активний. Esc — показати курсор.`, release toast `Курсор вільний. Клік по арені — повернути приціл.`, `badConsole: []`, `pageErrors: []`.
+  - `git diff --check` PASS.
+- Remaining risk: first-person toast copy is browser-smoked; this still does not claim a full normal human no-jump victory run.
