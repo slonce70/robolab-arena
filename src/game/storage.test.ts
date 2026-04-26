@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { LEVELS } from './levels';
 import { loadSettings, saveSettings } from './storage';
 
 describe('RoboLab storage', () => {
@@ -71,5 +72,17 @@ describe('RoboLab storage', () => {
 
     saveSettings({ mouseSensitivity: 0.2 }, storage);
     expect(loadSettings(storage).mouseSensitivity).toBe(0.6);
+  });
+
+  it('caps saved room unlocks at the campaign length', () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: vi.fn((key: string) => values.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => values.set(key, value))
+    } as unknown as Storage;
+
+    saveSettings({ highestUnlockedRoom: 99 }, storage);
+
+    expect(loadSettings(storage).highestUnlockedRoom).toBe(LEVELS.length);
   });
 });

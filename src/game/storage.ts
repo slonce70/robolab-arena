@@ -1,6 +1,8 @@
 import type { CameraMode } from './camera/CameraController';
+import { LEVELS } from './levels';
 
 const STORAGE_KEY = 'robolab-arena-settings';
+const MAX_UNLOCKED_ROOM = LEVELS.length;
 
 export type RoboLabSettings = {
   bestScore: number;
@@ -42,7 +44,7 @@ function sanitizeSettings(settings: Partial<RoboLabSettings>): RoboLabSettings {
   return {
     bestScore: Number.isFinite(settings.bestScore) ? Math.max(0, Math.floor(settings.bestScore ?? 0)) : DEFAULT_SETTINGS.bestScore,
     highestUnlockedRoom: Number.isFinite(settings.highestUnlockedRoom)
-      ? Math.max(1, Math.floor(settings.highestUnlockedRoom ?? 1))
+      ? Math.min(MAX_UNLOCKED_ROOM, Math.max(1, Math.floor(settings.highestUnlockedRoom ?? 1)))
       : DEFAULT_SETTINGS.highestUnlockedRoom,
     mouseSensitivity: Number.isFinite(settings.mouseSensitivity)
       ? Math.min(2, Math.max(0.6, Number(settings.mouseSensitivity)))

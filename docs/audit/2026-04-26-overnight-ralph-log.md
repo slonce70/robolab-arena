@@ -435,3 +435,16 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-crosshair-2026-04-26/report.json`: `crosshair-feedback-playwright-pass`, active power text now `Прискорення 8с + Щит 9с + Заряд ×1`, `badConsoleMessages: []`, `pageErrors: []`.
   - `git diff --check` PASS.
 - Remaining risk: typographic HUD polish is verified; it still does not replace a full normal human no-jump victory run.
+
+## Iteration 40 - Saved progress cap hardened
+- Problem: `loadSettings`/`saveSettings` clamped saved progress at the low end but allowed impossible high room unlock values, so corrupted localStorage could store progress beyond the 12-room campaign even though the menu later had to clamp it.
+- Change: tied storage sanitization to `LEVELS.length` and capped `highestUnlockedRoom` at the campaign length.
+- Evidence:
+  - TDD red: `npm test -- src/game/storage.test.ts` failed when a new test expected `highestUnlockedRoom: 99` to sanitize to the campaign length but production returned `99`.
+  - Focused green: `npm test -- src/game/storage.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 34 files / 101 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-progress-cap-2026-04-26/report.json`: `progress-cap-pass`; corrupted `highestUnlockedRoom: 99` rendered as `відкрито кімнату 12/12`, continue button targeted room 12 (`data-start-level="11"`), `badConsole: []`, `pageErrors: []`.
+  - Fresh 12-room smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: progress corruption is now bounded; this still does not claim a full normal human no-jump victory run.
