@@ -21,7 +21,7 @@ import { getDevBossTarget, getDevCompletionTarget, getDevEffectTarget, getDevLev
 import { describeDifficultyChange, getDifficultyLabel, scaleEnemyPacingDelta, nextDifficulty } from './difficulty';
 import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
-import { describeEnemyHitFeedback } from './enemyFeedback';
+import { describeBeetleContactWarning, describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
@@ -1120,8 +1120,22 @@ export class Game {
       }
       body.position.y = 0.55;
       eye.position.set(0, 0.62, -0.4);
-      group.add(body, eye, ...legs);
+      const warningMaterial = new THREE.MeshStandardMaterial({
+        color: palette.orange,
+        emissive: palette.red,
+        emissiveIntensity: 1.15,
+        transparent: true,
+        opacity: 0.34,
+        roughness: 0.22,
+        depthWrite: false
+      });
+      const contactWarning = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.035, 8, 32), warningMaterial);
+      contactWarning.rotation.x = Math.PI * 0.5;
+      contactWarning.position.y = 0.07;
+      contactWarning.name = 'beetle-contact-warning';
+      group.add(body, eye, ...legs, contactWarning);
       group.userData.legs = legs;
+      group.userData.contactWarning = contactWarning;
       group.position.copy(base);
     }
 
@@ -1633,6 +1647,15 @@ export class Game {
         legs.forEach((leg, index) => {
           leg.rotation.x = Math.sin(this.elapsed * 9 + index) * 0.28;
         });
+        const contactWarning = enemy.group.userData.contactWarning as THREE.Mesh | undefined;
+        if (contactWarning) {
+          const warning = describeBeetleContactWarning(this.elapsed, this.settings.reducedMotion);
+          contactWarning.scale.setScalar(warning.scale);
+          const material = contactWarning.material as THREE.MeshStandardMaterial | undefined;
+          if (material) {
+            material.opacity = warning.opacity;
+          }
+        }
         if (distance > 1.1) {
           enemy.group.position.add(toPlayer.normalize().multiplyScalar(enemyDelta * 2.2));
           this.resolveObstacleCollisions(enemy.group.position, 0.55);

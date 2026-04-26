@@ -3,6 +3,11 @@ export type EnemyHitFeedback = {
   scale: number;
 };
 
+export type BeetleContactWarning = {
+  opacity: number;
+  scale: number;
+};
+
 const BASE_EMISSIVE_INTENSITY = 0.55;
 const HIT_FLASH_WINDOW = 0.16;
 
@@ -18,5 +23,15 @@ export function describeEnemyHitFeedback(hitTimer: number, reducedMotion = false
   return {
     emissiveIntensity: Number((BASE_EMISSIVE_INTENSITY + intensity * 1.45).toFixed(2)),
     scale: Number((1 + intensity * scaleBoost).toFixed(3))
+  };
+}
+
+export function describeBeetleContactWarning(elapsed: number, reducedMotion = false): BeetleContactWarning {
+  const motionScale = reducedMotion ? 0.04 : 0.08;
+  const pulse = Math.max(0, Math.sin(elapsed * 6));
+
+  return {
+    opacity: Number((0.34 + pulse * 0.1).toFixed(2)),
+    scale: Number((1.08 + pulse * motionScale).toFixed(3))
   };
 }

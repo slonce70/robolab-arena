@@ -1480,3 +1480,16 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: browser smoke verifies the render path and screenshot capture, not pixel-level visual comparison of beacon brightness.
+
+## Iteration 126 - Beetle contact danger aura
+- Problem: beetles deal contact damage, but unlike shooters they had no clear danger telegraph. In first-person this could feel like strange sudden damage when a beetle reached the player from the floor line.
+- Change: beetles now carry a pulsing orange/red ground-ring contact aura. The pulse is described by `enemyFeedback` and respects reduced-motion by lowering the scale swing.
+- Evidence:
+  - TDD red: `npm test -- src/game/enemyFeedback.test.ts` first failed because `describeBeetleContactWarning()` did not exist.
+  - Focused green: `npm test -- src/game/enemyFeedback.test.ts` PASS: 1 file / 6 tests.
+  - Build check after runtime integration: `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full regression: `npm test` PASS: 40 files / 177 tests.
+  - Beetle-room browser smoke `node .omx/tmp/robolab-beetle-warning-qa.mjs` PASS: `beetle-warning-playwright-pass`, room 3 loaded with no bad console messages or page errors.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: browser smoke confirms the room render path and screenshot, not a quantified pixel comparison of the aura.

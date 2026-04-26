@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeEnemyHitFeedback } from './enemyFeedback';
+import { describeBeetleContactWarning, describeEnemyHitFeedback } from './enemyFeedback';
 
 describe('enemy hit feedback', () => {
   it('returns neutral visuals when no hit flash is active', () => {
@@ -17,5 +17,13 @@ describe('enemy hit feedback', () => {
 
   it('keeps reduced-motion hit flash calmer', () => {
     expect(describeEnemyHitFeedback(0.12, true).scale).toBeLessThan(describeEnemyHitFeedback(0.12, false).scale);
+  });
+
+  it('gives beetles a readable contact danger aura', () => {
+    expect(describeBeetleContactWarning(0, false)).toEqual({ opacity: 0.34, scale: 1.08 });
+  });
+
+  it('keeps beetle contact warning calmer in reduced motion', () => {
+    expect(describeBeetleContactWarning(0.4, true).scale).toBeLessThan(describeBeetleContactWarning(0.4, false).scale);
   });
 });
