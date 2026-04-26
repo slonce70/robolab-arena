@@ -1556,7 +1556,7 @@ export class Game {
         const phase = getBossPhase(enemy.health, enemy.maxHealth);
         if (phase.index !== enemy.phase) {
           enemy.phase = phase.index;
-          this.audio.play('boss');
+          this.audio.play('phase');
           const burst = describeBossPhaseTransitionBurst(phase.index, this.settings.reducedMotion);
           const burstPosition = enemy.group.position.clone().add(new THREE.Vector3(0, 1.05, 0));
           for (let ring = 0; ring < burst.ringCount; ring += 1) {

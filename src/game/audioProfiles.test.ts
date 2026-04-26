@@ -18,4 +18,12 @@ describe('audio profiles', () => {
     expect(getSoundProfile('boss')[0].frequency).toBeLessThan(getSoundProfile('hit')[0].frequency);
     expect(getSoundProfile('boss')[0].peakGain).toBeGreaterThan(getSoundProfile('hit')[0].peakGain);
   });
+
+  it('makes boss phase transitions sharper than the ambient boss rumble', () => {
+    const phase = getSoundProfile('phase');
+
+    expect(phase).toHaveLength(2);
+    expect(phase[0].frequency).toBeGreaterThan(getSoundProfile('boss')[0].frequency);
+    expect(phase[1].delay).toBeGreaterThan(phase[0].delay);
+  });
 });

@@ -1185,3 +1185,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: narrow HUD wrapping of the longer hint remains visual-only; mobile/short-height CSS hides the hint.
+
+## Iteration 103 - Distinct boss phase transition audio
+- Problem: boss phase changes used the same low boss rumble as generic boss feedback, so the visual phase burst had no sharper audio punctuation.
+- Change: added a dedicated `phase` sound profile with a two-tone warning accent and routed boss phase transitions to it while keeping boss hit/rumble feedback intact.
+- Evidence:
+  - TDD red: `npm test -- src/game/audioProfiles.test.ts` failed until `getSoundProfile('phase')` existed.
+  - Focused green: `npm test -- src/game/audioProfiles.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 40 files / 159 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: audio profile is unit-covered, but subjective sound mix still needs human listening during the boss fight.

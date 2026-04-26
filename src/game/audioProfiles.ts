@@ -1,4 +1,4 @@
-export type SoundName = 'shot' | 'hit' | 'pickup' | 'door' | 'laser' | 'dash' | 'boss' | 'victory';
+export type SoundName = 'shot' | 'hit' | 'pickup' | 'door' | 'laser' | 'dash' | 'boss' | 'phase' | 'victory';
 
 export type SoundTone = {
   frequency: number;
@@ -20,6 +20,10 @@ const PROFILES: Record<SoundName, SoundTone[]> = {
   laser: [{ frequency: 120, endFrequency: 68, delay: 0, duration: 0.14, peakGain: 0.045, type: 'sawtooth' }],
   dash: [{ frequency: 680, endFrequency: 374, delay: 0, duration: 0.17, peakGain: 0.06, type: 'triangle' }],
   boss: [{ frequency: 92, endFrequency: 60, delay: 0, duration: 0.26, peakGain: 0.12, type: 'sawtooth' }],
+  phase: [
+    { frequency: 180, endFrequency: 110, delay: 0, duration: 0.16, peakGain: 0.09, type: 'sawtooth' },
+    { frequency: 480, endFrequency: 260, delay: 0.08, duration: 0.18, peakGain: 0.055, type: 'triangle' }
+  ],
   victory: [
     { frequency: 660, endFrequency: 740, delay: 0, duration: 0.14, peakGain: 0.055, type: 'triangle' },
     { frequency: 880, endFrequency: 990, delay: 0.12, duration: 0.16, peakGain: 0.06, type: 'triangle' },
