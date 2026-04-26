@@ -10,6 +10,10 @@ export function shouldRefreshFirstPersonCaptureOnResume(mode: CameraMode, pointe
   return mode === 'firstPerson' && !pointerLocked;
 }
 
+export function shouldRefreshFirstPersonCaptureAfterLevelAdvance(mode: CameraMode, pointerLocked: boolean): boolean {
+  return mode === 'firstPerson' && !pointerLocked;
+}
+
 export function shouldUseFirstPersonMouseLook(
   state: PointerLockState,
   mode: CameraMode,

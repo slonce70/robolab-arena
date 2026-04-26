@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getPointerLockToast, shouldRefreshFirstPersonCaptureOnResume, shouldRequestPointerLock, shouldUseFirstPersonMouseLook } from './pointerLock';
+import {
+  getPointerLockToast,
+  shouldRefreshFirstPersonCaptureAfterLevelAdvance,
+  shouldRefreshFirstPersonCaptureOnResume,
+  shouldRequestPointerLock,
+  shouldUseFirstPersonMouseLook
+} from './pointerLock';
 
 describe('pointer lock rules', () => {
   it('requests pointer lock only while playing in first-person', () => {
@@ -14,6 +20,12 @@ describe('pointer lock rules', () => {
     expect(shouldRefreshFirstPersonCaptureOnResume('firstPerson', false)).toBe(true);
     expect(shouldRefreshFirstPersonCaptureOnResume('firstPerson', true)).toBe(false);
     expect(shouldRefreshFirstPersonCaptureOnResume('thirdPerson', false)).toBe(false);
+  });
+
+  it('refreshes first-person capture when advancing to the next room', () => {
+    expect(shouldRefreshFirstPersonCaptureAfterLevelAdvance('firstPerson', false)).toBe(true);
+    expect(shouldRefreshFirstPersonCaptureAfterLevelAdvance('firstPerson', true)).toBe(false);
+    expect(shouldRefreshFirstPersonCaptureAfterLevelAdvance('thirdPerson', false)).toBe(false);
   });
 
   it('uses mouse movement for look only when the pointer is captured', () => {
