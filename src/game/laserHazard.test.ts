@@ -37,6 +37,30 @@ describe('laser hazard footprint', () => {
     expect(getLaserDangerClearance({ x: 0, z: 9.7 }, laser)).toBeCloseTo(1.35, 5);
   });
 
+  it('expands warning lanes to show the full sweeping laser corridor', () => {
+    expect(getLaserHazardFootprint({
+      position: { x: 0, z: 0 },
+      length: 30,
+      axis: 'x',
+      phase: 0,
+      sweep: { distance: 3, speed: 1.2 }
+    })).toEqual({
+      width: 30,
+      depth: 6.72
+    });
+
+    expect(getLaserHazardFootprint({
+      position: { x: 0, z: 0 },
+      length: 24,
+      axis: 'z',
+      phase: 0,
+      sweep: { distance: 2, speed: 1 }
+    })).toEqual({
+      width: 4.72,
+      depth: 24
+    });
+  });
+
   it('shares the instantaneous runtime damage check with the game loop', () => {
     const laser = { position: { x: 0, z: 0 }, length: 10, axis: 'z' as const, phase: 0 };
 

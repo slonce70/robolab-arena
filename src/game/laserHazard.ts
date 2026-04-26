@@ -9,9 +9,12 @@ export type LaserHazardFootprint = {
 };
 
 export function getLaserHazardFootprint(config: LaserConfig): LaserHazardFootprint {
+  const sweepWidth = config.sweep?.distance ?? 0;
+  const warningWidth = (LASER_WARNING_HALF_WIDTH + sweepWidth) * 2;
+
   return config.axis === 'x'
-    ? { width: config.length, depth: LASER_WARNING_HALF_WIDTH * 2 }
-    : { width: LASER_WARNING_HALF_WIDTH * 2, depth: config.length };
+    ? { width: config.length, depth: warningWidth }
+    : { width: warningWidth, depth: config.length };
 }
 
 export function getLaserDangerClearance(point: Vec2, config: LaserConfig): number {

@@ -567,3 +567,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: laser audio is throttled through the existing feedback timer, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 51 - Sweeping laser warning corridors
+- Problem: sweeping lasers moved their damaging beam across a wider corridor, but the orange floor warning lane still displayed only the narrow static beam footprint, making room 6 and 7 laser motion less readable.
+- Change: expanded `getLaserHazardFootprint` so sweep distance widens the warning lane perpendicular to the laser axis while preserving the actual beam length.
+- Evidence:
+  - TDD red: `npm test -- src/game/laserHazard.test.ts` failed because a sweeping x-axis laser still reported `depth: 0.72` instead of the full `6.72` corridor.
+  - Focused green: `npm test -- src/game/laserHazard.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 35 files / 113 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: sweep warning geometry is unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
