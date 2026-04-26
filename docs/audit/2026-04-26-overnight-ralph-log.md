@@ -1297,3 +1297,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: line-of-fire is a static 2D sampled approximation and does not model moving enemies/projectiles or player aim skill.
+
+## Iteration 112 - Shared box collision helper cleanup
+- Cleanup plan: keep this behavior-neutral, first lock the box hit rule in `collision.test`, then export that helper and reuse it in the campaign route guard instead of duplicating rectangle/radius math.
+- Change: exported `pointHitsBox()` from `collision.ts` and made `campaignPlaythrough.test.ts` use it for route walkability checks, keeping runtime projectile/door collision and static route validation aligned on the same strict edge semantics.
+- Evidence:
+  - TDD red: `npm test -- src/game/collision.test.ts` failed until `pointHitsBox()` was exported.
+  - Focused green: `npm test -- src/game/collision.test.ts src/game/campaignPlaythrough.test.ts` PASS: 2 files / 6 tests.
+  - Full regression: `npm test` PASS: 40 files / 163 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: only the box primitive is shared; broader route sampling remains a static approximation rather than runtime physics.

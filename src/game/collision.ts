@@ -14,6 +14,6 @@ export function pointHitsSolid(point: Vec2, obstacles: SolidBox[], doors: DoorSo
   return obstacles.some((obstacle) => pointHitsBox(point, obstacle, radius)) || doors.some((door) => !door.open && pointHitsBox(point, door, radius));
 }
 
-function pointHitsBox(point: Vec2, box: SolidBox, radius: number): boolean {
+export function pointHitsBox(point: Vec2, box: SolidBox, radius: number): boolean {
   return Math.abs(point.x - box.position.x) < box.halfWidth + radius && Math.abs(point.z - box.position.z) < box.halfDepth + radius;
 }

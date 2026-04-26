@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pointHitsSolid } from './collision';
+import { pointHitsBox, pointHitsSolid } from './collision';
 
 const point = { x: 0, z: -18 };
 
@@ -12,6 +12,15 @@ describe('projectile solid collision checks', () => {
     };
 
     expect(pointHitsSolid({ x: 2.2, z: -4.1 }, [obstacle], [], 0.18)).toBe(true);
+  });
+
+  it('shares the box hit rule for runtime and route guards', () => {
+    const box = { position: { x: 0, z: 0 }, halfWidth: 1, halfDepth: 2 };
+
+    expect(pointHitsBox({ x: 1.4, z: 0 }, box, 0.5)).toBe(true);
+    expect(pointHitsBox({ x: 1.5, z: 0 }, box, 0.5)).toBe(false);
+    expect(pointHitsBox({ x: 0, z: 2.4 }, box, 0.5)).toBe(true);
+    expect(pointHitsBox({ x: 0, z: 2.5 }, box, 0.5)).toBe(false);
   });
 
   it('uses projectile radius for near-edge solid checks', () => {

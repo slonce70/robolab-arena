@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { pointHitsBox } from './collision';
 import { LEVELS } from './levels';
 import type { LevelConfig, Vec2 } from './types';
 
@@ -160,9 +161,7 @@ function hasLineOfFire(from: Vec2, to: Vec2, solids: PlaySolid[]): boolean {
 
 function isWalkable(point: Vec2, solids: PlaySolid[]): boolean {
   if (Math.abs(point.x) > ROOM_HALF_WIDTH - PLAYER_RADIUS || Math.abs(point.z) > ROOM_HALF_DEPTH - PLAYER_RADIUS) return false;
-  return solids.every((solid) => {
-    return Math.abs(point.x - solid.position.x) >= solid.halfWidth + PLAYER_RADIUS || Math.abs(point.z - solid.position.z) >= solid.halfDepth + PLAYER_RADIUS;
-  });
+  return solids.every((solid) => !pointHitsBox(point, solid, PLAYER_RADIUS));
 }
 
 function neighbors(cell: Vec2): Vec2[] {
