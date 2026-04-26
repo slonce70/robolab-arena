@@ -1065,3 +1065,12 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: validation remains intentionally stricter than permissive override semantics; every referenced door id must exist.
+
+## Iteration 93 - Explicit valid-door fixture assumption
+- Problem: the independent `opensDoorIds` regression relied on the selected button-room fixture having a non-empty valid door id, but the test did not state that assumption directly.
+- Change: added `expect(validDoorId).not.toBe('')` before the missing-extra-door assertion.
+- Evidence:
+  - Focused regression: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 9 tests.
+  - `npm run build` PASS with TypeScript build and Vite bundle.
+  - `git diff --check` PASS.
+- Remaining risk: test-only clarity pass; no runtime changes.

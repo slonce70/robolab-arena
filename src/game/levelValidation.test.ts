@@ -72,6 +72,7 @@ describe('final level validation', () => {
     const validDoorId = buttonRoom?.doors?.[0]?.id ?? '';
 
     expect(buttonRoom).toBeDefined();
+    expect(validDoorId).not.toBe('');
     expect(validateLevel({
       ...buttonRoom!,
       buttons: [{ position: { x: 0, z: 0 }, opensDoorId: validDoorId, opensDoorIds: [validDoorId, 'missing-extra-door'] }]
