@@ -1,3 +1,5 @@
+import { formatUkrainianCount } from './ukrainianCounts';
+
 export type RunStats = {
   startedAtMs: number;
   roomStartedAtMs: number;
@@ -43,9 +45,17 @@ export function formatDuration(ms: number): string {
 }
 
 export function formatRoomSummary(stats: RunStats, nowMs: number): string {
-  return `Час кімнати ${formatDuration(nowMs - stats.roomStartedAtMs)} · пройдено ${stats.completedRooms} · рестарти ${stats.restarts}`;
+  return `Час кімнати ${formatDuration(nowMs - stats.roomStartedAtMs)} · пройдено ${formatCompletedRooms(stats.completedRooms)} · ${formatRestarts(stats.restarts)}`;
 }
 
 export function formatVictorySummary(stats: RunStats, nowMs: number): string {
-  return `Фінальний час ${formatDuration(nowMs - stats.startedAtMs)} · кімнат пройдено ${stats.completedRooms} · рестарти ${stats.restarts}`;
+  return `Фінальний час ${formatDuration(nowMs - stats.startedAtMs)} · пройдено ${formatCompletedRooms(stats.completedRooms)} · ${formatRestarts(stats.restarts)}`;
+}
+
+function formatCompletedRooms(count: number): string {
+  return formatUkrainianCount(count, { one: 'кімнату', few: 'кімнати', many: 'кімнат' });
+}
+
+function formatRestarts(count: number): string {
+  return formatUkrainianCount(count, { one: 'рестарт', few: 'рестарти', many: 'рестартів' });
 }

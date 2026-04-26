@@ -339,3 +339,13 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, room 1 objective HUD still renders, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: smoke verifies the HUD render path; the exact green success glow should still be judged visually after completing a room.
+
+## Iteration 31 - Run summary copy polished
+- Problem: room/victory summaries used rough counter order such as `пройдено 1 · рестарти 1`, which looked less polished than the rest of the localized HUD.
+- Change: reused `formatUkrainianCount` for completed-room and restart counts so summaries read `пройдено 1 кімнату · 1 рестарт` and `пройдено 2 кімнати`.
+- Evidence:
+  - TDD red: `npm test -- src/game/runStats.test.ts` failed on the old rough summary wording.
+  - Focused green: `npm test -- src/game/runStats.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 32 files / 97 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+- Remaining risk: final victory copy is string-tested, but the complete victory overlay still needs a true normal full-run playthrough to judge pacing.
