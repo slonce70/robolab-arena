@@ -1146,3 +1146,17 @@ Remaining risk:
   - Focused regression: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 11 tests.
   - `git diff --check` PASS.
 - Remaining risk: this is test-coverage hardening for the already-reviewed CSS implementation; pixel-matched browser comparison remains out of scope.
+
+## Iteration 100 - Difficulty changes enemy pacing too
+- Problem: difficulty already changed incoming damage, but enemy movement/fire cadence stayed identical, so the setting was less meaningful for balance feel.
+- Change: added `getEnemyPacingMultiplier()` (`easy` 0.9, `normal` 1, `hard` 1.1), applied it to enemy shoot timers and melee/chaser movement, and updated pause copy to explain that easy is calmer while hard is faster.
+- Evidence:
+  - TDD red: `npm test -- src/game/difficulty.test.ts` failed until the pacing helper and updated copy existed.
+  - Focused green: `npm test -- src/game/difficulty.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 40 files / 158 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass`, status `Складність: Важко. Урон ворогів вищий, темп швидший.`
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - `git diff --check` PASS.
+- Remaining risk: automated checks verify state/copy/build; subjective pacing still needs human combat feel review.

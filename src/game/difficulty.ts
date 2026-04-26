@@ -22,8 +22,14 @@ export function getIncomingDamageMultiplier(difficulty: Difficulty): number {
   return 1;
 }
 
+export function getEnemyPacingMultiplier(difficulty: Difficulty): number {
+  if (difficulty === 'easy') return 0.9;
+  if (difficulty === 'hard') return 1.1;
+  return 1;
+}
+
 export function describeDifficultyChange(difficulty: Difficulty): string {
-  if (difficulty === 'easy') return 'Складність: Легко. Урон ворогів нижчий.';
-  if (difficulty === 'hard') return 'Складність: Важко. Урон ворогів вищий.';
+  if (difficulty === 'easy') return 'Складність: Легко. Урон ворогів нижчий, темп спокійніший.';
+  if (difficulty === 'hard') return 'Складність: Важко. Урон ворогів вищий, темп швидший.';
   return 'Складність: Нормально. Базовий баланс.';
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeDifficultyChange, getDifficultyLabel, getIncomingDamageMultiplier, nextDifficulty } from './difficulty';
+import { describeDifficultyChange, getDifficultyLabel, getEnemyPacingMultiplier, getIncomingDamageMultiplier, nextDifficulty } from './difficulty';
 
 describe('difficulty settings', () => {
   it('cycles through approachable Ukrainian labels', () => {
@@ -17,10 +17,17 @@ describe('difficulty settings', () => {
     expect(getIncomingDamageMultiplier('normal')).toBe(1);
     expect(getIncomingDamageMultiplier('hard')).toBe(1.2);
   });
+
+  it('also scales enemy pacing so difficulty is felt beyond damage numbers', () => {
+    expect(getEnemyPacingMultiplier('easy')).toBe(0.9);
+    expect(getEnemyPacingMultiplier('normal')).toBe(1);
+    expect(getEnemyPacingMultiplier('hard')).toBe(1.1);
+  });
+
   it('announces applied difficulty in pause settings', () => {
-    expect(describeDifficultyChange('easy')).toBe('Складність: Легко. Урон ворогів нижчий.');
+    expect(describeDifficultyChange('easy')).toBe('Складність: Легко. Урон ворогів нижчий, темп спокійніший.');
     expect(describeDifficultyChange('normal')).toBe('Складність: Нормально. Базовий баланс.');
-    expect(describeDifficultyChange('hard')).toBe('Складність: Важко. Урон ворогів вищий.');
+    expect(describeDifficultyChange('hard')).toBe('Складність: Важко. Урон ворогів вищий, темп швидший.');
   });
 
 });
