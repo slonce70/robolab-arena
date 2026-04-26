@@ -1054,3 +1054,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: stricter semantics still intentionally require every referenced id in both fields to exist.
+
+## Iteration 92 - Independent opensDoorIds coverage
+- Problem: architect review found the dedupe regression used the same missing id in `opensDoorId` and `opensDoorIds`, so a validator that ignored `opensDoorIds` would still pass.
+- Change: added an independent regression where the primary door id is valid but `opensDoorIds` includes `missing-extra-door`.
+- Evidence:
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 9 tests.
+  - Full regression: `npm test` PASS: 40 files / 150 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: validation remains intentionally stricter than permissive override semantics; every referenced door id must exist.

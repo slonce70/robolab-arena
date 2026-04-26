@@ -67,6 +67,17 @@ describe('final level validation', () => {
     ]);
   });
 
+  it('reports missing opensDoorIds even when the primary door id is valid', () => {
+    const buttonRoom = LEVELS.find((level) => level.objective === 'buttons');
+    const validDoorId = buttonRoom?.doors?.[0]?.id ?? '';
+
+    expect(buttonRoom).toBeDefined();
+    expect(validateLevel({
+      ...buttonRoom!,
+      buttons: [{ position: { x: 0, z: 0 }, opensDoorId: validDoorId, opensDoorIds: [validDoorId, 'missing-extra-door'] }]
+    })).toContain(`Level ${buttonRoom!.id} button 0 references missing door missing-extra-door.`);
+  });
+
   it('mixes mechanics in rooms five through twelve', () => {
     for (const level of LEVELS.slice(4)) {
       const mechanicCount = [
