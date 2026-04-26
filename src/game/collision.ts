@@ -10,6 +10,9 @@ export type DoorSolidBox = SolidBox & {
   open: boolean;
 };
 
+export const DOOR_SOLID_HALF_WIDTH = 3.6;
+export const DOOR_SOLID_HALF_DEPTH = 0.28;
+
 export function pointHitsSolid(point: Vec2, obstacles: SolidBox[], doors: DoorSolidBox[], radius = 0.18): boolean {
   return obstacles.some((obstacle) => pointHitsBox(point, obstacle, radius)) || doors.some((door) => !door.open && pointHitsBox(point, door, radius));
 }

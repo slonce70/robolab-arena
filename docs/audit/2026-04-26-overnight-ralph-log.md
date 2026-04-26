@@ -1310,3 +1310,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: only the box primitive is shared; broader route sampling remains a static approximation rather than runtime physics.
+
+## Iteration 113 - Shared door collision dimensions cleanup
+- Cleanup plan: keep behavior unchanged, lock the runtime door collision dimensions in `collision.test`, then reuse those constants from both `Game.spawnDoor()` and the static campaign route guard.
+- Change: exported `DOOR_SOLID_HALF_WIDTH` / `DOOR_SOLID_HALF_DEPTH` from `collision.ts`, removed the route guard’s stale `0.17` door half-depth, and made runtime door solids use the same named constants.
+- Evidence:
+  - TDD red: `npm test -- src/game/collision.test.ts` failed until the shared door constants existed.
+  - Focused green: `npm test -- src/game/collision.test.ts src/game/campaignPlaythrough.test.ts` PASS: 2 files / 7 tests.
+  - Full regression: `npm test` PASS: 40 files / 164 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: door dimensions are now shared, but the broader route guard still remains a static approximation of gameplay physics.

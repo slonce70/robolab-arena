@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pointHitsBox, pointHitsSolid } from './collision';
+import { DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsBox, pointHitsSolid } from './collision';
 
 const point = { x: 0, z: -18 };
 
@@ -32,6 +32,12 @@ describe('projectile solid collision checks', () => {
 
     expect(pointHitsSolid({ x: 1.1, z: 0 }, [obstacle], [], 0.18)).toBe(true);
     expect(pointHitsSolid({ x: 1.19, z: 0 }, [obstacle], [], 0.18)).toBe(false);
+  });
+
+
+  it('exports the door collision dimensions used by runtime and route guards', () => {
+    expect(DOOR_SOLID_HALF_WIDTH).toBe(3.6);
+    expect(DOOR_SOLID_HALF_DEPTH).toBe(0.28);
   });
 
   it('treats closed doors as projectile blockers', () => {

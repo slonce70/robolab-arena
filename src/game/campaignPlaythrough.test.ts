@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pointHitsBox } from './collision';
+import { DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsBox } from './collision';
 import { LEVELS } from './levels';
 import type { LevelConfig, Vec2 } from './types';
 
@@ -104,8 +104,8 @@ function levelSolids(level: LevelConfig, includeClosedDoors: boolean): PlaySolid
 
   const doors = (level.doors ?? []).map((door) => ({
     position: door.position,
-    halfWidth: 3.6,
-    halfDepth: 0.17
+    halfWidth: DOOR_SOLID_HALF_WIDTH,
+    halfDepth: DOOR_SOLID_HALF_DEPTH
   }));
 
   return [...obstacles, ...doors];

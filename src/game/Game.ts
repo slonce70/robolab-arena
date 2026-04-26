@@ -14,7 +14,7 @@ import {
 } from './balance';
 import { describeFirstPersonBlasterState } from './blasterFeedback';
 import { CameraController } from './camera/CameraController';
-import { pointHitsSolid } from './collision';
+import { DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
@@ -1138,7 +1138,7 @@ export class Game {
 
   private spawnDoor(config: DoorConfig): void {
     const group = new THREE.Group();
-    const doorWidth = 7.2;
+    const doorWidth = DOOR_SOLID_HALF_WIDTH * 2;
     const material = new THREE.MeshStandardMaterial({
       color: palette.cyan,
       emissive: palette.blue,
@@ -1161,8 +1161,8 @@ export class Game {
       material,
       label,
       position: new THREE.Vector3(config.position.x, 0, config.position.z),
-      halfWidth: doorWidth * 0.5,
-      halfDepth: 0.28,
+      halfWidth: DOOR_SOLID_HALF_WIDTH,
+      halfDepth: DOOR_SOLID_HALF_DEPTH,
       open: false
     });
   }
