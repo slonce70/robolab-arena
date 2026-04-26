@@ -370,3 +370,11 @@ Remaining risk:
   - Full regression: `npm test` PASS: 33 files / 98 tests.
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
 - Remaining risk: text is truthful now; narrow/mobile wrapping remains a separate visual-review item.
+
+## Iteration 34 - Narrow HUD browser evidence
+- Purpose: after extending the controls hint, verify the documented narrow/mobile wrapping risk instead of changing CSS blindly.
+- Evidence:
+  - Playwright QA `output/playwright/overnight-narrow-hud-2026-04-26/report.json`: `narrow-hud-pass` at 390x844 mobile viewport.
+  - The long hint is hidden on narrow layout (`hintDisplay: none`), objective chip stays inside viewport (`x: 10`, `right: 380` on width 390), status row stays inside viewport (`x: 10`, `right: 380`), `badConsole: 0`, `pageErrors: 0`.
+- Change: no code change; evidence only.
+- Remaining risk: phone landscape and very short desktop are covered by CSS media rules but not re-smoked in this specific iteration.
