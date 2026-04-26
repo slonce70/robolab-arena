@@ -20,6 +20,7 @@ import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
+import { describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
@@ -68,6 +69,7 @@ type BulletOwner = 'player' | 'enemy';
 type Enemy = {
   group: THREE.Group;
   kind: EnemyKind;
+  material: THREE.MeshStandardMaterial;
   base: THREE.Vector3;
   health: number;
   maxHealth: number;
@@ -75,6 +77,7 @@ type Enemy = {
   shootTimer: number;
   alive: boolean;
   phase: number;
+  hitTimer: number;
 };
 
 type Target = {
@@ -1120,7 +1123,7 @@ export class Game {
       }
     });
     this.dynamicRoot.add(group);
-    this.enemies.push({ group, kind: config.kind, base, health, maxHealth: health, radius, shootTimer: ENEMY_INITIAL_SHOOT_DELAY, alive: true, phase: 1 });
+    this.enemies.push({ group, kind: config.kind, material, base, health, maxHealth: health, radius, shootTimer: ENEMY_INITIAL_SHOOT_DELAY, alive: true, phase: 1, hitTimer: 0 });
   }
 
   private spawnDoor(config: DoorConfig): void {
@@ -1493,6 +1496,10 @@ export class Game {
       const lookAngle = Math.atan2(toPlayer.x, toPlayer.z);
       enemy.group.rotation.y = lookAngle;
       enemy.shootTimer -= delta;
+      enemy.hitTimer = Math.max(0, enemy.hitTimer - delta);
+      const hitFeedback = describeEnemyHitFeedback(enemy.hitTimer, this.settings.reducedMotion);
+      enemy.material.emissiveIntensity = hitFeedback.emissiveIntensity;
+      enemy.group.scale.setScalar(hitFeedback.scale);
       const warning = enemy.group.userData.warning as THREE.Object3D | undefined;
       if (warning) {
         warning.visible = enemy.shootTimer < 0.5;
@@ -1648,6 +1655,7 @@ export class Game {
             continue;
           }
           enemy.health -= bullet.damage;
+          enemy.hitTimer = 0.16;
           this.hitConfirmTimer = 0.16;
           this.audio.play(enemy.kind === 'boss' ? 'boss' : 'hit');
           this.addSpark(bullet.mesh.position, enemy.kind === 'boss' ? palette.purple : palette.pink);

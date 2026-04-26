@@ -851,3 +851,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: pickup burst math is unit/build/smoke covered, but exact pickup feel still needs a human visual pass.
+
+## Iteration 75 - Enemy hit flash polish
+- Problem: successful shots produced sparks and reticle confirmation, but enemy bodies themselves did not briefly react, making some distant hits feel less physical.
+- Change: added a tested enemy-hit feedback presenter and wired enemy hit timers to pulse enemy emissive intensity and body scale briefly, with a calmer reduced-motion scale boost.
+- Evidence:
+  - TDD red: `npm test -- src/game/enemyFeedback.test.ts` failed because `enemyFeedback.ts` did not exist.
+  - Focused green: `npm test -- src/game/enemyFeedback.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 38 files / 134 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: enemy hit flash math is unit/build/smoke covered, but exact flash feel still needs a human combat pass.
