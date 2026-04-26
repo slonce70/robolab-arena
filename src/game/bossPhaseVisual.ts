@@ -32,7 +32,9 @@ export type BossPhaseTransitionCue = {
   toast: string;
 };
 
-export function describeBossPhaseTransitionCue(phaseIndex: BossPhaseIndex): BossPhaseTransitionCue {
+export function describeBossPhaseTransitionCue(phaseIndex: BossPhaseIndex): BossPhaseTransitionCue | undefined {
+  if (phaseIndex === 1) return undefined;
+
   return {
     sound: 'phase',
     toast: phaseIndex === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!'

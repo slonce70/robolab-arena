@@ -29,6 +29,7 @@ describe('boss phase visual state', () => {
     expect(Math.abs(reduced.coreScale - 1)).toBeLessThan(Math.abs(normal.coreScale - 1));
   });
   it('routes phase-change audio and toast copy through a testable cue', () => {
+    expect(describeBossPhaseTransitionCue(1)).toBeUndefined();
     expect(describeBossPhaseTransitionCue(2)).toEqual({ sound: 'phase', toast: 'Бос пришвидшує атаку!' });
     expect(describeBossPhaseTransitionCue(3)).toEqual({ sound: 'phase', toast: 'Фінальна фаза боса!' });
   });

@@ -1557,14 +1557,16 @@ export class Game {
         if (phase.index !== enemy.phase) {
           enemy.phase = phase.index;
           const cue = describeBossPhaseTransitionCue(phase.index);
-          this.audio.play(cue.sound);
-          const burst = describeBossPhaseTransitionBurst(phase.index, this.settings.reducedMotion);
-          const burstPosition = enemy.group.position.clone().add(new THREE.Vector3(0, 1.05, 0));
-          for (let ring = 0; ring < burst.ringCount; ring += 1) {
-            this.addPulseRing(burstPosition, burst.color, burst.maxScale * (1 + ring * 0.14));
+          if (cue) {
+            this.audio.play(cue.sound);
+            const burst = describeBossPhaseTransitionBurst(phase.index, this.settings.reducedMotion);
+            const burstPosition = enemy.group.position.clone().add(new THREE.Vector3(0, 1.05, 0));
+            for (let ring = 0; ring < burst.ringCount; ring += 1) {
+              this.addPulseRing(burstPosition, burst.color, burst.maxScale * (1 + ring * 0.14));
+            }
+            this.addSpark(burstPosition, burst.color, burst.sparkScale);
+            this.showToast(cue.toast, 1.5);
           }
-          this.addSpark(burstPosition, burst.color, burst.sparkScale);
-          this.showToast(cue.toast, 1.5);
         }
         const phaseVisual = describeBossPhaseVisual(phase.index, this.elapsed, this.settings.reducedMotion);
         if (core) {

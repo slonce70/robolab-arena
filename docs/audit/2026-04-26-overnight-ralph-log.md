@@ -1249,3 +1249,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: behavior-neutral cleanup; it still does not provide a human laser timing feel pass.
+
+## Iteration 108 - Safe boss phase cue contract
+- Problem: `describeBossPhaseTransitionCue(1)` returned the final-phase cue, which was harmless in the current runtime path but risky for future callers or phase-reset logic.
+- Change: made the cue helper return `undefined` for phase 1 and guarded the phase audio/toast/burst branch in `Game.updateEnemies()` so only real escalation phases emit transition feedback.
+- Evidence:
+  - TDD red: `npm test -- src/game/bossPhaseVisual.test.ts` failed until phase 1 returned `undefined`.
+  - Focused green: `npm test -- src/game/bossPhaseVisual.test.ts src/game/audioProfiles.test.ts` PASS: 2 files / 9 tests.
+  - Full regression: `npm test` PASS: 40 files / 162 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: boss phase cue route is safer and smoke-tested, but subjective phase audio/visual timing still needs human boss-fight review.
