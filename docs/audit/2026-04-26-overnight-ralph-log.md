@@ -378,3 +378,12 @@ Remaining risk:
   - The long hint is hidden on narrow layout (`hintDisplay: none`), objective chip stays inside viewport (`x: 10`, `right: 380` on width 390), status row stays inside viewport (`x: 10`, `right: 380`), `badConsole: 0`, `pageErrors: 0`.
 - Change: no code change; evidence only.
 - Remaining risk: phone landscape and very short desktop are covered by CSS media rules but not re-smoked in this specific iteration.
+
+## Iteration 35 - Fresh 12-room continuity smoke after polish batch
+- Purpose: after the HUD/copy/accessibility polish batch, rerun broad browser continuity to ensure every room still loads and reports clean DOM/HUD state.
+- Evidence:
+  - Playwright DOM smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms inspected, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `npm test` PASS: 33 files / 98 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+- Change: no code change; broad regression evidence only.
+- Remaining risk: still not a normal human no-jump victory run; it is a room-load/HUD continuity smoke.
