@@ -591,3 +591,11 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: static sweep warning anchoring is helper-covered and browser-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 53 - Pause settings browser QA
+- Purpose: verify the user-facing pause/settings surface as a real browser flow before adding more code.
+- Result: no defect found in the current pause controls.
+- Evidence:
+  - Playwright QA `output/playwright/overnight-pause-settings-2026-04-26/report.json`: `pause-settings-pass`.
+  - Verified pause opens on `Escape`, room title is `Кімната 1: Великий запуск`, sensitivity changes from `1.0x` to `1.2x`, camera button switches to `Вид: від 1-ї особи`, sound button switches to `Звук: вимкнено`, restart hides overlay and keeps room 1 loaded, resume hides overlay, `badConsole: []`, `pageErrors: []`.
+- Remaining risk: pause settings have browser-flow evidence; this still does not claim a full normal human no-jump victory run.
