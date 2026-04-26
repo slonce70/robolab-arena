@@ -484,3 +484,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-pointer-toast-2026-04-26/report.json`: `pointer-toast-pass`; first-person capture toast `Приціл активний. Esc — показати курсор.`, release toast `Курсор вільний. Клік по арені — повернути приціл.`, `badConsole: []`, `pageErrors: []`.
   - `git diff --check` PASS.
 - Remaining risk: first-person toast copy is browser-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 44 - Victory copy honest after continue
+- Problem: if a player continued from a late unlocked room and beat the boss, the final overlay still used the full-run wording, even though the current run statistics only covered the resumed segment.
+- Change: added `formatVictoryOverlayIntro` so the victory overlay celebrates a full 12-room run only when the current run completed all rooms, and otherwise describes the finished late-game segment honestly.
+- Evidence:
+  - TDD red: `npm test -- src/game/victoryCopy.test.ts` failed before `victoryCopy.ts` existed.
+  - Focused green: `npm test -- src/game/victoryCopy.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 35 files / 106 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: victory copy logic is unit-covered and broad room smoke still passes, but the exact final victory overlay text was not browser-triggered through a normal no-jump boss kill in this iteration.

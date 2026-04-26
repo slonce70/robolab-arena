@@ -45,6 +45,7 @@ import {
 } from './runStats';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import { describeTargetStatus } from './targetStatus';
+import { formatVictoryOverlayIntro } from './victoryCopy';
 import { getCrosshairClasses } from './weaponFeedback';
 import type {
   ButtonConfig,
@@ -1890,7 +1891,7 @@ export class Game {
     this.runStats = completeRoom(this.runStats);
     if (next >= LEVELS.length) {
       this.audio.play('victory');
-      this.showOverlay('Перемога!', `Бліц пройшов усі кімнати, зібрав ${this.gears} шестерень і набрав ${this.score} очок. ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
+      this.showOverlay('Перемога!', `${formatVictoryOverlayIntro({ completedRooms: this.runStats.completedRooms, totalRooms: LEVELS.length, gears: this.gears, score: this.score })} ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
       this.showOverlay('Кімнату пройдено!', `Двері до наступного випробування відкриті. ${formatRoomSummary(this.runStats, now)}. Готовий рухатись далі?`, 'Наступна кімната', () => {
