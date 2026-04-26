@@ -27,4 +27,10 @@ describe('level intel', () => {
     expect(getLevelIntel(LEVELS[11]).threat).toContain('бос');
     expect(getLevelIntel(LEVELS[11]).tactic).toContain('рухайся колом');
   });
+
+  it('uses polished dashes for fallback pause intel prose', () => {
+    const intel = getLevelIntel(LEVELS[0]);
+
+    expect(intel.threat).toBe('ворогів немає, головна загроза — маршрут і таймінг');
+  });
 });

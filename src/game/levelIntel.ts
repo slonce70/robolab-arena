@@ -50,7 +50,7 @@ function describeThreat(level: LevelConfig): string {
     : '';
   const summary = [enemySummary, laserSummary].filter(Boolean).join(' + ');
 
-  return summary || 'ворогів немає, головна загроза - маршрут і таймінг';
+  return summary || 'ворогів немає, головна загроза — маршрут і таймінг';
 }
 
 function describeSupport(level: LevelConfig): string {
@@ -62,7 +62,7 @@ function describeSupport(level: LevelConfig): string {
   const gearSummary = gearCount > 0 ? formatUkrainianCount(gearCount, { one: 'шестерня', few: 'шестерні', many: 'шестерень' }) : '';
   const summary = [powerSummary, gearSummary].filter(Boolean).join(' + ');
 
-  return summary || 'допомоги немає - грай обережно';
+  return summary || 'допомоги немає — грай обережно';
 }
 
 function describeTactic(level: LevelConfig): string {

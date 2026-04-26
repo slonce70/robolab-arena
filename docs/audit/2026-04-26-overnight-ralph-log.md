@@ -448,3 +448,15 @@ Remaining risk:
   - Fresh 12-room smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: progress corruption is now bounded; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 41 - Pause intel prose dash polish
+- Problem: the room 1 pause intel fallback threat text still used a plain hyphen in prose (`головна загроза - маршрут і таймінг`), which stood out after the broader UI typography polish.
+- Change: changed fallback pause intel prose to use an em dash for both no-threat and no-support fallback copy.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelIntel.test.ts` failed when the new test expected `головна загроза — маршрут і таймінг` and production still returned the hyphenated phrase.
+  - Focused green: `npm test -- src/game/levelIntel.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 34 files / 102 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, 4 pause intel cards, `badConsole: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: fallback prose is polished and pause-smoked; this still does not claim a full normal human no-jump victory run.
