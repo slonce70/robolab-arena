@@ -260,6 +260,7 @@ export class Game {
   private runStats: RunStats = createRunStats(0);
   private laserContactTimer = 0;
   private blasterFlashTimer = 0;
+  private hitConfirmTimer = 0;
   private score = 0;
   private levelCompleteTimer = 0;
   private elapsed = 0;
@@ -450,6 +451,7 @@ export class Game {
     this.overchargeShots = 0;
     this.dashCooldown = 0;
     this.toastTimer = 0;
+    this.hitConfirmTimer = 0;
     this.runStats = createRunStats(performance.now());
     const safeStartLevel = Math.min(Math.max(0, Math.floor(startLevel)), LEVELS.length - 1);
     this.levelIndex = safeStartLevel;
@@ -575,6 +577,7 @@ export class Game {
     this.runStats = beginRoom(this.runStats, performance.now());
     this.levelCompleteTimer = 0;
     this.shootCooldown = 0;
+    this.hitConfirmTimer = 0;
     this.invulnerableTimer = SPAWN_INVULNERABILITY_SECONDS;
     this.clearLevel();
 
@@ -1349,6 +1352,7 @@ export class Game {
     this.toastTimer = Math.max(0, this.toastTimer - delta);
     this.laserContactTimer = Math.max(0, this.laserContactTimer - delta);
     this.blasterFlashTimer = Math.max(0, this.blasterFlashTimer - delta);
+    this.hitConfirmTimer = Math.max(0, this.hitConfirmTimer - delta);
     this.updateAimFromPointer();
     this.updateAimMarker(delta);
     this.updateFirstPersonBlaster(delta);
@@ -1643,6 +1647,7 @@ export class Game {
             continue;
           }
           enemy.health -= bullet.damage;
+          this.hitConfirmTimer = 0.16;
           this.audio.play(enemy.kind === 'boss' ? 'boss' : 'hit');
           this.addSpark(bullet.mesh.position, enemy.kind === 'boss' ? palette.purple : palette.pink);
           this.removeBullet(i);
@@ -1667,6 +1672,7 @@ export class Game {
     for (const target of this.targets) {
       if (!target.hit && this.distance2D(target.position, position) < 0.7) {
         target.hit = true;
+        this.hitConfirmTimer = 0.16;
         this.applyTargetStatus(target);
         this.score += 90;
         this.showToast('Мішень збито!', 1.2);
@@ -2140,6 +2146,7 @@ export class Game {
     this.crosshair.className = getCrosshairClasses({
       visible: this.state === 'playing' && isFirstPerson,
       flashTimer: this.blasterFlashTimer,
+      hitTimer: this.hitConfirmTimer,
       rapidTimer: this.rapidTimer,
       overchargeShots: this.overchargeShots
     }).join(' ');

@@ -815,3 +815,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: test hardening is focused/full/smoke verified, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 72 - First-person hit-confirm crosshair
+- Problem: first-person firing had recoil/flash, but successful shots only produced world sparks and toast text, so precision hits were not instantly readable at the reticle.
+- Change: added a short hit-confirm state to weapon feedback, set it on target/enemy hits, and styled the crosshair with a green/gold confirmation glow while respecting reduced-motion scale rules.
+- Evidence:
+  - TDD red: `npm test -- src/game/weaponFeedback.test.ts` failed because `getCrosshairClasses()` did not emit `is-hit-confirmed` for a positive hit timer.
+  - Focused green: `npm test -- src/game/weaponFeedback.test.ts` PASS: 4 tests.
+  - Full regression: `npm test` PASS: 36 files / 127 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: hit-confirm reticle is unit/build/smoke covered, but the exact reticle feel still needs a human first-person shooting pass.
