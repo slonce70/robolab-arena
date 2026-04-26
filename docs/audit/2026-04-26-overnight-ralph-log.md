@@ -1348,4 +1348,17 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
-- Remaining risk: exact duplicate positions are guarded; near-overlaps are still covered separately by reward/route geometry checks rather than an enemy-spacing invariant.
+- Remaining risk: exact duplicate positions are guarded; enemy-enemy near-overlaps are not guarded yet (only reward/route geometry has separate near-overlap checks).
+
+## Iteration 116 - Enemy near-overlap spawn validator
+- Problem: iteration 115 guarded exact duplicate enemy coordinates, but two different enemy kinds could still be placed close enough to visually overlap and cause confusing stacked damage/readability issues.
+- Change: `validateLevel()` now compares every enemy pair using their gameplay radii plus a small clearance margin, while keeping exact duplicate-coordinate reporting separate and less noisy.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed first because close shieldBot/turret spawns were not reported (`expected [] to include ... spawn too close`).
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 11 tests.
+  - Full regression: `npm test` PASS: 40 files / 167 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: the guard is static spawn-spacing evidence; it does not model later enemy movement convergence during live combat.
