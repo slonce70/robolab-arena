@@ -28,6 +28,7 @@ import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
+import { describeBossPhaseVisual } from './bossPhaseVisual';
 import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
 import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
@@ -1524,11 +1525,24 @@ export class Game {
           this.audio.play('boss');
           this.showToast(phase.index === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!', 1.5);
         }
+        const phaseVisual = describeBossPhaseVisual(phase.index, this.elapsed, this.settings.reducedMotion);
         if (core) {
-          core.scale.setScalar(1 + phase.index * 0.05 + Math.sin(this.elapsed * (5 + phase.index)) * 0.12);
+          core.scale.setScalar(phaseVisual.coreScale);
+          const coreMaterial = (core as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+          if (coreMaterial) {
+            coreMaterial.color.setHex(phaseVisual.coreColor);
+            coreMaterial.emissive.setHex(phaseVisual.coreColor);
+            coreMaterial.emissiveIntensity = phaseVisual.emissiveIntensity;
+          }
         }
         if (crown) {
-          crown.rotation.z += delta * (1.6 + phase.index * 0.45);
+          const crownMaterial = (crown as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+          if (crownMaterial) {
+            crownMaterial.color.setHex(phaseVisual.coreColor);
+            crownMaterial.emissive.setHex(phaseVisual.coreColor);
+            crownMaterial.emissiveIntensity = phaseVisual.emissiveIntensity;
+          }
+          crown.rotation.z += delta * phaseVisual.crownRotationSpeed;
         }
         if (enemy.shootTimer <= 0) {
           const baseAngle = Math.atan2(toPlayer.x, toPlayer.z);

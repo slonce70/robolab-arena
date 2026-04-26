@@ -599,3 +599,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-pause-settings-2026-04-26/report.json`: `pause-settings-pass`.
   - Verified pause opens on `Escape`, room title is `Кімната 1: Великий запуск`, sensitivity changes from `1.0x` to `1.2x`, camera button switches to `Вид: від 1-ї особи`, sound button switches to `Звук: вимкнено`, restart hides overlay and keeps room 1 loaded, resume hides overlay, `badConsole: []`, `pageErrors: []`.
 - Remaining risk: pause settings have browser-flow evidence; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 54 - Expressive boss phase visuals
+- Problem: boss phases were communicated through HUD text and attack pattern, but the boss core/crown visuals did not clearly shift color and urgency between phases.
+- Change: added `describeBossPhaseVisual` and wired boss update to phase-specific core/crown color, emissive intensity, scale pulse, and crown rotation speed, with reduced-motion calming preserved.
+- Evidence:
+  - TDD red: `npm test -- src/game/bossPhaseVisual.test.ts` failed because `bossPhaseVisual.ts` did not exist before implementation.
+  - Focused green: `npm test -- src/game/bossPhaseVisual.test.ts src/game/bossStatus.test.ts` PASS: 2 files / 6 tests.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: boss phase visuals are unit-covered and room-smoked; this still does not claim a full normal human no-jump victory run.
