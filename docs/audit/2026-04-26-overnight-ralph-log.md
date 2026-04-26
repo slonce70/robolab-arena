@@ -1018,3 +1018,15 @@ Remaining risk:
   - Focused regression: `npm test -- src/game/levelPacing.test.ts` PASS: 1 file / 7 tests.
   - `npm run build` PASS with TypeScript checking the new `satisfies LevelConfig` fixtures.
 - Remaining risk: this is a test-hardening pass only; it does not change runtime route balance.
+
+## Iteration 89 - Validator catches broken button doors
+- Problem: real levels had a test that button door ids were resolvable, but `validateLevel()` itself did not report missing door references, so generated/edited levels could produce unclear doors without a validator failure string.
+- Change: `validateLevel()` now checks every `opensDoorId` and `opensDoorIds` entry against the level's door ids and reports a precise missing-door failure.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed until `validateLevel()` reported a synthetic missing door id.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 7 tests.
+  - Full regression: `npm test` PASS: 39 files / 146 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this validates data references only; it does not verify visual door readability in-browser.

@@ -45,6 +45,16 @@ describe('final level validation', () => {
     }
   });
 
+  it('reports missing button door references through the level validator', () => {
+    const buttonRoom = LEVELS.find((level) => level.objective === 'buttons');
+
+    expect(buttonRoom).toBeDefined();
+    expect(validateLevel({
+      ...buttonRoom!,
+      buttons: [{ position: { x: 0, z: 0 }, opensDoorId: 'missing-door' }]
+    })).toContain(`Level ${buttonRoom!.id} button 0 references missing door missing-door.`);
+  });
+
   it('mixes mechanics in rooms five through twelve', () => {
     for (const level of LEVELS.slice(4)) {
       const mechanicCount = [

@@ -29,6 +29,16 @@ export function validateLevel(level: LevelConfig): string[] {
     }
   });
 
+  const doorIds = new Set((level.doors ?? []).map((door) => door.id));
+  level.buttons?.forEach((button, index) => {
+    const referencedDoorIds = [button.opensDoorId, ...(button.opensDoorIds ?? [])];
+    referencedDoorIds.forEach((doorId) => {
+      if (!doorIds.has(doorId)) {
+        failures.push(`Level ${level.id} button ${index} references missing door ${doorId}.`);
+      }
+    });
+  });
+
   return failures;
 }
 
