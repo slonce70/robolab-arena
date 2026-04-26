@@ -20,4 +20,13 @@ describe('CSS custom properties', () => {
     expect(criticalShieldRule).toContain('rgba(255, 75, 85');
     expect(criticalShieldRule).toContain('rgba(84, 241, 255');
   });
+
+  it('keeps simultaneous power chip states visually layered', () => {
+    const selectorStart = css.indexOf('.power-chip.is-rapid.is-shielded.is-overcharged');
+    const combinedPowerRule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+
+    expect(combinedPowerRule).toContain('rgba(255, 209, 102');
+    expect(combinedPowerRule).toContain('rgba(84, 241, 255');
+    expect(combinedPowerRule).toContain('rgba(255, 79, 163');
+  });
 });

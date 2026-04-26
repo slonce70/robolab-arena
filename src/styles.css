@@ -194,6 +194,15 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(255, 79, 163, 0.24), var(--hud-shadow);
 }
 
+.power-chip.is-rapid.is-shielded.is-overcharged {
+  border-color: rgba(255, 209, 102, 0.76);
+  box-shadow:
+    0 0 18px rgba(255, 209, 102, 0.2),
+    0 0 16px rgba(84, 241, 255, 0.18),
+    0 0 22px rgba(255, 79, 163, 0.25),
+    var(--hud-shadow);
+}
+
 .dash-chip {
   min-width: 130px;
   border-color: rgba(84, 241, 255, 0.48);

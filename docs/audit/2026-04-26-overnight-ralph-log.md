@@ -779,3 +779,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: power chip states are unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 69 - Layer simultaneous power glows
+- Problem: architect review caught that rapid, shield, and overcharge power-chip rules had equal specificity, so the last overcharge rule hid the yellow/cyan glows when all states were active.
+- Change: added stylesheet coverage for the combined power-chip selector and a layered shadow that keeps rapid, shield, and overcharge visible together.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed because `.power-chip.is-rapid.is-shielded.is-overcharged` did not exist.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 36 files / 126 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: combined HUD glow is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.
