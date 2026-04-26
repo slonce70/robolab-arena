@@ -47,7 +47,7 @@ import {
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import { describeTargetStatus } from './targetStatus';
 import { formatVictoryOverlayIntro } from './victoryCopy';
-import { getCrosshairClasses } from './weaponFeedback';
+import { getCrosshairClasses, getPlayerProjectileTheme } from './weaponFeedback';
 import type {
   ButtonConfig,
   DoorConfig,
@@ -1975,16 +1975,20 @@ export class Game {
     if (this.shootCooldown > 0 || this.state !== 'playing') return;
     const thirdPersonDirection = this.aimPoint.clone().sub(this.playerPosition);
     const direction = this.cameraController.getAimDirection(thirdPersonDirection, this.lastMoveDirection);
+    const overcharged = this.overchargeShots > 0;
+    const projectileTheme = getPlayerProjectileTheme({
+      rapidTimer: this.rapidTimer,
+      overchargeShots: this.overchargeShots
+    });
     const material = new THREE.MeshStandardMaterial({
-      color: palette.cyan,
-      emissive: palette.cyan,
-      emissiveIntensity: 1.6,
+      color: projectileTheme.color,
+      emissive: projectileTheme.color,
+      emissiveIntensity: projectileTheme.emissiveIntensity,
       roughness: 0.18
     });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), material);
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(projectileTheme.radius, 16, 12), material);
     mesh.position.copy(this.playerPosition).add(new THREE.Vector3(direction.x * 0.7, 1.1, direction.z * 0.7));
     this.dynamicRoot.add(mesh);
-    const overcharged = this.overchargeShots > 0;
     if (overcharged) {
       this.overchargeShots -= 1;
     }

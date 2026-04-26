@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCrosshairClasses } from './weaponFeedback';
+import { getCrosshairClasses, getPlayerProjectileTheme } from './weaponFeedback';
 
 describe('weapon feedback classes', () => {
   it('keeps the crosshair hidden outside first-person play', () => {
@@ -23,5 +23,24 @@ describe('weapon feedback classes', () => {
 
   it('adds a short hit-confirm state after successful shots', () => {
     expect(getCrosshairClasses({ visible: true, flashTimer: 0, hitTimer: 0.12, rapidTimer: 0, overchargeShots: 0 })).toContain('is-hit-confirmed');
+  });
+});
+
+describe('player projectile theme', () => {
+  it('makes overcharge shots visibly larger and hotter than base shots', () => {
+    const base = getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 0 });
+    const overcharged = getPlayerProjectileTheme({ rapidTimer: 0, overchargeShots: 1 });
+
+    expect(overcharged.color).not.toBe(base.color);
+    expect(overcharged.radius).toBeGreaterThan(base.radius);
+    expect(overcharged.emissiveIntensity).toBeGreaterThan(base.emissiveIntensity);
+  });
+
+  it('tints rapid shots without making them as large as overcharge shots', () => {
+    const rapid = getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 0 });
+    const overcharged = getPlayerProjectileTheme({ rapidTimer: 3, overchargeShots: 1 });
+
+    expect(rapid.color).toBe(0xffd166);
+    expect(rapid.radius).toBeLessThan(overcharged.radius);
   });
 });

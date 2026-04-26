@@ -827,3 +827,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: hit-confirm reticle is unit/build/smoke covered, but the exact reticle feel still needs a human first-person shooting pass.
+
+## Iteration 73 - Weapon-state projectile visuals
+- Problem: first-person HUD/crosshair states showed rapid and overcharge, but actual player projectiles stayed the same cyan size, so power shots were less expressive in third-person and world view.
+- Change: added a tested projectile theme helper and wired player bullets to use yellow rapid shots and larger hot-orange overcharge shots without changing damage, cooldown, or range.
+- Evidence:
+  - TDD red: `npm test -- src/game/weaponFeedback.test.ts` failed because `getPlayerProjectileTheme()` did not exist.
+  - Focused green: `npm test -- src/game/weaponFeedback.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 36 files / 129 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: projectile colors/size are unit/build/smoke covered, but exact feel still needs a human combat pass.
