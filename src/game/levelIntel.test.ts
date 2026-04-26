@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLevelIntel } from './levelIntel';
 import { LEVELS } from './levels';
+import type { LevelConfig } from './types';
 
 describe('level intel', () => {
   it('gives every room actionable pause-screen guidance', () => {
@@ -34,5 +35,15 @@ describe('level intel', () => {
     const intel = getLevelIntel(LEVELS[0]);
 
     expect(intel.threat).toBe('ворогів немає, головна загроза — маршрут і таймінг');
+  });
+
+  it('does not tell laser-button rooms to save a shield when none exists', () => {
+    const laserButtonsWithoutShield = {
+      ...LEVELS[9],
+      powerUps: (LEVELS[9].powerUps ?? []).filter((powerUp) => powerUp.kind !== 'shield')
+    } satisfies LevelConfig;
+
+    expect(getLevelIntel(laserButtonsWithoutShield).tactic).toContain('лазерними вікнами');
+    expect(getLevelIntel(laserButtonsWithoutShield).tactic).not.toContain('щит');
   });
 });

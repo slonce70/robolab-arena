@@ -1519,3 +1519,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this improves pause guidance and does not change room 10 enemy/laser balance.
+
+## Iteration 129 - Shield-aware laser-button tactics
+- Problem: architect review approved the laser-button tactic but noted a future content risk: the copy told every laser-button room to save a shield, even if a future room removed shield support.
+- Change: laser-button pause tactics now branch on actual shield pickup availability. Rooms with shields keep the shield-timing advice; synthetic/future rooms without shields still get laser-window/door-routing guidance without misleading shield copy.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelIntel.test.ts` first failed because a synthetic room 10 without shield still mentioned `щит`.
+  - Focused green: `npm test -- src/game/levelIntel.test.ts` PASS: 1 file / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 179 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Room-10 pause browser smoke `node .omx/tmp/robolab-room-10-intel-qa.mjs` PASS: current room 10 still includes shield/laser/final-button guidance, no bad console messages or page errors.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this is copy-policy hardening only; it does not change current room balance.

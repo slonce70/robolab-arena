@@ -67,7 +67,12 @@ function describeSupport(level: LevelConfig): string {
 
 function describeTactic(level: LevelConfig): string {
   if (level.objective === 'boss') return 'Тримай дистанцію, рухайся колом, бери ремонт тільки після втрати енергії.';
-  if (level.objective === 'buttons' && (level.lasers?.length ?? 0) > 0) return 'Йди між лазерними вікнами, відкривай двері по черзі, а щит тримай для останньої кнопки або помилки.';
+  if (level.objective === 'buttons' && (level.lasers?.length ?? 0) > 0) {
+    const hasShield = (level.powerUps ?? []).some((powerUp) => powerUp.kind === 'shield');
+    return hasShield
+      ? 'Йди між лазерними вікнами, відкривай двері по черзі, а щит тримай для останньої кнопки або помилки.'
+      : 'Йди між лазерними вікнами, відкривай двері по черзі й відступай до ремонту після помилки.';
+  }
   if (level.objective === 'buttons') return 'Спочатку запам’ятай кнопки, чисть найближчі загрози й відкривай двері по черзі.';
   if (level.objective === 'survive-lasers') return 'Не поспішай: дочекайся вікна, роби ривок між укриттями, щит бережи для помилки.';
   if ((level.enemies?.length ?? 0) >= 7) return 'Розбирай ворогів малими групами, не заходь у центр без щита або ремонту поруч.';
