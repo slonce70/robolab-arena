@@ -30,7 +30,7 @@ import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
 import { describeBossPhaseVisual } from './bossPhaseVisual';
 import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
-import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
+import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerStatus } from './powerStatus';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
@@ -2100,7 +2100,13 @@ export class Game {
     const level = LEVELS[this.levelIndex];
     const objectiveDone = this.isObjectiveComplete();
     this.hudLevel.textContent = `Кімната ${level.id}/${LEVELS.length}: ${level.name}`;
-    this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
+    const healthHud = describeHealthHud({
+      health: this.health,
+      maxHealth: PLAYER_MAX_HEALTH,
+      shieldTimer: this.shieldTimer
+    });
+    this.hudHealth.textContent = healthHud.text;
+    this.hudHealth.className = healthHud.classes.join(' ');
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     const objectiveHud = describeObjectiveHud(objectiveDone);
     this.hudObjective.textContent = objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip);

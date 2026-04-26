@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
+import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 
 const baseState = {
   health: 100,
@@ -35,6 +35,13 @@ describe('player feedback vignette state', () => {
 
     expect(feedback.classes).toContain('is-critical');
     expect(feedback.opacity).toBe(0.22);
+  });
+
+  it('marks the health chip critical and shielded without changing the readable energy text', () => {
+    expect(describeHealthHud({ health: 24, maxHealth: 100, shieldTimer: 4 })).toEqual({
+      text: 'Енергія 24',
+      classes: ['status-chip', 'health-chip', 'is-critical', 'is-shielded']
+    });
   });
 
   it('throttles continuous laser audio while the contact flash is still active', () => {

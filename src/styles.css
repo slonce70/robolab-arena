@@ -143,6 +143,19 @@ button:focus-visible {
 
 .health-chip {
   border-color: rgba(124, 242, 124, 0.5);
+  transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+.health-chip.is-shielded {
+  border-color: rgba(84, 241, 255, 0.72);
+  color: #d8fbff;
+  box-shadow: 0 0 18px rgba(84, 241, 255, 0.22), var(--hud-shadow);
+}
+
+.health-chip.is-critical {
+  border-color: rgba(255, 75, 85, 0.78);
+  color: #ffe1e5;
+  box-shadow: 0 0 20px rgba(255, 75, 85, 0.24), var(--hud-shadow);
 }
 
 .gears-chip {

@@ -16,6 +16,31 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
+export type HealthHudInput = {
+  health: number;
+  maxHealth: number;
+  shieldTimer: number;
+};
+
+export type HealthHudState = {
+  text: string;
+  classes: string[];
+};
+
+export function describeHealthHud(input: HealthHudInput): HealthHudState {
+  const health = Math.max(0, Math.ceil(input.health));
+  const healthRatio = input.maxHealth > 0 ? clamp01(input.health / input.maxHealth) : 0;
+  const classes = ['status-chip', 'health-chip'];
+
+  if (healthRatio > 0 && healthRatio <= 0.3) classes.push('is-critical');
+  if (input.shieldTimer > 0) classes.push('is-shielded');
+
+  return {
+    text: `Енергія ${health}`,
+    classes
+  };
+}
+
 export function describePlayerFeedback(input: PlayerFeedbackInput): PlayerFeedbackState {
   const healthRatio = input.maxHealth > 0 ? clamp01(input.health / input.maxHealth) : 0;
   const bulletHit = clamp01(input.invulnerableTimer / 0.45);

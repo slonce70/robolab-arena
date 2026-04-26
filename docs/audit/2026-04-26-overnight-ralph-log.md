@@ -742,3 +742,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: late-room support guard is stronger, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 66 - Health chip critical/shield glow
+- Problem: low health and active shield were visible through the edge vignette, but the HUD health chip itself stayed visually flat, making the most important survival state less glanceable.
+- Change: added `describeHealthHud`, wired `Game.updateHud()` to apply critical/shielded classes to the health chip, and added CSS glow states for shield and critical health.
+- Evidence:
+  - TDD red: `npm test -- src/game/playerFeedback.test.ts` failed because `describeHealthHud` did not exist before implementation.
+  - Focused green: `npm test -- src/game/playerFeedback.test.ts` PASS: 5 tests.
+  - Full regression: `npm test` PASS: 36 files / 123 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: HUD health states are unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
