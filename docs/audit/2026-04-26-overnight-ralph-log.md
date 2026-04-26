@@ -411,3 +411,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-camera-label-2026-04-26/report.json`: `camera-label-pass`; HUD showed `Вид: від 3-ї особи`, after camera toggle `Вид: від 1-ї особи`, and pause camera button also showed `Вид: від 1-ї особи`; `badConsole: []`, `pageErrors: []`.
   - `git diff --check` PASS.
 - Remaining risk: labels are verified in HUD and pause overlay; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 38 - Objective counters read naturally
+- Problem: objective HUD counters used compact slash wording like `0/3 кнопки`, which was short but awkward in Ukrainian, especially for button rooms.
+- Change: changed target/enemy/button objective counters to `done з total noun` wording using the shared Ukrainian count helper with objective-specific genitive forms.
+- Evidence:
+  - TDD red: `npm test -- src/game/objectives.test.ts` failed when tests expected `3 з 5 мішеней`, `1 з 1 мішені`, and `2 з 4 кнопок` while production still returned slash counters.
+  - Focused green: `npm test -- src/game/objectives.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 34 files / 100 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-objective-copy-2026-04-26/report.json`: `objective-copy-pass`; room 1 objective started with `0 з 5 мішеней`, room 3 objective started with `0 з 3 кнопок`, `badConsole: []`, `pageErrors: []`.
+  - `git diff --check` PASS.
+- Remaining risk: objective copy is more natural and browser-smoked in rooms 1 and 3; this still does not claim a full normal human no-jump victory run.
