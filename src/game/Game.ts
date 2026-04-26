@@ -25,7 +25,7 @@ import { describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
 import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamage } from './laserHazard';
-import { describeLaserVisibility } from './laserVisibility';
+import { calculateLaserWarningCharge, describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
@@ -1845,8 +1845,9 @@ export class Game {
           laser.group.position.x = laser.basePosition.x + offset;
         }
       }
-      laser.active = Math.sin(this.elapsed * 2.4 + laser.config.phase) > -0.25;
-      const laserVisibility = describeLaserVisibility(laser.active);
+      const laserWave = Math.sin(this.elapsed * 2.4 + laser.config.phase);
+      laser.active = laserWave > -0.25;
+      const laserVisibility = describeLaserVisibility(laser.active, calculateLaserWarningCharge(laserWave));
       laser.group.visible = laserVisibility.groupVisible;
       const [warningLane, beam, postA, postB] = laser.group.children as THREE.Object3D[];
       beam.visible = laserVisibility.beamVisible;
@@ -1863,6 +1864,7 @@ export class Game {
       const warningMaterial = (warningLane as THREE.Mesh | undefined)?.material as THREE.MeshStandardMaterial | undefined;
       if (warningMaterial) {
         warningMaterial.opacity = laserVisibility.warningOpacity;
+        warningMaterial.emissiveIntensity = laserVisibility.warningEmissiveIntensity;
       }
       if (!laser.active || this.playerPosition.y > 0.45) continue;
 

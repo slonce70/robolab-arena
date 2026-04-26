@@ -1222,3 +1222,18 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: still no human listening pass for the exact phase cue mix.
+
+## Iteration 106 - Laser pre-activation warning ramp
+- Problem: inactive laser lanes stayed visible, but the floor warning did not intensify before the damaging beam reactivated, so timing windows could still feel sudden in laser rooms.
+- Change: added `calculateLaserWarningCharge()` and extended `describeLaserVisibility()` so inactive lanes ramp opacity/emissive intensity as the laser wave approaches activation; `Game.updateLasers()` now applies that charge to the warning material while preserving the existing damage threshold.
+- Evidence:
+  - TDD red: `npm test -- src/game/laserVisibility.test.ts` failed until the charge helper and warning emissive state existed.
+  - Focused green: `npm test -- src/game/laserVisibility.test.ts src/game/laserHazard.test.ts` PASS: 2 files / 10 tests.
+  - Full regression: `npm test` PASS: 40 files / 162 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Laser browser smoke `node .omx/tmp/robolab-laser-lane-qa.mjs` PASS: `laser-warning-ramp-playwright-pass`, room 6 loaded, `badConsoleMessages: []`, `pageErrors: []`, screenshot saved to `output/playwright/overnight-laser-warning-ramp-2026-04-26/room-06-laser-lanes.png`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass`.
+  - `git diff --check` PASS.
+- Remaining risk: warning ramp is state-tested and browser-smoked, but exact visual timing still needs human eye/hand feel in rooms 6/10/12.
