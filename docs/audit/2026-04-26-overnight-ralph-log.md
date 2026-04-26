@@ -543,3 +543,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: reward/laser placement is geometry-guarded and smoke-tested; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 49 - Shared runtime laser damage geometry
+- Cleanup plan: lock the instantaneous beam hitbox in `laserHazard.test`, then replace the inline `Game.updateLasers` beam math with the shared helper so validation and runtime geometry do not drift again.
+- Change: added `isPointInLaserDamage` beside the laser clearance helpers and made `Game.updateLasers` call it for live laser contact damage.
+- Evidence:
+  - TDD red: `npm test -- src/game/laserHazard.test.ts` failed because `isPointInLaserDamage` did not exist before implementation.
+  - Focused green: `npm test -- src/game/laserHazard.test.ts` PASS: 5 tests.
+  - Full regression: `npm test` PASS: 35 files / 111 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: runtime laser damage math is now shared and test-covered; this still does not claim a full normal human no-jump victory run.

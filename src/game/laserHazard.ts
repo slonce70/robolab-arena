@@ -31,3 +31,12 @@ export function getLaserDangerClearance(point: Vec2, config: LaserConfig): numbe
 
   return Math.hypot(Math.max(clearanceX, 0), Math.max(clearanceZ, 0));
 }
+
+export function isPointInLaserDamage(point: Vec2, laserPosition: Vec2, config: LaserConfig): boolean {
+  const localX = point.x - laserPosition.x;
+  const localZ = point.z - laserPosition.z;
+
+  return config.axis === 'x'
+    ? Math.abs(localZ) < LASER_DAMAGE_HALF_WIDTH && Math.abs(localX) < config.length * 0.5
+    : Math.abs(localX) < LASER_DAMAGE_HALF_WIDTH && Math.abs(localZ) < config.length * 0.5;
+}

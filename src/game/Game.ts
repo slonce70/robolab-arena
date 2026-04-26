@@ -22,7 +22,7 @@ import { describeDoorVisualStatus } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
-import { getLaserHazardFootprint } from './laserHazard';
+import { getLaserHazardFootprint, isPointInLaserDamage } from './laserHazard';
 import { describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
@@ -1780,12 +1780,11 @@ export class Game {
       }
       if (!laser.active || this.playerPosition.y > 0.45) continue;
 
-      const localX = this.playerPosition.x - laser.group.position.x;
-      const localZ = this.playerPosition.z - laser.group.position.z;
-      const nearBeam =
-        laser.config.axis === 'x'
-          ? Math.abs(localZ) < 0.35 && Math.abs(localX) < laser.config.length * 0.5
-          : Math.abs(localX) < 0.35 && Math.abs(localZ) < laser.config.length * 0.5;
+      const nearBeam = isPointInLaserDamage(
+        { x: this.playerPosition.x, z: this.playerPosition.z },
+        { x: laser.group.position.x, z: laser.group.position.z },
+        laser.config
+      );
       if (nearBeam) {
         this.audio.play('laser');
         this.damagePlayer(LASER_DAMAGE_PER_SECOND * delta, { continuous: true });
