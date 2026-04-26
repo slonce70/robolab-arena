@@ -1532,3 +1532,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this is copy-policy hardening only; it does not change current room balance.
+
+## Iteration 130 - Button search halo polish
+- Problem: button rooms depend on finding floor pads, but inactive buttons were small red cylinders without a broader ground read. In first-person rooms 3, 6, and 10 this could make doors feel unclear if the player missed a button.
+- Change: added a pure button visual-status presenter and a translucent search halo around each button. Inactive buttons keep a red halo; activated buttons turn green, press down, and dim the halo.
+- Evidence:
+  - TDD red: `npm test -- src/game/buttonStatus.test.ts` first failed because `buttonStatus` did not exist.
+  - Focused green: `npm test -- src/game/buttonStatus.test.ts` PASS: 1 file / 2 tests.
+  - Build check after runtime integration: `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full regression: `npm test` PASS: 41 files / 181 tests.
+  - Button-room browser smoke `node .omx/tmp/robolab-button-halo-qa.mjs` PASS: `button-halo-playwright-pass`, room 3 button objective loaded with no bad console messages or page errors.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: browser smoke validates render path and screenshot capture; it does not pixel-measure halo visibility from every button angle.

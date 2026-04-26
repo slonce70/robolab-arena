@@ -13,6 +13,7 @@ import {
   getEnemyStats
 } from './balance';
 import { describeFirstPersonBlasterState } from './blasterFeedback';
+import { describeButtonVisualStatus } from './buttonStatus';
 import { CameraController } from './camera/CameraController';
 import { DOOR_PANEL_DEPTH, DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
@@ -110,6 +111,8 @@ type Door = {
 
 type LabButton = {
   group: THREE.Group;
+  lightMaterial: THREE.MeshStandardMaterial;
+  haloMaterial: THREE.MeshStandardMaterial;
   position: THREE.Vector3;
   opensDoorId: string;
   opensDoorIds: string[];
@@ -1211,15 +1214,30 @@ export class Game {
       emissive: palette.red,
       emissiveIntensity: 1
     });
+    const haloMaterial = new THREE.MeshStandardMaterial({
+      color: palette.red,
+      emissive: palette.red,
+      emissiveIntensity: 0.75,
+      transparent: true,
+      opacity: 0.34,
+      roughness: 0.22,
+      depthWrite: false
+    });
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.74, 0.25, 24), baseMaterial);
     const button = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.16, 24), lightMaterial);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.035, 8, 36), haloMaterial);
     base.position.y = 0.12;
     button.position.y = 0.34;
-    group.add(base, button);
+    halo.rotation.x = Math.PI * 0.5;
+    halo.position.y = 0.18;
+    halo.name = 'button-search-halo';
+    group.add(base, button, halo);
     group.position.set(config.position.x, 0, config.position.z);
     this.dynamicRoot.add(group);
     this.buttons.push({
       group,
+      lightMaterial,
+      haloMaterial,
       position: new THREE.Vector3(config.position.x, 0, config.position.z),
       opensDoorId: config.opensDoorId,
       opensDoorIds: config.opensDoorIds ?? [config.opensDoorId],
@@ -1855,12 +1873,23 @@ export class Game {
     for (const button of this.buttons) {
       if (!button.active && this.distance2D(this.playerPosition, button.position) < 0.95) {
         button.active = true;
-        button.group.scale.y = 0.82;
         this.score += 100;
         this.showToast('Кнопку активовано!', 1.4);
         this.addSpark(button.position.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.green);
       }
+      this.applyButtonStatus(button);
     }
+  }
+
+  private applyButtonStatus(button: LabButton): void {
+    const status = describeButtonVisualStatus(button.active, this.elapsed);
+    button.group.scale.y = status.scaleY;
+    button.lightMaterial.color.setHex(status.color);
+    button.lightMaterial.emissive.setHex(status.color);
+    button.lightMaterial.emissiveIntensity = status.emissiveIntensity;
+    button.haloMaterial.color.setHex(status.color);
+    button.haloMaterial.emissive.setHex(status.color);
+    button.haloMaterial.opacity = status.haloOpacity;
   }
 
   private updateDoors(delta: number): void {
