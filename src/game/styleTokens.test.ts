@@ -56,11 +56,17 @@ describe('CSS custom properties', () => {
   });
 
   it('keeps layered power states and expiring warning glow visible together', () => {
-    const rule = getCssRule('.power-chip.is-rapid.is-shielded.is-expiring');
+    const requiredExpiringPowerRules = [
+      ['.power-chip.is-rapid.is-shielded.is-expiring', ['rgba(255, 209, 102', 'rgba(84, 241, 255', 'rgba(255, 159, 67']],
+      ['.power-chip.is-rapid.is-overcharged.is-expiring', ['rgba(255, 209, 102', 'rgba(255, 79, 163', 'rgba(255, 159, 67']],
+      ['.power-chip.is-shielded.is-overcharged.is-expiring', ['rgba(84, 241, 255', 'rgba(255, 79, 163', 'rgba(255, 159, 67']],
+      ['.power-chip.is-rapid.is-shielded.is-overcharged.is-expiring', ['rgba(255, 209, 102', 'rgba(84, 241, 255', 'rgba(255, 79, 163', 'rgba(255, 159, 67']]
+    ] as const;
 
-    expect(rule).toContain('rgba(255, 209, 102');
-    expect(rule).toContain('rgba(84, 241, 255');
-    expect(rule).toContain('rgba(255, 159, 67');
+    for (const [selector, colors] of requiredExpiringPowerRules) {
+      const rule = getCssRule(selector);
+      for (const color of colors) expect(rule, selector).toContain(color);
+    }
   });
 
   it('makes the victory panel visibly celebratory', () => {

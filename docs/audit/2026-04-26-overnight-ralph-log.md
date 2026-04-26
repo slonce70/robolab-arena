@@ -1138,3 +1138,11 @@ Remaining risk:
   - Pause/settings browser smoke `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS: `pause-settings-pass`.
   - `git diff --check` PASS.
 - Remaining risk: smoke validates that rooms still mount without page errors; it does not assert the 3D door label text via rendered pixels.
+
+## Iteration 99 - Full layered expiring HUD coverage
+- Problem: architect review accepted the reduced-motion/layered CSS implementation but blocked sign-off because tests covered only one expiring layered combination.
+- Change: expanded the style-token test into a table covering all expiring layered power-chip combinations: rapid+shield, rapid+overcharge, shield+overcharge, and rapid+shield+overcharge, each with semantic colors plus orange warning glow.
+- Evidence:
+  - Focused regression: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 11 tests.
+  - `git diff --check` PASS.
+- Remaining risk: this is test-coverage hardening for the already-reviewed CSS implementation; pixel-matched browser comparison remains out of scope.
