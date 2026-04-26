@@ -106,6 +106,17 @@ describe('final level validation', () => {
     })).toContain(`Level ${enemyRoom!.id} enemies 0 and 1 spawn too close (1.50m apart; needs 2.10m).`);
   });
 
+  it('reports enemy spawns hidden inside obstacle collision space', () => {
+    const enemyRoom = LEVELS.find((level) => (level.enemies?.length ?? 0) > 0);
+
+    expect(enemyRoom).toBeDefined();
+    expect(validateLevel({
+      ...enemyRoom!,
+      enemies: [{ kind: 'beetle', position: { x: 0, z: 0 } }],
+      obstacles: [{ position: { x: 0, z: 0 }, size: { width: 4, depth: 4 } }]
+    })).toContain(`Level ${enemyRoom!.id} enemy 0 overlaps obstacle 0.`);
+  });
+
   it('mixes mechanics in rooms five through twelve', () => {
     for (const level of LEVELS.slice(4)) {
       const mechanicCount = [

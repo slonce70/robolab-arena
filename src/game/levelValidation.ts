@@ -1,4 +1,4 @@
-import type { LevelConfig, Vec2 } from './types';
+import type { LevelConfig, ObstacleConfig, Vec2 } from './types';
 import { getEnemyStats } from './balance';
 
 const ROOM_HALF_WIDTH = 18;
@@ -43,12 +43,21 @@ export function validateLevel(level: LevelConfig): string[] {
   });
 
   const enemies = level.enemies ?? [];
+  const obstacles = level.obstacles ?? [];
   for (let firstIndex = 0; firstIndex < enemies.length; firstIndex += 1) {
     const firstEnemy = enemies[firstIndex];
+    const enemyRadius = getEnemyStats(firstEnemy.kind).radius;
+
+    obstacles.forEach((obstacle, obstacleIndex) => {
+      if (circleOverlapsObstacle(firstEnemy.position, enemyRadius, obstacle)) {
+        failures.push(`Level ${level.id} enemy ${firstIndex} overlaps obstacle ${obstacleIndex}.`);
+      }
+    });
+
     for (let secondIndex = firstIndex + 1; secondIndex < enemies.length; secondIndex += 1) {
       const secondEnemy = enemies[secondIndex];
       const distance = Math.hypot(firstEnemy.position.x - secondEnemy.position.x, firstEnemy.position.z - secondEnemy.position.z);
-      const minDistance = getEnemyStats(firstEnemy.kind).radius + getEnemyStats(secondEnemy.kind).radius + ENEMY_SPAWN_CLEARANCE_MARGIN;
+      const minDistance = enemyRadius + getEnemyStats(secondEnemy.kind).radius + ENEMY_SPAWN_CLEARANCE_MARGIN;
 
       if (distance > 0 && distance < minDistance) {
         failures.push(`Level ${level.id} enemies ${firstIndex} and ${secondIndex} spawn too close (${distance.toFixed(2)}m apart; needs ${minDistance.toFixed(2)}m).`);
@@ -73,4 +82,11 @@ function validatePoint(level: LevelConfig, label: string, point: Vec2, failures:
   if (Math.abs(point.x) > ROOM_HALF_WIDTH || Math.abs(point.z) > ROOM_HALF_DEPTH) {
     failures.push(`Level ${level.id} ${label} is outside the arena.`);
   }
+}
+
+function circleOverlapsObstacle(point: Vec2, radius: number, obstacle: ObstacleConfig): boolean {
+  const clearanceX = Math.abs(point.x - obstacle.position.x) - obstacle.size.width * 0.5;
+  const clearanceZ = Math.abs(point.z - obstacle.position.z) - obstacle.size.depth * 0.5;
+
+  return clearanceX < radius && clearanceZ < radius;
 }

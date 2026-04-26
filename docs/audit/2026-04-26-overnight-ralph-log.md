@@ -1440,3 +1440,17 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this strengthens static combat reachability, but it still does not prove live enemy movement/aim comfort in a human no-shortcut run.
+
+## Iteration 123 - Enemy obstacle spawn clearance guard
+- Problem: the all-enemy engagement guard exposed a maze-seam spawn issue, but the cheaper level validator still did not fail enemies hidden inside obstacle collision boxes. That meant future room edits could create visually unfair spawns and only be caught by the heavier route proof.
+- Change: `validateLevel()` now expands each obstacle by the spawned enemy radius and reports enemies whose spawn circle overlaps obstacle collision space. The new guard immediately found two existing near-wall placements, so room 3's second beetle moved to the open right lane and room 10's center beetle moved in front of the reactor wall instead of inside it.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` first failed because an enemy placed inside a synthetic obstacle produced no validator error.
+  - Current-campaign red after implementation: level validation reported `Level 3 enemy 1 overlaps obstacle 1.` and `Level 10 enemy 4 overlaps obstacle 0.`
+  - Focused green: `npm test -- src/game/levelValidation.test.ts src/game/campaignPlaythrough.test.ts` PASS: 2 files / 14 tests.
+  - Full regression: `npm test` PASS: 40 files / 175 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: the check is conservative static spawn geometry; it does not prove that moving enemies never later path into walls during live combat.
