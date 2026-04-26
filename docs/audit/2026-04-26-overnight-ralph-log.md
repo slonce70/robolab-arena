@@ -635,3 +635,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: support reachability is now geometry-guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 57 - Pre-door support reachability guard
+- Purpose: make the support route guard stricter for pressure rooms: support pickups should be reachable before doors open, not only after the objective has already been solved.
+- Change: changed the support pickup route validation to use closed-door reachability/solids.
+- Evidence:
+  - Focused guard: `npm test -- src/game/campaignPlaythrough.test.ts` PASS: all current collectibles and power-ups are reachable before doors open.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: pre-door support reachability is guarded, but this still does not claim a full normal human no-jump victory run.

@@ -41,8 +41,8 @@ function validateLevelRoute(level: LevelConfig): string[] {
   }
 
   for (const point of optionalSupportPickups(level)) {
-    if (!hasReachableStandingPoint(point, openReachable, openSolids)) {
-      failures.push(`Level ${level.id} support pickup at (${point.x}, ${point.z}) cannot be reached during normal play.`);
+    if (!hasReachableStandingPoint(point, closedReachable, closedSolids)) {
+      failures.push(`Level ${level.id} support pickup at (${point.x}, ${point.z}) cannot be reached before doors open.`);
     }
   }
 
