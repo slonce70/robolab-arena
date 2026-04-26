@@ -1262,3 +1262,12 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: boss phase cue route is safer and smoke-tested, but subjective phase audio/visual timing still needs human boss-fight review.
+
+## Iteration 109 - Full 12-room dev-completion browser evidence
+- Purpose: strengthen the overnight evidence beyond room-jump DOM checks and a single boss-room victory shortcut by exercising the game’s own room-complete overlay path for all 12 rooms in sequence.
+- Change: no production code change; added an ignored OMX browser QA script that starts a fresh run, uses the DEV `KeyN` completion shortcut in rooms 1-12, clicks each `Наступна кімната` overlay, and verifies the real victory overlay reports `пройдено 12 кімнат`.
+- Evidence:
+  - Browser red: first script draft failed waiting for `.overlay:not(.is-visible)` because Playwright’s visible selector semantics do not match hidden overlay assertions.
+  - Browser green: `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms completed, victory intro `Фінальний час 0:09 · пройдено 12 кімнат · 0 рестартів`, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Screenshot/report: `output/playwright/overnight-full-campaign-dev-complete-2026-04-26/victory-after-12-dev-completions.png` and `report.json`.
+- Remaining risk: this is stronger game-flow evidence but still uses DEV completion shortcuts; it is not a human no-shortcut combat/aim/movement playthrough.
