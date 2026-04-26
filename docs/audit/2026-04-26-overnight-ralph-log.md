@@ -885,3 +885,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this is test hardening only; no new human gameplay evidence added.
+
+## Iteration 78 - Room 10 shield support
+- Problem: room 10 is one of the user-highlighted balance risks; it had two repair pickups and rapid fire, but no shield support despite five buttons, two doors, lasers, and enemies.
+- Change: added a late-room pacing guard requiring shield support in room 10 and placed a reachable shield pickup before the doors near the lower reactor lane.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` first failed because the missing-shield mutant was not reported, then failed the campaign guard until a real room 10 shield was added.
+  - Focused green: `npm test -- src/game/levelPacing.test.ts src/game/campaignPlaythrough.test.ts` PASS: 2 files / 6 tests.
+  - Full regression: `npm test` PASS: 38 files / 136 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: room 10 support is route/balance guarded, but this still does not claim a full normal human no-jump victory run.

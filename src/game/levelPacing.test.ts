@@ -9,6 +9,16 @@ describe('late-room pacing support', () => {
     expect(failures).toEqual([]);
   });
 
+  it('requires shield support in the hardest laser-button room', () => {
+    const room10 = LEVELS.find((level) => level.id === 10);
+
+    expect(room10).toBeDefined();
+    expect(validateLateRoomSupport({
+      ...room10!,
+      powerUps: (room10!.powerUps ?? []).filter((powerUp) => powerUp.kind !== 'shield')
+    })).toContain('Level 10 needs a shield pickup for laser/button pressure.');
+  });
+
   it('documents why the final boss arena is forgiving enough for a full run', () => {
     const boss = LEVELS.find((level) => level.objective === 'boss');
 

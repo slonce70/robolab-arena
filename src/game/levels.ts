@@ -356,7 +356,8 @@ export const LEVELS: LevelConfig[] = [
     powerUps: [
       { kind: 'repair', position: { x: -12, z: 0 } },
       { kind: 'repair', position: { x: 12, z: 0 } },
-      { kind: 'rapid', position: { x: 0, z: 7 } }
+      { kind: 'rapid', position: { x: 0, z: 7 } },
+      { kind: 'shield', position: { x: 0, z: -15 } }
     ],
     obstacles: [
       { position: { x: 0, z: 11 }, size: { width: 10, depth: 1.2 } },
