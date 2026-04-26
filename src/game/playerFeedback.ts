@@ -1,3 +1,6 @@
+import type { Difficulty } from './storage';
+import { getDifficultyLabel } from './difficulty';
+
 export type PlayerFeedbackInput = {
   health: number;
   maxHealth: number;
@@ -20,6 +23,7 @@ export type HealthHudInput = {
   health: number;
   maxHealth: number;
   shieldTimer: number;
+  difficulty?: Difficulty;
 };
 
 export type HealthHudState = {
@@ -35,8 +39,10 @@ export function describeHealthHud(input: HealthHudInput): HealthHudState {
   if (healthRatio > 0 && healthRatio <= 0.3) classes.push('is-critical');
   if (input.shieldTimer > 0) classes.push('is-shielded');
 
+  const difficultySuffix = input.difficulty && input.difficulty !== 'normal' ? ` · ${getDifficultyLabel(input.difficulty)}` : '';
+
   return {
-    text: `Енергія ${health}`,
+    text: `Енергія ${health}${difficultySuffix}`,
     classes
   };
 }

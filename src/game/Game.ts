@@ -2140,7 +2140,8 @@ export class Game {
     const healthHud = describeHealthHud({
       health: this.health,
       maxHealth: PLAYER_MAX_HEALTH,
-      shieldTimer: this.shieldTimer
+      shieldTimer: this.shieldTimer,
+      difficulty: this.settings.difficulty
     });
     this.hudHealth.textContent = healthHud.text;
     this.hudHealth.className = healthHud.classes.join(' ');

@@ -44,6 +44,12 @@ describe('player feedback vignette state', () => {
     });
   });
 
+  it('shows non-normal difficulty in the health chip without cluttering normal mode', () => {
+    expect(describeHealthHud({ health: 100, maxHealth: 100, shieldTimer: 0, difficulty: 'normal' }).text).toBe('Енергія 100');
+    expect(describeHealthHud({ health: 100, maxHealth: 100, shieldTimer: 0, difficulty: 'easy' }).text).toBe('Енергія 100 · Легко');
+    expect(describeHealthHud({ health: 100, maxHealth: 100, shieldTimer: 0, difficulty: 'hard' }).text).toBe('Енергія 100 · Важко');
+  });
+
   it('throttles continuous laser audio while the contact flash is still active', () => {
     expect(shouldPlayLaserContactAudio(0)).toBe(true);
     expect(shouldPlayLaserContactAudio(0.01)).toBe(false);

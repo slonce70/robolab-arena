@@ -935,3 +935,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: phase burst is covered by helper tests and browser smoke, but not by a pixel-perfect visual assertion.
+
+## Iteration 82 - Show difficulty in the HUD
+- Problem: difficulty affected incoming damage after the balance pass, but the active choice was visible only in the pause overlay, making easy/hard easy to forget during play.
+- Change: the health chip keeps normal mode uncluttered and appends `Легко` or `Важко` only when the player has selected a non-normal difficulty.
+- Evidence:
+  - TDD red: `npm test -- src/game/playerFeedback.test.ts` failed until health HUD copy accepted difficulty labels.
+  - Focused green: `npm test -- src/game/playerFeedback.test.ts` PASS: 1 file / 6 tests.
+  - Full regression: `npm test` PASS: 39 files / 142 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Browser pause/settings smoke: `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS with difficulty persistence.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: label visibility is unit-covered; the browser smoke still exercises pause difficulty persistence rather than a dedicated HUD assertion.
