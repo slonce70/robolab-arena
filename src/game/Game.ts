@@ -1916,12 +1916,13 @@ export class Game {
       this.showOverlay('Перемога!', `${formatVictoryOverlayIntro({ completedRooms: this.runStats.completedRooms, totalRooms: LEVELS.length, gears: this.gears, score: this.score })} ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
       return;
     }
-      this.showOverlay('Кімнату пройдено!', `Двері до наступного випробування відкриті. ${formatRoomSummary(this.runStats, now)}. Готовий рухатись далі?`, 'Наступна кімната', () => {
-        this.state = 'playing';
-        this.shell.classList.remove('is-menu');
-        this.overlay.classList.remove('is-visible');
-        this.loadLevel(next);
-      });
+
+    this.showOverlay('Кімнату пройдено!', `Двері до наступного випробування відкриті. ${formatRoomSummary(this.runStats, now)}. Готовий рухатись далі?`, 'Наступна кімната', () => {
+      this.state = 'playing';
+      this.shell.classList.remove('is-menu');
+      this.overlay.classList.remove('is-visible');
+      this.loadLevel(next);
+    });
   }
 
   private isObjectiveComplete(): boolean {

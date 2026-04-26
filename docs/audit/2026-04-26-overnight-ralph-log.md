@@ -646,3 +646,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: pre-door support reachability is guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 58 - Level-complete overlay indentation cleanup
+- Cleanup plan: keep this pass behavior-neutral, touch only the visibly misindented `completeLevel()` branch, then rerun focused and full gates.
+- Change: fixed indentation/blank-line structure around the non-final `showOverlay('Кімнату пройдено!')` branch for readability.
+- Evidence:
+  - Focused behavior-adjacent tests: `npm test -- src/game/victoryCopy.test.ts src/game/runStats.test.ts` PASS: 2 files / 4 tests.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: cleanup is behavior-neutral and smoke-tested; this still does not claim a full normal human no-jump victory run.
