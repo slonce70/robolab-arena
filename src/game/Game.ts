@@ -85,6 +85,7 @@ type Enemy = {
 type Target = {
   group: THREE.Group;
   material: THREE.MeshStandardMaterial;
+  beamMaterial: THREE.MeshStandardMaterial;
   position: THREE.Vector3;
   hit: boolean;
 };
@@ -954,12 +955,25 @@ export class Game {
     const group = new THREE.Group();
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.08, 10, 28), material);
     const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 14), material);
-    group.add(ring, core);
+    const beamMaterial = new THREE.MeshStandardMaterial({
+      color: palette.yellow,
+      emissive: palette.yellow,
+      emissiveIntensity: 0.55,
+      transparent: true,
+      opacity: 0.38,
+      roughness: 0.2,
+      depthWrite: false
+    });
+    const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.36, 1.8, 18, 1, true), beamMaterial);
+    beacon.position.y = 0.68;
+    beacon.name = 'target-beacon';
+    group.add(ring, core, beacon);
     group.position.set(config.position.x, 1.2, config.position.z);
     this.dynamicRoot.add(group);
     this.targets.push({
       group,
       material,
+      beamMaterial,
       position: new THREE.Vector3(config.position.x, 1.2, config.position.z),
       hit: false
     });
@@ -1744,6 +1758,9 @@ export class Game {
     target.material.color.setHex(status.color);
     target.material.emissive.setHex(status.color);
     target.material.emissiveIntensity = status.emissiveIntensity;
+    target.beamMaterial.color.setHex(status.color);
+    target.beamMaterial.emissive.setHex(status.color);
+    target.beamMaterial.opacity = status.beamOpacity;
     target.group.scale.setScalar(status.scale);
   }
 

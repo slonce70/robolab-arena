@@ -1467,3 +1467,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this improves tactical copy only; it does not rebalance room 12 combat.
+
+## Iteration 125 - Target beacon readability polish
+- Problem: target rings were only local yellow meshes. In first-person rooms, especially on large arenas, a target could be easy to miss against the lab geometry before the player learned where to look.
+- Change: active targets now include a translucent vertical yellow beacon, driven by the existing target status presenter. Hit targets still shrink/turn green and their beacon fades out so completed targets do not keep drawing attention.
+- Evidence:
+  - TDD red: `npm test -- src/game/targetStatus.test.ts` first failed because target status had no `beamOpacity` field.
+  - Focused green: `npm test -- src/game/targetStatus.test.ts` PASS: 1 file / 2 tests.
+  - Build check after runtime integration: `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full regression: `npm test` PASS: 40 files / 175 tests.
+  - Target-room browser smoke `node .omx/tmp/robolab-target-beacon-qa.mjs` PASS: `target-beacon-playwright-pass`, room 1 target objective loaded, no bad console messages or page errors.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: browser smoke verifies the render path and screenshot capture, not pixel-level visual comparison of beacon brightness.

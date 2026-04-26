@@ -5,7 +5,8 @@ describe('target visual status', () => {
   it('keeps active targets yellow and full size', () => {
     expect(describeTargetStatus(false, 0)).toMatchObject({
       color: TARGET_ACTIVE_COLOR,
-      scale: 1
+      scale: 1,
+      beamOpacity: 0.38
     });
   });
 
@@ -13,7 +14,8 @@ describe('target visual status', () => {
     expect(describeTargetStatus(true, 4)).toEqual({
       color: TARGET_HIT_COLOR,
       emissiveIntensity: 1.35,
-      scale: 0.74
+      scale: 0.74,
+      beamOpacity: 0
     });
   });
 });
