@@ -158,6 +158,15 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(255, 75, 85, 0.24), var(--hud-shadow);
 }
 
+.health-chip.is-critical.is-shielded {
+  border-color: rgba(255, 75, 85, 0.84);
+  color: #fff0f3;
+  box-shadow:
+    0 0 22px rgba(255, 75, 85, 0.3),
+    0 0 14px rgba(84, 241, 255, 0.2),
+    var(--hud-shadow);
+}
+
 .gears-chip {
   border-color: rgba(255, 209, 102, 0.55);
 }

@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import css from '../styles.css?raw';
+
+const cssPath = fileURLToPath(new URL('../styles.css', import.meta.url));
+const css = readFileSync(cssPath, 'utf8');
 
 describe('CSS custom properties', () => {
   it('does not reference undefined custom properties', () => {
@@ -7,5 +11,13 @@ describe('CSS custom properties', () => {
     const referenced = [...css.matchAll(/var\(--([a-z0-9-]+)(?:\s*,[^)]*)?\)/gi)].map((match) => match[1]);
 
     expect(referenced.filter((name) => !defined.has(name))).toEqual([]);
+  });
+
+  it('keeps the critical shield health chip visually layered', () => {
+    const selectorStart = css.indexOf('.health-chip.is-critical.is-shielded');
+    const criticalShieldRule = selectorStart >= 0 ? css.slice(selectorStart, css.indexOf('}', selectorStart)) : '';
+
+    expect(criticalShieldRule).toContain('rgba(255, 75, 85');
+    expect(criticalShieldRule).toContain('rgba(84, 241, 255');
   });
 });

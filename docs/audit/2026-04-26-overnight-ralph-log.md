@@ -754,3 +754,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: HUD health states are unit-covered and smoke-tested, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 67 - Layer critical and shield health glow
+- Problem: architect review approved the health-chip states but noted that critical health visually won over shield, hiding the shield state on the chip when both were active.
+- Change: added a combined `.health-chip.is-critical.is-shielded` layered glow and changed the CSS token test to read the actual stylesheet file so selector regressions are no longer masked by an empty raw CSS import.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed because the combined critical+shield selector did not exist.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 2 tests.
+  - Build fix: `npm run build` initially failed when the CSS test used Node imports without local declarations; `src/vite-env.d.ts` now declares the minimal `node:fs`/`node:url` APIs used by tests.
+  - Full regression: `npm test` PASS: 36 files / 124 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: layered HUD glow is stylesheet-tested and smoke-tested, but this still does not claim a full normal human no-jump victory run.
