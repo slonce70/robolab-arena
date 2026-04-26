@@ -507,3 +507,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this is a protective geometry/balance invariant, not a human normal no-jump full victory run.
+
+## Iteration 46 - Reward placement readability fixes
+- Problem: the campaign had a few rewards too close to enemies: room 8 rapid pickup shared the shieldBot position, room 11 overcharge sat beside the rear turret, and final-room corner gears were too close to rear turrets.
+- Change: added a reward readability guard that prevents collectibles/power-ups from being hidden inside enemies or obstacles, then moved the overlapping rewards to nearby readable positions without removing support.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed on reward/enemy overlap (`Сторожові башти`, then later-room overlaps after the first fix) before the reward positions were moved.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 6 tests.
+  - Full regression: `npm test` PASS: 35 files / 108 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: reward placement is geometry-guarded and room-smoked; this still does not claim a full normal human no-jump victory run.

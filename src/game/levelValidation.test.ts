@@ -74,4 +74,21 @@ describe('final level validation', () => {
       }
     }
   });
+
+  it('keeps rewards readable instead of hidden inside enemies or obstacles', () => {
+    for (const level of LEVELS) {
+      const rewards = [...(level.collectibles ?? []), ...(level.powerUps ?? [])];
+      for (const reward of rewards) {
+        for (const enemy of level.enemies ?? []) {
+          expect(Math.hypot(reward.position.x - enemy.position.x, reward.position.z - enemy.position.z), `${level.name} reward/enemy overlap`).toBeGreaterThanOrEqual(1.6);
+        }
+        for (const obstacle of level.obstacles ?? []) {
+          const clearanceX = Math.abs(reward.position.x - obstacle.position.x) - obstacle.size.width * 0.5;
+          const clearanceZ = Math.abs(reward.position.z - obstacle.position.z) - obstacle.size.depth * 0.5;
+          expect(Math.max(clearanceX, clearanceZ), `${level.name} reward/obstacle overlap`).toBeGreaterThanOrEqual(0.25);
+        }
+      }
+    }
+  });
+
 });

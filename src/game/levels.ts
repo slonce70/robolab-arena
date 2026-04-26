@@ -273,7 +273,7 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'repair', position: { x: -15, z: 15 } },
       { kind: 'repair', position: { x: 15, z: 15 } },
       { kind: 'overcharge', position: { x: 0, z: 0 } },
-      { kind: 'rapid', position: { x: 0, z: 12 } }
+      { kind: 'rapid', position: { x: 0, z: 15 } }
     ],
     obstacles: [
       { position: { x: 0, z: 8 }, size: { width: 8, depth: 1.2 } },
@@ -392,7 +392,7 @@ export const LEVELS: LevelConfig[] = [
       { kind: 'repair', position: { x: -15, z: 16 } },
       { kind: 'repair', position: { x: 15, z: 16 } },
       { kind: 'shield', position: { x: 0, z: 11 } },
-      { kind: 'overcharge', position: { x: 0, z: -17 } },
+      { kind: 'overcharge', position: { x: 5, z: -16 } },
       { kind: 'rapid', position: { x: 0, z: -5 } }
     ],
     obstacles: [
@@ -422,8 +422,8 @@ export const LEVELS: LevelConfig[] = [
     collectibles: [
       { position: { x: -16, z: 17 } },
       { position: { x: 16, z: 17 } },
-      { position: { x: -16, z: -17 } },
-      { position: { x: 16, z: -17 } },
+      { position: { x: -16, z: -12 } },
+      { position: { x: 16, z: -12 } },
       { position: { x: 0, z: -17 } }
     ],
     powerUps: [
