@@ -637,6 +637,18 @@ h1 {
   line-height: 1.35;
 }
 
+.pause-status {
+  margin: 12px auto 0;
+  max-width: 720px;
+  border: 1px solid rgba(255, 209, 102, 0.38);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 209, 102, 0.1);
+  color: #ffe8a3;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .pause-actions {
   display: grid;
   gap: 10px;

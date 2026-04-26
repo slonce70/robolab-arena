@@ -487,7 +487,7 @@ export class Game {
     this.overlay.classList.add('is-visible');
   }
 
-  private showPauseOverlay(): void {
+  private showPauseOverlay(statusMessage = ''): void {
     this.exitPointerLock();
     this.fallbackMouseCaptured = false;
     this.state = 'paused';
@@ -504,6 +504,7 @@ export class Game {
           <div><strong>Підтримка</strong><span>${intel.support}</span></div>
           <div><strong>Тактика</strong><span>${intel.tactic}</span></div>
         </div>
+        ${statusMessage ? `<p class="pause-status" role="status">${statusMessage}</p>` : ''}
         <div class="pause-actions" aria-label="Налаштування паузи">
           <button class="primary-action" type="button" data-action="resume">Продовжити</button>
           <button class="secondary-action" type="button" data-action="restart">Перезапустити кімнату</button>
@@ -563,8 +564,7 @@ export class Game {
     }
     if (action === 'difficulty') {
       this.settings = saveSettings({ difficulty: nextDifficulty(this.settings.difficulty) });
-      this.showPauseOverlay();
-      this.showToast(describeDifficultyChange(this.settings.difficulty), 1.6);
+      this.showPauseOverlay(describeDifficultyChange(this.settings.difficulty));
     }
   }
 

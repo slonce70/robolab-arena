@@ -985,3 +985,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: toast copy is unit-covered; browser smoke currently verifies difficulty button/HUD persistence, not the toast text.
+
+## Iteration 86 - Inline pause difficulty confirmation
+- Problem: architect review found the difficulty confirmation toast was inside the hidden HUD while paused, so the confirmation could appear late after resume instead of confirming the pause click.
+- Change: moved the difficulty confirmation to an inline `pause-status` row inside the pause panel and updated the browser pause smoke to assert the visible message before resume.
+- Evidence:
+  - Browser red: `node .omx/tmp/robolab-pause-settings-qa.mjs` failed with empty `difficultyStatus` before the inline pause status existed.
+  - Browser green: `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS with `difficultyStatus: "Складність: Важко. Урон ворогів вищий."` and `healthChipAfterResume: "Енергія 100 · Важко"`.
+  - Focused regression: `npm test -- src/game/difficulty.test.ts` PASS: 1 file / 3 tests.
+  - Full regression: `npm test` PASS: 39 files / 144 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: the Browser QA script is an ignored OMX artifact, so the committed coverage is still unit/build plus logged browser evidence rather than a tracked test file.
