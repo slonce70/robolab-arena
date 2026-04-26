@@ -1389,3 +1389,16 @@ Remaining risk:
   - Power-aura browser smoke `node .omx/tmp/robolab-power-aura-qa.mjs` PASS: `power-aura-playwright-pass`, no bad console messages or page errors.
   - `git diff --check` PASS.
 - Remaining risk: this is test reinforcement only; pixel-level aura brightness comparison remains unverified.
+
+## Iteration 119 - Final boss HUD phase pulse
+- Problem: final boss phase copy and core visuals were strong, but the HUD boss chip stayed static in phase 3, making the last phase less expressive than the in-world boss state.
+- Change: added a `boss-phase-critical` pulse to `.boss-chip.is-phase-3` and a reduced-motion override that disables the animation while preserving red warning color and glow.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed first because `.boss-chip.is-phase-3` did not reference `boss-phase-critical` and no reduced-motion boss override existed.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 1 file / 9 tests.
+  - Full regression: `npm test` PASS: 40 files / 171 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Boss browser smoke `node .omx/tmp/robolab-boss-phase-qa.mjs` PASS: `boss-phase-playwright-pass`, room 12 boss HUD visible, no bad console messages or page errors.
+  - Victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
+  - `git diff --check` PASS.
+- Remaining risk: browser smoke currently verifies boss HUD presence/phase-1 boot and victory path, while final phase-3 CSS is covered by token tests rather than a live phase-3 combat screenshot.

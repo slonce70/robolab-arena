@@ -55,6 +55,19 @@ describe('CSS custom properties', () => {
     expect(rule).toContain('animation: none');
   });
 
+  it('makes the final boss phase pulse without hiding the warning colors', () => {
+    const rule = getCssRule('.boss-chip.is-phase-3');
+
+    expect(rule).toContain('rgba(255, 75, 85');
+    expect(rule).toContain('boss-phase-critical');
+  });
+
+  it('disables final boss phase pulse in reduced-motion mode', () => {
+    const rule = getCssRule('.game-shell.is-reduced-motion .boss-chip.is-phase-3');
+
+    expect(rule).toContain('animation: none');
+  });
+
   it('keeps layered power states and expiring warning glow visible together', () => {
     const requiredExpiringPowerRules = [
       ['.power-chip.is-rapid.is-shielded.is-expiring', ['rgba(255, 209, 102', 'rgba(84, 241, 255', 'rgba(255, 159, 67']],
