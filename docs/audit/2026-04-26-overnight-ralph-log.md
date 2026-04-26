@@ -611,3 +611,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: boss phase visuals are unit-covered and room-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 55 - Controls hint typography polish
+- Problem: the always-visible controls hint still used plain hyphen separators while the rest of the Ukrainian UI copy had been polished to use em dashes.
+- Change: updated `getControlsHint` copy to use em dash separators for each shortcut/action pair.
+- Evidence:
+  - TDD red: `npm test -- src/game/controlsHint.test.ts` failed because the hint still contained `C - вид` instead of `C — вид`.
+  - Focused green: `npm test -- src/game/controlsHint.test.ts` PASS: 1 test.
+  - Browser QA `output/playwright/overnight-controls-hint-2026-04-26/report.json`: `controls-hint-pass`, visible hint `WASD — рух, мишка — приціл, клік — постріл, C — вид, Shift — ривок, Space/E — стрибок, R — перезапуск, Esc — курсор/пауза`, no `badConsole`, no `pageErrors`.
+  - Full regression: `npm test` PASS: 36 files / 117 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: HUD hint typography is unit/browser covered; this still does not claim a full normal human no-jump victory run.

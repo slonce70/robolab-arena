@@ -6,10 +6,10 @@ describe('controls hint copy', () => {
     const hint = getControlsHint();
 
     expect(hint).toContain('WASD');
-    expect(hint).toContain('C - вид');
-    expect(hint).toContain('Shift - ривок');
-    expect(hint).toContain('Space/E - стрибок');
-    expect(hint).toContain('R - перезапуск');
-    expect(hint).toContain('Esc - курсор/пауза');
+    expect(hint).toContain('C — вид');
+    expect(hint).toContain('Shift — ривок');
+    expect(hint).toContain('Space/E — стрибок');
+    expect(hint).toContain('R — перезапуск');
+    expect(hint).toContain('Esc — курсор/пауза');
   });
 });
