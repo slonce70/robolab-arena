@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeBossPhaseVisual } from './bossPhaseVisual';
+import { describeBossPhaseTransitionBurst, describeBossPhaseVisual } from './bossPhaseVisual';
 
 describe('boss phase visual state', () => {
   it('keeps phase one readable but calmer than later phases', () => {
@@ -28,4 +28,10 @@ describe('boss phase visual state', () => {
     expect(reduced.crownRotationSpeed).toBeLessThan(normal.crownRotationSpeed);
     expect(Math.abs(reduced.coreScale - 1)).toBeLessThan(Math.abs(normal.coreScale - 1));
   });
+  it('describes a stronger phase-change burst for later boss phases', () => {
+    expect(describeBossPhaseTransitionBurst(2, false)).toMatchObject({ color: 0xff9f43, ringCount: 2, maxScale: 2.25 });
+    expect(describeBossPhaseTransitionBurst(3, false)).toMatchObject({ color: 0xff4fa3, ringCount: 3, maxScale: 2.9 });
+    expect(describeBossPhaseTransitionBurst(3, true)).toMatchObject({ ringCount: 1, maxScale: 1.65 });
+  });
+
 });

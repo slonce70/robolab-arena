@@ -30,7 +30,7 @@ import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
-import { describeBossPhaseVisual } from './bossPhaseVisual';
+import { describeBossPhaseTransitionBurst, describeBossPhaseVisual } from './bossPhaseVisual';
 import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
 import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
@@ -1550,6 +1550,12 @@ export class Game {
         if (phase.index !== enemy.phase) {
           enemy.phase = phase.index;
           this.audio.play('boss');
+          const burst = describeBossPhaseTransitionBurst(phase.index, this.settings.reducedMotion);
+          const burstPosition = enemy.group.position.clone().add(new THREE.Vector3(0, 1.05, 0));
+          for (let ring = 0; ring < burst.ringCount; ring += 1) {
+            this.addPulseRing(burstPosition, burst.color, burst.maxScale * (1 + ring * 0.14));
+          }
+          this.addSpark(burstPosition, burst.color, burst.maxScale * 0.55);
           this.showToast(phase.index === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!', 1.5);
         }
         const phaseVisual = describeBossPhaseVisual(phase.index, this.elapsed, this.settings.reducedMotion);

@@ -923,3 +923,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this changes damage only, not enemy speed/health; a later balance pass should decide whether difficulty should also affect enemy pacing.
+
+## Iteration 81 - Boss phase burst polish
+- Problem: boss phase changes changed color/speed and toast text, but the arena did not get a strong spatial burst when the boss entered later phases.
+- Change: added a tested boss phase transition burst descriptor and wired phase changes to spawn color-matched pulse rings plus a spark at the boss core. Reduced-motion mode keeps the cue to one calmer ring.
+- Evidence:
+  - TDD red: `npm test -- src/game/bossPhaseVisual.test.ts` failed until `describeBossPhaseTransitionBurst` existed.
+  - Focused green: `npm test -- src/game/bossPhaseVisual.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 39 files / 141 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: phase burst is covered by helper tests and browser smoke, but not by a pixel-perfect visual assertion.

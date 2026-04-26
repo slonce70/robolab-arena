@@ -25,3 +25,21 @@ export function describeBossPhaseVisual(phaseIndex: BossPhaseIndex, elapsed: num
     crownRotationSpeed: Number((visual.crownRotationSpeed * motionScale).toFixed(3))
   };
 }
+
+export type BossPhaseTransitionBurst = {
+  color: number;
+  ringCount: number;
+  maxScale: number;
+};
+
+export function describeBossPhaseTransitionBurst(phaseIndex: BossPhaseIndex, reducedMotion = false): BossPhaseTransitionBurst {
+  const visual = PHASE_VISUALS[phaseIndex];
+  if (reducedMotion) {
+    return { color: visual.coreColor, ringCount: 1, maxScale: phaseIndex === 3 ? 1.65 : 1.45 };
+  }
+  return {
+    color: visual.coreColor,
+    ringCount: phaseIndex === 3 ? 3 : 2,
+    maxScale: phaseIndex === 3 ? 2.9 : 2.25
+  };
+}
