@@ -17,7 +17,7 @@ import { CameraController } from './camera/CameraController';
 import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
-import { getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDifficultyChange, getDifficultyLabel, nextDifficulty } from './difficulty';
 import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
@@ -2327,6 +2327,10 @@ export class Game {
       this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
       this.showToast('QA: усі ефекти активні.', 1.4);
       this.updateHud();
+      return true;
+    }
+    if (getDevCompletionTarget(event.code) === 'complete-room') {
+      this.completeLevel();
       return true;
     }
     const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);

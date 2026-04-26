@@ -1087,3 +1087,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: victory browser smoke still injects the overlay DOM and is not a true gameplay victory trigger; full no-dev-key 1-12 manual playthrough remains pending.
+
+## Iteration 95 - True game-flow victory smoke shortcut
+- Problem: the victory browser QA checked the final panel with injected DOM, so it did not exercise the game's own `completeLevel()` victory path.
+- Change: added a DEV-only `KeyN` room-completion shortcut and switched the victory smoke to start the game, jump to the boss room, complete it through game code, and verify the real victory overlay.
+- Evidence:
+  - TDD red: `npm test -- src/game/devControls.test.ts` failed because `getDevCompletionTarget('KeyN')` did not exist.
+  - Focused green: `npm test -- src/game/devControls.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 40 files / 152 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`, title `Перемога!`, class `panel victory-panel`, button `Грати ще раз`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: the smoke still uses DEV shortcuts (`KeyB` and `KeyN`) and is not a human no-shortcut 1-12 victory run, but it now exercises the production victory overlay path instead of DOM injection.

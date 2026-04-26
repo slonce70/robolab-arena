@@ -11,6 +11,11 @@ export function getDevEffectTarget(code: string): 'all' | undefined {
   return undefined;
 }
 
+export function getDevCompletionTarget(code: string): 'complete-room' | undefined {
+  if (code === 'KeyN') return 'complete-room';
+  return undefined;
+}
+
 function clampRoom(level: number, totalLevels: number): number {
   return Math.min(Math.max(1, level), totalLevels);
 }

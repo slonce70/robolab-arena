@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 
 describe('getDevLevelTarget', () => {
   it('moves between rooms with bracket shortcuts', () => {
@@ -15,5 +15,10 @@ describe('getDevLevelTarget', () => {
   it('exposes a visual-effects QA shortcut', () => {
     expect(getDevEffectTarget('KeyV')).toBe('all');
     expect(getDevEffectTarget('KeyC')).toBeUndefined();
+  });
+
+  it('exposes a room-completion QA shortcut for true victory smoke tests', () => {
+    expect(getDevCompletionTarget('KeyN')).toBe('complete-room');
+    expect(getDevCompletionTarget('KeyC')).toBeUndefined();
   });
 });
