@@ -14,7 +14,7 @@ import {
 } from './balance';
 import { describeFirstPersonBlasterState } from './blasterFeedback';
 import { CameraController } from './camera/CameraController';
-import { DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsSolid } from './collision';
+import { DOOR_PANEL_DEPTH, DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
@@ -1148,7 +1148,7 @@ export class Game {
       metalness: 0.05,
       roughness: 0.18
     });
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, 2.5, 0.34), material);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, 2.5, DOOR_PANEL_DEPTH), material);
     panel.position.y = 1.25;
     const label = this.createFloatingLabel(describeDoorLabel(false), 0, 1.35, 0);
     label.scale.set(3.2, 0.8, 1);

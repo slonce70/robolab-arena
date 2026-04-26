@@ -1323,3 +1323,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: door dimensions are now shared, but the broader route guard still remains a static approximation of gameplay physics.
+
+## Iteration 114 - Door visual/collision depth contract
+- Problem: door collision depth and visual panel depth were intentionally different, but the visual depth was still a raw `0.34` literal in `Game`, so future edits could accidentally make the visible panel thicker than the conservative collision box.
+- Change: exported `DOOR_PANEL_DEPTH` next to the door collision constants and made `Game.spawnDoor()` use it for panel geometry, with a test proving the visual half-depth stays within the collision half-depth.
+- Evidence:
+  - TDD red: `npm test -- src/game/collision.test.ts` failed until `DOOR_PANEL_DEPTH` existed.
+  - Focused green: `npm test -- src/game/collision.test.ts src/game/campaignPlaythrough.test.ts` PASS: 2 files / 8 tests.
+  - Full regression: `npm test` PASS: 40 files / 165 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this documents and guards dimensions; it does not change human route feel around door edges.

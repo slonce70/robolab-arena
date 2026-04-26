@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsBox, pointHitsSolid } from './collision';
+import { DOOR_PANEL_DEPTH, DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsBox, pointHitsSolid } from './collision';
 
 const point = { x: 0, z: -18 };
 
@@ -34,6 +34,13 @@ describe('projectile solid collision checks', () => {
     expect(pointHitsSolid({ x: 1.19, z: 0 }, [obstacle], [], 0.18)).toBe(false);
   });
 
+
+
+
+  it('keeps the visual door panel thinner than the conservative collision depth', () => {
+    expect(DOOR_PANEL_DEPTH).toBe(0.34);
+    expect(DOOR_PANEL_DEPTH * 0.5).toBeLessThanOrEqual(DOOR_SOLID_HALF_DEPTH);
+  });
 
   it('exports the door collision dimensions used by runtime and route guards', () => {
     expect(DOOR_SOLID_HALF_WIDTH).toBe(3.6);
