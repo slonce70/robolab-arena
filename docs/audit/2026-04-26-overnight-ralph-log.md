@@ -1336,3 +1336,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this documents and guards dimensions; it does not change human route feel around door edges.
+
+## Iteration 115 - Duplicate enemy spawn validator
+- Problem: overlapped enemies can create strange damage/readability issues, and the level validator did not explicitly report duplicate enemy spawn positions.
+- Change: added duplicate enemy-position detection to `validateLevel()` with a focused synthetic regression. Current rooms already pass the stricter guard.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed until duplicate enemy positions were reported by `validateLevel()`.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 10 tests.
+  - Full regression: `npm test` PASS: 40 files / 166 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: exact duplicate positions are guarded; near-overlaps are still covered separately by reward/route geometry checks rather than an enemy-spacing invariant.

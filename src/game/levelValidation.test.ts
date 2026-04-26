@@ -79,6 +79,20 @@ describe('final level validation', () => {
     })).toContain(`Level ${buttonRoom!.id} button 0 references missing door missing-extra-door.`);
   });
 
+
+  it('reports duplicate enemy spawn positions through the level validator', () => {
+    const enemyRoom = LEVELS.find((level) => (level.enemies?.length ?? 0) > 0);
+
+    expect(enemyRoom).toBeDefined();
+    expect(validateLevel({
+      ...enemyRoom!,
+      enemies: [
+        { kind: 'drone', position: { x: 4, z: 4 } },
+        { kind: 'turret', position: { x: 4, z: 4 } }
+      ]
+    })).toContain(`Level ${enemyRoom!.id} enemies 0 and 1 share spawn position (4, 4).`);
+  });
+
   it('mixes mechanics in rooms five through twelve', () => {
     for (const level of LEVELS.slice(4)) {
       const mechanicCount = [

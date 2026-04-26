@@ -29,6 +29,17 @@ export function validateLevel(level: LevelConfig): string[] {
     }
   });
 
+  const enemyPositions = new Map<string, number>();
+  level.enemies?.forEach((enemy, index) => {
+    const key = `${enemy.position.x},${enemy.position.z}`;
+    const firstIndex = enemyPositions.get(key);
+    if (firstIndex !== undefined) {
+      failures.push(`Level ${level.id} enemies ${firstIndex} and ${index} share spawn position (${enemy.position.x}, ${enemy.position.z}).`);
+    } else {
+      enemyPositions.set(key, index);
+    }
+  });
+
   const doorIds = new Set((level.doors ?? []).map((door) => door.id));
   level.buttons?.forEach((button, index) => {
     const referencedDoorIds = new Set([button.opensDoorId, ...(button.opensDoorIds ?? [])]);
