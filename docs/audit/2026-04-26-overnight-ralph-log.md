@@ -496,3 +496,14 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: victory copy logic is unit-covered and broad room smoke still passes, but the exact final victory overlay text was not browser-triggered through a normal no-jump boss kill in this iteration.
+
+## Iteration 45 - Room-start pressure guardrail
+- Purpose: protect the “no weird immediate damage / no bad spawn” requirement with a regression guard while moving from UI polish back into gameplay balance.
+- Change: added a level validation test that ensures every room starts the player away from immediate enemy, laser, and obstacle pressure.
+- Evidence:
+  - Focused guard: `npm test -- src/game/levelValidation.test.ts` PASS: 5 tests; all current rooms already satisfy the spawn-clearance invariant.
+  - Full regression: `npm test` PASS: 35 files / 107 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this is a protective geometry/balance invariant, not a human normal no-jump full victory run.

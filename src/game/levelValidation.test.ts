@@ -57,4 +57,21 @@ describe('final level validation', () => {
       expect(mechanicCount, level.name).toBeGreaterThanOrEqual(3);
     }
   });
+
+  it('starts every room away from immediate enemy, laser, and obstacle pressure', () => {
+    for (const level of LEVELS) {
+      const start = level.playerStart;
+      for (const enemy of level.enemies ?? []) {
+        expect(Math.hypot(start.x - enemy.position.x, start.z - enemy.position.z), `${level.name} enemy spawn distance`).toBeGreaterThanOrEqual(5);
+      }
+      for (const laser of level.lasers ?? []) {
+        expect(Math.hypot(start.x - laser.position.x, start.z - laser.position.z), `${level.name} laser spawn distance`).toBeGreaterThanOrEqual(4);
+      }
+      for (const obstacle of level.obstacles ?? []) {
+        const clearanceX = Math.abs(start.x - obstacle.position.x) - obstacle.size.width * 0.5;
+        const clearanceZ = Math.abs(start.z - obstacle.position.z) - obstacle.size.depth * 0.5;
+        expect(Math.max(clearanceX, clearanceZ), `${level.name} obstacle spawn clearance`).toBeGreaterThanOrEqual(1.2);
+      }
+    }
+  });
 });
