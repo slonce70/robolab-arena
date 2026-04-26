@@ -1210,3 +1210,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: still not a subjective human difficulty-feel pass; this only hardens the pacing math seam.
+
+## Iteration 105 - Testable boss phase cue routing
+- Problem: architect review approved dedicated boss phase audio but noted the route from phase transition to `phase` sound was verified by inspection rather than a small testable seam.
+- Change: added `describeBossPhaseTransitionCue()` to own phase-transition sound/toast copy and routed Game through that cue, keeping the approved `phase` sound and existing toast text.
+- Evidence:
+  - TDD red: `npm test -- src/game/bossPhaseVisual.test.ts` failed until `describeBossPhaseTransitionCue()` existed.
+  - Focused green: `npm test -- src/game/bossPhaseVisual.test.ts` PASS: 1 file / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 161 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: still no human listening pass for the exact phase cue mix.

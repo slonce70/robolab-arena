@@ -26,6 +26,19 @@ export function describeBossPhaseVisual(phaseIndex: BossPhaseIndex, elapsed: num
   };
 }
 
+
+export type BossPhaseTransitionCue = {
+  sound: 'phase';
+  toast: string;
+};
+
+export function describeBossPhaseTransitionCue(phaseIndex: BossPhaseIndex): BossPhaseTransitionCue {
+  return {
+    sound: 'phase',
+    toast: phaseIndex === 2 ? 'Бос пришвидшує атаку!' : 'Фінальна фаза боса!'
+  };
+}
+
 export type BossPhaseTransitionBurst = {
   color: number;
   ringCount: number;

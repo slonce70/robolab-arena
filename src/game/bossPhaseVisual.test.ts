@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeBossPhaseTransitionBurst, describeBossPhaseVisual } from './bossPhaseVisual';
+import { describeBossPhaseTransitionBurst, describeBossPhaseTransitionCue, describeBossPhaseVisual } from './bossPhaseVisual';
 
 describe('boss phase visual state', () => {
   it('keeps phase one readable but calmer than later phases', () => {
@@ -28,6 +28,11 @@ describe('boss phase visual state', () => {
     expect(reduced.crownRotationSpeed).toBeLessThan(normal.crownRotationSpeed);
     expect(Math.abs(reduced.coreScale - 1)).toBeLessThan(Math.abs(normal.coreScale - 1));
   });
+  it('routes phase-change audio and toast copy through a testable cue', () => {
+    expect(describeBossPhaseTransitionCue(2)).toEqual({ sound: 'phase', toast: 'Бос пришвидшує атаку!' });
+    expect(describeBossPhaseTransitionCue(3)).toEqual({ sound: 'phase', toast: 'Фінальна фаза боса!' });
+  });
+
   it('describes a stronger phase-change burst for later boss phases', () => {
     expect(describeBossPhaseTransitionBurst(2, false)).toMatchObject({ color: 0xff9f43, ringCount: 2, maxScale: 2.25, sparkScale: 1.24 });
     expect(describeBossPhaseTransitionBurst(3, false)).toMatchObject({ color: 0xff4fa3, ringCount: 3, maxScale: 2.9, sparkScale: 1.59 });
