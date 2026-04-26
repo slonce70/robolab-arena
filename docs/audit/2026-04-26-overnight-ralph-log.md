@@ -960,3 +960,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: constants are unit-covered; final appearance is still validated by smoke rather than pixel matching.
+
+## Iteration 84 - Semantic shield guard for laser-button pressure
+- Problem: the late-room support validator required shield support specifically in room 10, which protected the current map but would miss the same risk if another late multi-button laser room moved or changed IDs.
+- Change: replaced the room-id check with a semantic late-pressure guard: room id >= 6, button objective, at least five buttons, and at least two lasers requires a shield pickup.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelPacing.test.ts` failed for a synthetic late laser/button room without shield support.
+  - Focused green: `npm test -- src/game/levelPacing.test.ts` PASS: 1 file / 6 tests.
+  - Full regression: `npm test` PASS: 39 files / 143 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this is still static validation; it does not prove human route comfort by itself.
