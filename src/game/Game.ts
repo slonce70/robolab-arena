@@ -18,7 +18,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
-import { describeDifficultyChange, getDifficultyLabel, getEnemyPacingMultiplier, nextDifficulty } from './difficulty';
+import { describeDifficultyChange, getDifficultyLabel, scaleEnemyPacingDelta, nextDifficulty } from './difficulty';
 import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeEnemyHitFeedback } from './enemyFeedback';
@@ -1508,8 +1508,8 @@ export class Game {
       const distance = Math.max(toPlayer.length(), 0.001);
       const lookAngle = Math.atan2(toPlayer.x, toPlayer.z);
       enemy.group.rotation.y = lookAngle;
-      const enemyPacing = getEnemyPacingMultiplier(this.settings.difficulty);
-      enemy.shootTimer -= delta * enemyPacing;
+      const enemyDelta = scaleEnemyPacingDelta(delta, this.settings.difficulty);
+      enemy.shootTimer -= enemyDelta;
       enemy.hitTimer = Math.max(0, enemy.hitTimer - delta);
       const hitFeedback = describeEnemyHitFeedback(enemy.hitTimer, this.settings.reducedMotion);
       enemy.material.emissiveIntensity = hitFeedback.emissiveIntensity;
@@ -1546,7 +1546,7 @@ export class Game {
           dome.scale.setScalar(1 + Math.sin(this.elapsed * 4.5) * 0.08);
         }
         if (distance > 6) {
-          enemy.group.position.add(toPlayer.normalize().multiplyScalar(delta * 1.25 * enemyPacing));
+          enemy.group.position.add(toPlayer.normalize().multiplyScalar(enemyDelta * 1.25));
           this.resolveObstacleCollisions(enemy.group.position, 0.7);
         }
       } else if (enemy.kind === 'boss') {
@@ -1600,7 +1600,7 @@ export class Game {
           leg.rotation.x = Math.sin(this.elapsed * 9 + index) * 0.28;
         });
         if (distance > 1.1) {
-          enemy.group.position.add(toPlayer.normalize().multiplyScalar(delta * 2.2 * enemyPacing));
+          enemy.group.position.add(toPlayer.normalize().multiplyScalar(enemyDelta * 2.2));
           this.resolveObstacleCollisions(enemy.group.position, 0.55);
         } else {
           this.damagePlayer(BEETLE_CONTACT_DAMAGE);

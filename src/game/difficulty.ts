@@ -28,6 +28,10 @@ export function getEnemyPacingMultiplier(difficulty: Difficulty): number {
   return 1;
 }
 
+export function scaleEnemyPacingDelta(delta: number, difficulty: Difficulty): number {
+  return delta * getEnemyPacingMultiplier(difficulty);
+}
+
 export function describeDifficultyChange(difficulty: Difficulty): string {
   if (difficulty === 'easy') return 'Складність: Легко. Урон ворогів нижчий, темп спокійніший.';
   if (difficulty === 'hard') return 'Складність: Важко. Урон ворогів вищий, темп швидший.';

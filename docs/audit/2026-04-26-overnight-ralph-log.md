@@ -1198,3 +1198,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: audio profile is unit-covered, but subjective sound mix still needs human listening during the boss fight.
+
+## Iteration 104 - Extract tested enemy pacing delta
+- Problem: architect review approved difficulty pacing but noted a non-blocking gap: runtime enemy pacing used the multiplier directly, without a small pure helper proving the frame-delta application.
+- Change: added `scaleEnemyPacingDelta()` and routed enemy shoot timers and chaser movement through it, preserving the same easy/normal/hard behavior while making the integration math directly testable.
+- Evidence:
+  - TDD red: `npm test -- src/game/difficulty.test.ts` failed until `scaleEnemyPacingDelta()` existed.
+  - Focused green: `npm test -- src/game/difficulty.test.ts` PASS: 1 file / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 160 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: still not a subjective human difficulty-feel pass; this only hardens the pacing math seam.
