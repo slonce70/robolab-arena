@@ -20,6 +20,28 @@ describe('campaign manual-play path safety', () => {
 
     expect(failures).toEqual([]);
   }, 15000);
+
+  it('requires reachable firing lanes for enemies even when the room objective is not enemy cleanup', () => {
+    const roomWithOptionalEnemy: LevelConfig = {
+      id: 99,
+      name: 'Synthetic button ambush',
+      objective: 'buttons',
+      tip: 'test',
+      playerStart: { x: 0, z: 20 },
+      exit: { x: 0, z: -21 },
+      buttons: [{ position: { x: 0, z: 12 }, opensDoorId: 'gate' }],
+      doors: [{ id: 'gate', position: { x: 0, z: -18 } }],
+      enemies: [{ kind: 'turret', position: { x: 0, z: 0 } }],
+      obstacles: [
+        { position: { x: 0, z: 2.2 }, size: { width: 5.6, depth: 1.2 } },
+        { position: { x: 0, z: -2.2 }, size: { width: 5.6, depth: 1.2 } },
+        { position: { x: 2.2, z: 0 }, size: { width: 1.2, depth: 5.6 } },
+        { position: { x: -2.2, z: 0 }, size: { width: 1.2, depth: 5.6 } }
+      ]
+    };
+
+    expect(validateLevelRoute(roomWithOptionalEnemy)).toContain('Level 99 enemy at (0, 0) has no reachable engagement point after doors open.');
+  });
 });
 
 function validateLevelRoute(level: LevelConfig): string[] {
@@ -80,8 +102,7 @@ function requiredOpenDoorInteractions(level: LevelConfig): Vec2[] {
 }
 
 function requiredEnemyEngagements(level: LevelConfig): { position: Vec2 }[] {
-  if (level.objective === 'enemies' || level.objective === 'boss') return level.enemies ?? [];
-  return [];
+  return level.enemies ?? [];
 }
 
 function getEnemyEngagementPoints(position: Vec2): Vec2[] {

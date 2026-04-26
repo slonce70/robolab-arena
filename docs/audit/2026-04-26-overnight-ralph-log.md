@@ -1426,3 +1426,17 @@ Remaining risk:
   - Final boss phase browser smoke `node .omx/tmp/robolab-boss-final-phase-qa.mjs` PASS: `boss-final-phase-playwright-pass`, no bad console messages or page errors.
   - `git diff --check` PASS.
 - Remaining risk: this is guardrail test coverage for DEV shortcuts; it does not add human boss-fight evidence.
+
+## Iteration 122 - All-enemy engagement route guard
+- Problem: the static route guard only required firing lanes for rooms whose objective was enemy cleanup or boss defeat, but button/laser rooms also contain damaging enemies that can become unreadable if placed behind unreachable geometry.
+- Change: `campaignPlaythrough.test.ts` now requires reachable line-of-fire engagement points for every enemy in every room, not just objective-critical enemies. The stricter guard found the first beetle in room 3 boxed into a maze seam, so its spawn moved from `(-6, 11)` to a reachable left-lane position at `(-11, 11)`.
+- Evidence:
+  - TDD red: synthetic button-room ambush failed because non-objective enemies were ignored by `requiredEnemyEngagements()`.
+  - Stricter-campaign red: after checking all enemies, current room 3 failed with `Level 3 enemy at (-6, 11) has no reachable engagement point after doors open.`
+  - Focused green: `npm test -- src/game/campaignPlaythrough.test.ts src/game/levelValidation.test.ts src/game/levelPacing.test.ts` PASS: 3 files / 20 tests.
+  - Full regression: `npm test` PASS: 40 files / 174 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this strengthens static combat reachability, but it still does not prove live enemy movement/aim comfort in a human no-shortcut run.

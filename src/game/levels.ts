@@ -74,7 +74,7 @@ export const LEVELS: LevelConfig[] = [
     ],
     doors: [{ id: 'maze', position: { x: 0, z: -17 } }],
     enemies: [
-      { kind: 'beetle', position: { x: -6, z: 11 } },
+      { kind: 'beetle', position: { x: -11, z: 11 } },
       { kind: 'beetle', position: { x: 7, z: 4 } },
       { kind: 'drone', position: { x: 5, z: -9 } }
     ],
