@@ -972,3 +972,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this is still static validation; it does not prove human route comfort by itself.
+
+## Iteration 85 - Difficulty change feedback toast
+- Problem: changing difficulty in pause immediately affected combat math and HUD state, but the click itself had no explicit confirmation beyond the button label changing.
+- Change: added a tested Ukrainian difficulty-change message and shows it as a short toast whenever the pause difficulty action cycles modes.
+- Evidence:
+  - TDD red: `npm test -- src/game/difficulty.test.ts` failed until `describeDifficultyChange` existed.
+  - Focused green: `npm test -- src/game/difficulty.test.ts` PASS: 1 file / 3 tests.
+  - Full regression: `npm test` PASS: 39 files / 144 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Browser pause/settings smoke: `node .omx/tmp/robolab-pause-settings-qa.mjs` PASS with difficulty persistence and health HUD suffix.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: toast copy is unit-covered; browser smoke currently verifies difficulty button/HUD persistence, not the toast text.

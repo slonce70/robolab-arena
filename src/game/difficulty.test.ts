@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDifficultyLabel, getIncomingDamageMultiplier, nextDifficulty } from './difficulty';
+import { describeDifficultyChange, getDifficultyLabel, getIncomingDamageMultiplier, nextDifficulty } from './difficulty';
 
 describe('difficulty settings', () => {
   it('cycles through approachable Ukrainian labels', () => {
@@ -17,4 +17,10 @@ describe('difficulty settings', () => {
     expect(getIncomingDamageMultiplier('normal')).toBe(1);
     expect(getIncomingDamageMultiplier('hard')).toBe(1.2);
   });
+  it('announces applied difficulty in pause settings', () => {
+    expect(describeDifficultyChange('easy')).toBe('Складність: Легко. Урон ворогів нижчий.');
+    expect(describeDifficultyChange('normal')).toBe('Складність: Нормально. Базовий баланс.');
+    expect(describeDifficultyChange('hard')).toBe('Складність: Важко. Урон ворогів вищий.');
+  });
+
 });

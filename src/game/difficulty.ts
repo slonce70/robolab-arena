@@ -21,3 +21,9 @@ export function getIncomingDamageMultiplier(difficulty: Difficulty): number {
   if (difficulty === 'hard') return 1.2;
   return 1;
 }
+
+export function describeDifficultyChange(difficulty: Difficulty): string {
+  if (difficulty === 'easy') return 'Складність: Легко. Урон ворогів нижчий.';
+  if (difficulty === 'hard') return 'Складність: Важко. Урон ворогів вищий.';
+  return 'Складність: Нормально. Базовий баланс.';
+}

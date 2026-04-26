@@ -18,7 +18,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
-import { getDifficultyLabel, nextDifficulty } from './difficulty';
+import { describeDifficultyChange, getDifficultyLabel, nextDifficulty } from './difficulty';
 import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeEnemyHitFeedback } from './enemyFeedback';
@@ -564,6 +564,7 @@ export class Game {
     if (action === 'difficulty') {
       this.settings = saveSettings({ difficulty: nextDifficulty(this.settings.difficulty) });
       this.showPauseOverlay();
+      this.showToast(describeDifficultyChange(this.settings.difficulty), 1.6);
     }
   }
 
