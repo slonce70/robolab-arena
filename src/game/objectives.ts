@@ -37,3 +37,7 @@ export function describeObjectiveHud(done: boolean): ObjectiveHud {
 function formatObjectiveCounter(done: number, total: number, forms: UkrainianCountForms): string {
   return `${done} з ${formatUkrainianCount(total, forms)}`;
 }
+
+export function formatObjectiveHint(progressText: string, tip: string): string {
+  return `${progressText} — ${tip}`;
+}

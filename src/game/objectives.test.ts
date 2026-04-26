@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeObjectiveHud, describeObjectiveProgress } from './objectives';
+import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
 
 describe('describeObjectiveProgress', () => {
   it('formats target and enemy counters for the HUD', () => {
@@ -31,5 +31,9 @@ describe('describeObjectiveProgress', () => {
       text: 'Ціль виконано. Біжи до зеленого виходу!',
       classes: ['objective-chip', 'is-complete']
     });
+  });
+
+  it('joins objective progress and room tip with polished typography', () => {
+    expect(formatObjectiveHint('0 з 5 мішеней', 'Збий п’ять мішеней.')).toBe('0 з 5 мішеней — Збий п’ять мішеней.');
   });
 });

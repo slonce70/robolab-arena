@@ -460,3 +460,15 @@ Remaining risk:
   - Playwright QA `output/playwright/overnight-room-intel-2026-04-26/report.json`: `room-intel-playwright-pass`, 4 pause intel cards, `badConsole: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: fallback prose is polished and pause-smoked; this still does not claim a full normal human no-jump victory run.
+
+## Iteration 42 - Objective chip separator polish
+- Problem: the objective HUD had natural Ukrainian counters, but `Game` still joined the counter and room tip inline with a plain ` - ` separator.
+- Change: added `formatObjectiveHint` to the objective presenter and changed the live HUD to use an em dash separator (`—`) instead of inline string assembly in `Game`.
+- Evidence:
+  - TDD red: `npm test -- src/game/objectives.test.ts` failed because `formatObjectiveHint` did not exist before implementation.
+  - Focused green: `npm test -- src/game/objectives.test.ts` PASS: 7 tests.
+  - Full regression: `npm test` PASS: 34 files / 103 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Playwright QA `output/playwright/overnight-objective-copy-2026-04-26/report.json`: `objective-copy-pass`; room 1 objective rendered `0 з 5 мішеней — ...`, room 3 rendered `0 з 3 кнопок — ...`, `badConsole: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: objective HUD typography is browser-smoked; this still does not claim a full normal human no-jump victory run.

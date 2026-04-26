@@ -28,7 +28,7 @@ import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
-import { describeObjectiveHud, describeObjectiveProgress } from './objectives';
+import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } from './objectives';
 import { describePlayerFeedback } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerStatus } from './powerStatus';
@@ -2067,7 +2067,7 @@ export class Game {
     this.hudHealth.textContent = `Енергія ${Math.ceil(this.health)}`;
     this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
     const objectiveHud = describeObjectiveHud(objectiveDone);
-    this.hudObjective.textContent = objectiveHud.text || `${this.objectiveProgressText()} - ${level.tip}`;
+    this.hudObjective.textContent = objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip);
     this.hudObjective.className = objectiveHud.classes.join(' ');
     this.updateExitPadStatus(objectiveDone);
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
