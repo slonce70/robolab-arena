@@ -360,3 +360,13 @@ Remaining risk:
   - `npm run build` PASS with app/three chunks and no large-chunk warning.
   - Playwright QA `output/playwright/overnight-exit-pad-2026-04-26/report.json`: `exit-pad-smoke-pass`, first room HUD still renders, `badConsoleMessages: []`, `pageErrors: []`.
 - Remaining risk: hint text is more complete; narrow/mobile HUD wrapping still needs visual review on very small screens.
+
+## Iteration 33 - Architect blocker fix: Esc hint made truthful
+- Problem found by architect: the new hint said `Esc - пауза`, but in first-person pointer capture the first Escape frees the cursor before a later Escape pauses.
+- Change: changed the tested hint copy to `Esc - курсор/пауза`, accurately covering both first-person cursor release and normal pause behavior.
+- Evidence:
+  - TDD red: `npm test -- src/game/controlsHint.test.ts` failed when the test expected `Esc - курсор/пауза` but the helper still said `Esc - пауза`.
+  - Focused green: `npm test -- src/game/controlsHint.test.ts` PASS: 1 test.
+  - Full regression: `npm test` PASS: 33 files / 98 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+- Remaining risk: text is truthful now; narrow/mobile wrapping remains a separate visual-review item.
