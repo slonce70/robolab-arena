@@ -18,7 +18,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
-import { describeDoorVisualStatus } from './doorStatus';
+import { describeDoorOpenedToast, describeDoorVisualStatus } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeExitPadStatus } from './exitStatus';
 import { getLevelIntel } from './levelIntel';
@@ -1760,11 +1760,13 @@ export class Game {
   }
 
   private updateDoors(delta: number): void {
+    let openedThisFrame = 0;
     for (const door of this.doors) {
       const relatedButtons = this.buttons.filter((button) => button.opensDoorIds.includes(door.id));
       const shouldOpen = relatedButtons.length > 0 && relatedButtons.every((button) => button.active);
       if (shouldOpen && !door.open) {
         door.open = true;
+        openedThisFrame += 1;
         this.audio.play('door');
         this.addSpark(door.position.clone().add(new THREE.Vector3(0, 1.2, 0)), palette.green, 1.05);
       }
@@ -1772,6 +1774,9 @@ export class Game {
       door.material.opacity = visual.opacity;
       door.material.emissiveIntensity = visual.emissiveIntensity;
       door.group.position.y = THREE.MathUtils.lerp(door.group.position.y, visual.targetY, delta * 4);
+    }
+    if (openedThisFrame > 0) {
+      this.showToast(describeDoorOpenedToast(openedThisFrame), 1.7);
     }
   }
 

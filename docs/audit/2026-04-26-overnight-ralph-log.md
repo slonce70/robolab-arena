@@ -669,3 +669,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: exit label text is presenter-covered and browser-smoked, but canvas sprite text is not DOM-readable and this still does not claim a full normal human no-jump victory run.
+
+## Iteration 60 - Door-open feedback toast
+- Problem: pressure doors had audio/spark feedback when they opened, but the HUD text did not clearly tell the player that the route was now passable, which could make multi-button rooms feel uncertain.
+- Change: added `describeDoorOpenedToast` for polished Ukrainian one/many door copy and show one concise toast after any doors open during the frame.
+- Evidence:
+  - TDD red: `npm test -- src/game/doorStatus.test.ts` failed because `describeDoorOpenedToast` did not exist before implementation.
+  - Focused green: `npm test -- src/game/doorStatus.test.ts` PASS: 3 tests.
+  - Full regression: `npm test` PASS: 36 files / 118 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: door-open copy is helper-covered and smoke-tested; this still does not claim a full normal human no-jump victory run.

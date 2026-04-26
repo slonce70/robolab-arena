@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeDoorVisualStatus } from './doorStatus';
+import { describeDoorOpenedToast, describeDoorVisualStatus } from './doorStatus';
 
 describe('door visual status', () => {
   it('keeps closed doors bright and blocking', () => {
@@ -18,5 +18,11 @@ describe('door visual status', () => {
       emissiveIntensity: 0.55,
       isPassable: true
     });
+  });
+
+  it('announces when a pressure-door path opens', () => {
+    expect(describeDoorOpenedToast(1)).toBe('Двері відкрито — шлях вільний.');
+    expect(describeDoorOpenedToast(2)).toBe('Відкрито 2 двері — маршрут вільний.');
+    expect(describeDoorOpenedToast(5)).toBe('Відкрито 5 дверей — маршрут вільний.');
   });
 });
