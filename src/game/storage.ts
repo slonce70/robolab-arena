@@ -4,6 +4,8 @@ import { LEVELS } from './levels';
 const STORAGE_KEY = 'robolab-arena-settings';
 const MAX_UNLOCKED_ROOM = LEVELS.length;
 
+export type Difficulty = 'easy' | 'normal' | 'hard';
+
 export type RoboLabSettings = {
   bestScore: number;
   highestUnlockedRoom: number;
@@ -11,6 +13,7 @@ export type RoboLabSettings = {
   preferredCameraMode: CameraMode;
   reducedMotion: boolean;
   soundOn: boolean;
+  difficulty: Difficulty;
 };
 
 export const DEFAULT_SETTINGS: RoboLabSettings = {
@@ -19,7 +22,8 @@ export const DEFAULT_SETTINGS: RoboLabSettings = {
   mouseSensitivity: 1,
   preferredCameraMode: 'thirdPerson',
   reducedMotion: false,
-  soundOn: true
+  soundOn: true,
+  difficulty: 'normal'
 };
 
 export function loadSettings(storage: Storage = window.localStorage): RoboLabSettings {
@@ -41,6 +45,7 @@ export function saveSettings(settings: Partial<RoboLabSettings>, storage: Storag
 
 function sanitizeSettings(settings: Partial<RoboLabSettings>): RoboLabSettings {
   const preferredCameraMode = settings.preferredCameraMode === 'firstPerson' ? 'firstPerson' : 'thirdPerson';
+  const difficulty = settings.difficulty === 'easy' || settings.difficulty === 'hard' ? settings.difficulty : 'normal';
   return {
     bestScore: Number.isFinite(settings.bestScore) ? Math.max(0, Math.floor(settings.bestScore ?? 0)) : DEFAULT_SETTINGS.bestScore,
     highestUnlockedRoom: Number.isFinite(settings.highestUnlockedRoom)
@@ -51,6 +56,7 @@ function sanitizeSettings(settings: Partial<RoboLabSettings>): RoboLabSettings {
       : DEFAULT_SETTINGS.mouseSensitivity,
     preferredCameraMode,
     reducedMotion: settings.reducedMotion === true,
-    soundOn: settings.soundOn !== false
+    soundOn: settings.soundOn !== false,
+    difficulty
   };
 }

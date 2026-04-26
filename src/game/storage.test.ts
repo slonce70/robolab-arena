@@ -15,7 +15,8 @@ describe('RoboLab storage', () => {
       mouseSensitivity: 1,
       preferredCameraMode: 'thirdPerson',
       reducedMotion: false,
-      soundOn: true
+      soundOn: true,
+      difficulty: 'normal'
     });
   });
 
@@ -58,6 +59,20 @@ describe('RoboLab storage', () => {
       highestUnlockedRoom: 1,
       preferredCameraMode: 'thirdPerson'
     });
+  });
+
+  it('persists and sanitizes difficulty settings', () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: vi.fn((key: string) => values.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => values.set(key, value))
+    } as unknown as Storage;
+
+    saveSettings({ difficulty: 'easy' }, storage);
+    expect(loadSettings(storage).difficulty).toBe('easy');
+
+    values.set('robolab-arena-settings', JSON.stringify({ difficulty: 'nightmare' }));
+    expect(loadSettings(storage).difficulty).toBe('normal');
   });
 
   it('sanitizes mouse sensitivity for pause settings', () => {

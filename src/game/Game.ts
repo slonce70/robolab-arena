@@ -18,6 +18,7 @@ import { pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
 import { getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getDifficultyLabel, nextDifficulty } from './difficulty';
 import { describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
 import { describeEnemyHitFeedback } from './enemyFeedback';
@@ -514,6 +515,7 @@ export class Game {
             <button class="secondary-action" type="button" data-action="sensitivity-up">+</button>
           </div>
           <button class="secondary-action" type="button" data-action="motion">Ефекти: ${this.settings.reducedMotion ? 'спокійні' : 'повні'}</button>
+          <button class="secondary-action" type="button" data-action="difficulty">Складність: ${getDifficultyLabel(this.settings.difficulty)}</button>
         </div>
       </div>
     `;
@@ -556,6 +558,11 @@ export class Game {
     if (action === 'motion') {
       this.settings = saveSettings({ reducedMotion: !this.settings.reducedMotion });
       this.updateHud();
+      this.showPauseOverlay();
+      return;
+    }
+    if (action === 'difficulty') {
+      this.settings = saveSettings({ difficulty: nextDifficulty(this.settings.difficulty) });
       this.showPauseOverlay();
     }
   }

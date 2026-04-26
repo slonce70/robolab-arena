@@ -897,3 +897,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: room 10 support is route/balance guarded, but this still does not claim a full normal human no-jump victory run.
+
+## Iteration 79 - Pause difficulty setting scaffold
+- Problem: pause/settings covered sound, camera, sensitivity, and effects, but there was no visible difficulty preference for future balance tuning, despite the project now having several balance-sensitive rooms.
+- Change: added a persisted `difficulty` setting with Ukrainian labels and a pause-menu cycle button. This is intentionally UI/state scaffolding only; gameplay damage/speed numbers are unchanged until a separately tested balance pass.
+- Evidence:
+  - TDD red: `npm test -- src/game/storage.test.ts` failed until `difficulty` was added to saved settings and sanitization.
+  - TDD red: `npm test -- src/game/difficulty.test.ts` failed until the difficulty label/cycle helper existed.
+  - Focused green: `npm test -- src/game/storage.test.ts src/game/difficulty.test.ts` PASS: 2 files / 8 tests.
+  - Full regression: `npm test` PASS: 39 files / 138 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: difficulty currently persists as a setting scaffold only; no damage/speed rebalance is claimed.
