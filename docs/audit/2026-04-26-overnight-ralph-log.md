@@ -1074,3 +1074,16 @@ Remaining risk:
   - `npm run build` PASS with TypeScript build and Vite bundle.
   - `git diff --check` PASS.
 - Remaining risk: test-only clarity pass; no runtime changes.
+
+## Iteration 94 - Explicit victory overlay intent
+- Problem: victory overlay styling/state still depended on the Ukrainian title text containing `Перемога`, so future copy/localization edits could accidentally remove the victory panel or finished-state transition.
+- Change: replaced title-string routing with an explicit `OverlayIntent` (`standard` / `victory`) and routed the final win overlay through that intent while preserving normal overlay behavior.
+- Evidence:
+  - TDD red: `npm test -- src/game/overlayPresentation.test.ts` failed until `getOverlayPanelClass('victory')` and `getOverlayState('victory', ...)` were implemented.
+  - Focused green: `npm test -- src/game/overlayPresentation.test.ts` PASS: 1 file / 2 tests.
+  - Full regression: `npm test` PASS: 40 files / 151 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Victory overlay browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-pass`, title `Перемога!`, class `panel victory-panel`, button `Грати ще раз`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: victory browser smoke still injects the overlay DOM and is not a true gameplay victory trigger; full no-dev-key 1-12 manual playthrough remains pending.

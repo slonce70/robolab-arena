@@ -49,7 +49,7 @@ import {
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import { describeTargetStatus } from './targetStatus';
 import { describePickupBurst } from './transientEffects';
-import { getOverlayPanelClass } from './overlayPresentation';
+import { getOverlayPanelClass, getOverlayState, type OverlayIntent } from './overlayPresentation';
 import { formatVictoryOverlayIntro } from './victoryCopy';
 import { getCrosshairClasses, getPlayerProjectileTheme } from './weaponFeedback';
 import type {
@@ -472,11 +472,11 @@ export class Game {
     this.showToast(`${brief.title}: ${stats}. ${brief.warning}`, level.id >= 10 ? 4.2 : 3.1);
   }
 
-  private showOverlay(title: string, text: string, button: string, action: () => void): void {
+  private showOverlay(title: string, text: string, button: string, action: () => void, intent: OverlayIntent = 'standard'): void {
     this.exitPointerLock();
-    this.state = title.includes('Перемога') ? 'finished' : this.state;
+    this.state = getOverlayState(intent, this.state);
     this.overlay.innerHTML = `
-      <div class="${getOverlayPanelClass(title)}">
+      <div class="${getOverlayPanelClass(intent)}">
         <p class="eyebrow">RoboLab Arena</p>
         <h1>${title}</h1>
         <p class="intro">${text}</p>
@@ -1960,7 +1960,7 @@ export class Game {
     this.runStats = completeRoom(this.runStats);
     if (next >= LEVELS.length) {
       this.audio.play('victory');
-      this.showOverlay('Перемога!', `${formatVictoryOverlayIntro({ completedRooms: this.runStats.completedRooms, totalRooms: LEVELS.length, gears: this.gears, score: this.score })} ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame());
+      this.showOverlay('Перемога!', `${formatVictoryOverlayIntro({ completedRooms: this.runStats.completedRooms, totalRooms: LEVELS.length, gears: this.gears, score: this.score })} ${formatVictorySummary(this.runStats, now)}. Лабораторія відкрита!`, 'Грати ще раз', () => this.startGame(), 'victory');
       return;
     }
 
