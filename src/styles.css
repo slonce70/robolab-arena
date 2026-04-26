@@ -668,6 +668,20 @@ h1 {
   font-size: clamp(32px, 5vw, 48px);
 }
 
+.pause-run-stats {
+  width: fit-content;
+  max-width: 100%;
+  margin: -10px auto 14px;
+  border: 1px solid rgba(255, 209, 102, 0.34);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 209, 102, 0.09);
+  color: #fff0bd;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
 
 .room-intel {
   display: grid;

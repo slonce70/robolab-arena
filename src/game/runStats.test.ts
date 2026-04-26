@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { beginRoom, completeRoom, createRunStats, formatDuration, formatRoomSummary, formatVictorySummary, recordRestart } from './runStats';
+import { beginRoom, completeRoom, createRunStats, formatDuration, formatPauseSummary, formatRoomSummary, formatVictorySummary, recordRestart } from './runStats';
 
 describe('run stats', () => {
   it('formats durations for player-facing summaries', () => {
@@ -18,5 +18,16 @@ describe('run stats', () => {
     expect(roomTwo.completedRooms).toBe(1);
     expect(formatRoomSummary(roomTwo, 76_000)).toBe('Час кімнати 0:45 · пройдено 1 кімнату · 1 рестарт');
     expect(formatVictorySummary(completeRoom(roomTwo), 126_000)).toBe('Фінальний час 2:05 · пройдено 2 кімнати · 1 рестарт');
+  });
+
+  it('summarizes the current run for the pause menu', () => {
+    const stats = {
+      ...createRunStats(1_000),
+      roomStartedAtMs: 31_000,
+      completedRooms: 3,
+      restarts: 2
+    };
+
+    expect(formatPauseSummary(stats, 76_000)).toBe('Забіг 1:15 · кімната 0:45 · пройдено 3 кімнати · 2 рестарти');
   });
 });

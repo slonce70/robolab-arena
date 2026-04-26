@@ -52,6 +52,10 @@ export function formatVictorySummary(stats: RunStats, nowMs: number): string {
   return `Фінальний час ${formatDuration(nowMs - stats.startedAtMs)} · пройдено ${formatCompletedRooms(stats.completedRooms)} · ${formatRestarts(stats.restarts)}`;
 }
 
+export function formatPauseSummary(stats: RunStats, nowMs: number): string {
+  return `Забіг ${formatDuration(nowMs - stats.startedAtMs)} · кімната ${formatDuration(nowMs - stats.roomStartedAtMs)} · пройдено ${formatCompletedRooms(stats.completedRooms)} · ${formatRestarts(stats.restarts)}`;
+}
+
 function formatCompletedRooms(count: number): string {
   return formatUkrainianCount(count, { one: 'кімнату', few: 'кімнати', many: 'кімнат' });
 }

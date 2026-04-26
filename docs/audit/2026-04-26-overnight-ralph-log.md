@@ -1493,3 +1493,16 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: browser smoke confirms the room render path and screenshot, not a quantified pixel comparison of the aura.
+
+## Iteration 127 - Pause menu run stats
+- Problem: pause had room intel and settings, but did not show current run/room time or restart pressure. That made restart decisions less informed during a full 12-room run.
+- Change: added a tested pause summary (`Забіг`, current room time, completed rooms, restarts) and displayed it in the pause panel above room intel.
+- Evidence:
+  - TDD red: `npm test -- src/game/runStats.test.ts` first failed because `formatPauseSummary()` did not exist.
+  - Focused green: `npm test -- src/game/runStats.test.ts` PASS: 1 file / 3 tests.
+  - Build check after UI integration: `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full regression: `npm test` PASS: 40 files / 178 tests.
+  - Pause browser smoke `node .omx/tmp/robolab-pause-run-stats-qa.mjs` PASS: `pause-run-stats-playwright-pass`, run stats visible and 4 room-intel cards present, no bad console messages or page errors.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: stats are snapshot text when pause opens; they do not live-update while paused, by design.

@@ -41,6 +41,7 @@ import {
   beginRoom,
   completeRoom,
   createRunStats,
+  formatPauseSummary,
   formatRoomSummary,
   formatVictorySummary,
   recordRestart,
@@ -501,6 +502,7 @@ export class Game {
         <p class="eyebrow">Пауза</p>
         <h1>RoboLab</h1>
         <p class="intro">Кімната ${level.id}: ${level.name}</p>
+        <p class="pause-run-stats">${formatPauseSummary(this.runStats, performance.now())}</p>
         <div class="room-intel" aria-label="План кімнати">
           <div><strong>Ціль</strong><span>${intel.objective}</span></div>
           <div><strong>Загрози</strong><span>${intel.threat}</span></div>
