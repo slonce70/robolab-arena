@@ -1160,3 +1160,15 @@ Remaining risk:
   - True game-flow victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
   - `git diff --check` PASS.
 - Remaining risk: automated checks verify state/copy/build; subjective pacing still needs human combat feel review.
+
+## Iteration 101 - Complete controls hint for sound toggle
+- Problem: gameplay supports `M` for sound toggle, but the HUD controls hint did not mention it, so players could miss an active shortcut.
+- Change: added `M — звук` to the controls hint and locked it with the existing shortcut-copy test.
+- Evidence:
+  - TDD red: `npm test -- src/game/controlsHint.test.ts` failed until the hint included `M — звук`.
+  - Focused green: `npm test -- src/game/controlsHint.test.ts` PASS: 1 file / 1 test.
+  - Full regression: `npm test` PASS: 40 files / 158 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: copy is longer; narrow/mobile wrapping should be visually reviewed if the HUD feels crowded.

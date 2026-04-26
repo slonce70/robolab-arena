@@ -10,6 +10,7 @@ describe('controls hint copy', () => {
     expect(hint).toContain('Shift — ривок');
     expect(hint).toContain('Space/E — стрибок');
     expect(hint).toContain('R — перезапуск');
+    expect(hint).toContain('M — звук');
     expect(hint).toContain('Esc — курсор/пауза');
   });
 });
