@@ -49,6 +49,7 @@ import {
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import { describeTargetStatus } from './targetStatus';
 import { describePickupBurst } from './transientEffects';
+import { getOverlayPanelClass } from './overlayPresentation';
 import { formatVictoryOverlayIntro } from './victoryCopy';
 import { getCrosshairClasses, getPlayerProjectileTheme } from './weaponFeedback';
 import type {
@@ -475,7 +476,7 @@ export class Game {
     this.exitPointerLock();
     this.state = title.includes('Перемога') ? 'finished' : this.state;
     this.overlay.innerHTML = `
-      <div class="panel">
+      <div class="${getOverlayPanelClass(title)}">
         <p class="eyebrow">RoboLab Arena</p>
         <h1>${title}</h1>
         <p class="intro">${text}</p>

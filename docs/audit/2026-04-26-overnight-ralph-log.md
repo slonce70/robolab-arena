@@ -1030,3 +1030,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: this validates data references only; it does not verify visual door readability in-browser.
+
+## Iteration 90 - Celebratory victory panel
+- Problem: final victory used the same generic overlay panel as menus and room transitions, so the win moment lacked a distinct visual finish.
+- Change: added a small overlay presentation helper and a `victory-panel` CSS variant with gold/cyan celebratory glow for the final victory overlay only.
+- Evidence:
+  - TDD red: `npm test -- src/game/overlayPresentation.test.ts src/game/styleTokens.test.ts` failed until the helper and `.victory-panel` styling existed.
+  - Focused green: `npm test -- src/game/overlayPresentation.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 5 tests.
+  - Full regression: `npm test` PASS: 40 files / 148 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: victory styling is CSS-token covered, not pixel-matched in a browser screenshot.

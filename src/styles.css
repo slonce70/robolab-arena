@@ -509,6 +509,18 @@ button:focus-visible {
   overflow-y: auto;
 }
 
+.victory-panel {
+  border-color: rgba(255, 209, 102, 0.68);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 209, 102, 0.18), transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(84, 241, 255, 0.13), transparent 42%),
+    var(--panel-strong);
+  box-shadow:
+    0 30px 88px rgba(0, 0, 0, 0.5),
+    0 0 38px rgba(255, 209, 102, 0.16),
+    inset 0 0 42px rgba(84, 241, 255, 0.12);
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--cyan);

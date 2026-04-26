@@ -39,4 +39,11 @@ describe('CSS custom properties', () => {
       for (const color of colors) expect(rule, selector).toContain(color);
     }
   });
+
+  it('makes the victory panel visibly celebratory', () => {
+    const rule = getCssRule('.victory-panel');
+
+    expect(rule).toContain('rgba(255, 209, 102');
+    expect(rule).toContain('rgba(84, 241, 255');
+  });
 });
