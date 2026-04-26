@@ -40,6 +40,14 @@ function validateLevelRoute(level: LevelConfig): string[] {
     }
   }
 
+  for (const enemy of requiredEnemyEngagements(level)) {
+    const engagementPoints = getEnemyEngagementPoints(enemy.position);
+    const reachableEngagement = engagementPoints.some((point) => hasReachableStandingPoint(point, openReachable, openSolids));
+    if (!reachableEngagement) {
+      failures.push(`Level ${level.id} enemy at (${enemy.position.x}, ${enemy.position.z}) has no reachable engagement point after doors open.`);
+    }
+  }
+
   for (const point of optionalSupportPickups(level)) {
     if (!hasReachableStandingPoint(point, closedReachable, closedSolids)) {
       failures.push(`Level ${level.id} support pickup at (${point.x}, ${point.z}) cannot be reached before doors open.`);
@@ -67,8 +75,21 @@ function requiredClosedDoorInteractions(level: LevelConfig): Vec2[] {
 
 function requiredOpenDoorInteractions(level: LevelConfig): Vec2[] {
   if (level.objective === 'targets') return (level.targets ?? []).map((target) => target.position);
-  if (level.objective === 'enemies' || level.objective === 'boss') return (level.enemies ?? []).map((enemy) => enemy.position);
   return [];
+}
+
+function requiredEnemyEngagements(level: LevelConfig): { position: Vec2 }[] {
+  if (level.objective === 'enemies' || level.objective === 'boss') return level.enemies ?? [];
+  return [];
+}
+
+function getEnemyEngagementPoints(position: Vec2): Vec2[] {
+  return [
+    { x: position.x + 2.2, z: position.z },
+    { x: position.x - 2.2, z: position.z },
+    { x: position.x, z: position.z + 2.2 },
+    { x: position.x, z: position.z - 2.2 }
+  ];
 }
 
 function levelSolids(level: LevelConfig, includeClosedDoors: boolean): PlaySolid[] {

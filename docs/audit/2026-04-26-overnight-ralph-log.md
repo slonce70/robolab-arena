@@ -1271,3 +1271,16 @@ Remaining risk:
   - Browser green: `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms completed, victory intro `Фінальний час 0:09 · пройдено 12 кімнат · 0 рестартів`, `badConsoleMessages: 0`, `pageErrors: 0`.
   - Screenshot/report: `output/playwright/overnight-full-campaign-dev-complete-2026-04-26/victory-after-12-dev-completions.png` and `report.json`.
 - Remaining risk: this is stronger game-flow evidence but still uses DEV completion shortcuts; it is not a human no-shortcut combat/aim/movement playthrough.
+
+## Iteration 110 - Enemy engagement route guard
+- Problem: the campaign route guard proved enemy centers were reachable, but a player shoots from nearby standing positions, not from inside the enemy model; blocked engagement space could still make enemy rooms feel unfair.
+- Change: changed enemy/boss route validation to require at least one reachable engagement position around every enemy after doors are open, while keeping target, button, support, and exit reachability checks intact.
+- Evidence:
+  - TDD red: the first stricter draft failed because it incorrectly required all four engagement sides around each enemy to be reachable, surfacing over-strict failures in rooms 5, 8, and 11.
+  - Focused green: `npm test -- src/game/campaignPlaythrough.test.ts` PASS: 1 file / 1 test after changing the contract to “at least one reachable engagement point”.
+  - Full regression: `npm test` PASS: 40 files / 162 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: engagement reachability is static geometry evidence and still does not prove aim/combat difficulty in a human no-shortcut run.
