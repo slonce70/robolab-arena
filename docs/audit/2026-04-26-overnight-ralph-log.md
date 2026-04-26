@@ -1454,3 +1454,16 @@ Remaining risk:
   - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: the check is conservative static spawn geometry; it does not prove that moving enemies never later path into walls during live combat.
+
+## Iteration 124 - Late-room brief keeps exact tactical tip
+- Problem: late-room start toasts warned that the sector was dangerous, but replaced the room's specific tactical tip. That was weakest exactly in rooms 10-12 where the player needs concrete reminders like button pressure, healing, circular movement, and boss-core focus.
+- Change: late-room room briefs now keep the `Фінальний сектор` urgency label while appending the level's real tip instead of a generic warning.
+- Evidence:
+  - TDD red: `npm test -- src/game/roomBrief.test.ts` first failed because the room 12 warning did not contain `рухайся колом`.
+  - Focused green: `npm test -- src/game/roomBrief.test.ts` PASS: 1 file / 3 tests.
+  - Full regression: `npm test` PASS: 40 files / 175 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Room-brief browser smoke `node .omx/tmp/robolab-room-brief-toast-qa.mjs` PASS: `room-brief-toast-playwright-pass`, room 12 toast included `Фінальний сектор` and `рухайся колом`, no bad console messages or page errors.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this improves tactical copy only; it does not rebalance room 12 combat.

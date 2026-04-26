@@ -24,6 +24,6 @@ export function createRoomBrief(level: LevelConfig): RoomBrief {
   return {
     title: `Кімната ${level.id}: ${level.name}`,
     stats,
-    warning: level.id >= 10 ? 'Фінальний сектор: грай обережно й користуйся аптечками.' : level.tip
+    warning: level.id >= 10 ? `Фінальний сектор: ${level.tip}` : level.tip
   };
 }

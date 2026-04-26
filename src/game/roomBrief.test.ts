@@ -52,6 +52,7 @@ describe('room brief copy', () => {
     const brief = createRoomBrief(LEVELS[11]);
 
     expect(brief.warning).toContain('Фінальний сектор');
+    expect(brief.warning).toContain('рухайся колом');
     expect(LEVELS[11].tip).toContain('Фінал');
   });
 });
