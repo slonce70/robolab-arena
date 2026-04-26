@@ -46,6 +46,7 @@ import {
 } from './runStats';
 import { loadSettings, saveSettings, type RoboLabSettings } from './storage';
 import { describeTargetStatus } from './targetStatus';
+import { describePickupBurst } from './transientEffects';
 import { formatVictoryOverlayIntro } from './victoryCopy';
 import { getCrosshairClasses, getPlayerProjectileTheme } from './weaponFeedback';
 import type {
@@ -1747,9 +1748,14 @@ export class Game {
           this.overchargeShots += 1;
           this.showToast('Заряджений постріл готовий!', 1.8);
         }
+        const burst = describePickupBurst(powerUp.kind, this.settings.reducedMotion);
         const effectPosition = powerUp.position.clone().add(new THREE.Vector3(0, 0.8, 0));
-        this.addSpark(effectPosition, effectTheme.color, effectTheme.pulseScale);
-        this.addPulseRing(effectPosition, effectTheme.color, effectTheme.pulseScale);
+        this.addSpark(effectPosition, effectTheme.color, effectTheme.pulseScale * burst.sparkScale);
+        for (let ring = 0; ring < burst.ringCount; ring += 1) {
+          const ringPosition = effectPosition.clone();
+          ringPosition.y += ring * 0.12;
+          this.addPulseRing(ringPosition, effectTheme.color, effectTheme.pulseScale * burst.ringScale * (1 + ring * 0.12));
+        }
         this.audio.play('pickup');
       }
     }

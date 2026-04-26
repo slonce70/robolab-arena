@@ -839,3 +839,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: projectile colors/size are unit/build/smoke covered, but exact feel still needs a human combat pass.
+
+## Iteration 74 - Pickup burst polish
+- Problem: power-up pickups had distinct colors, but every pickup emitted the same single spark/ring pattern, so shield and overcharge did not feel as special as their HUD/aura states.
+- Change: added a tested pickup-burst presenter and wired pickups to emit calmer repair bursts, stronger rapid/shield bursts, and a three-ring overcharge burst while reduced-motion keeps only one calmer ring.
+- Evidence:
+  - TDD red: `npm test -- src/game/transientEffects.test.ts` failed because `transientEffects.ts` did not exist.
+  - Focused green: `npm test -- src/game/transientEffects.test.ts` PASS: 2 tests.
+  - Full regression: `npm test` PASS: 37 files / 131 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: pickup burst math is unit/build/smoke covered, but exact pickup feel still needs a human visual pass.
