@@ -1114,3 +1114,13 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: no pixel-matched screenshot assertion for the pulse; coverage is unit/style-token plus smoke tests.
+
+## Iteration 97 - Expiring power architect fixes
+- Problem: architect review blocked the expiring power warning because reduced-motion mode shortened the infinite pulse instead of disabling it, and layered rapid/shield/overcharge combinations could override the orange warning glow.
+- Change: disabled expiring animation explicitly in reduced-motion mode, added expiring+layered power-chip selectors that preserve existing color layers plus orange warning glow, and strengthened CSS token parsing/tests for exact selector matches.
+- Evidence:
+  - TDD red: `npm test -- src/game/styleTokens.test.ts` failed until reduced-motion and layered-expiring selectors existed.
+  - Focused green: `npm test -- src/game/styleTokens.test.ts` PASS: 1 file / 7 tests.
+  - Focused regression: `npm test -- src/game/powerStatus.test.ts src/game/styleTokens.test.ts` PASS: 2 files / 11 tests.
+  - `git diff --check` PASS.
+- Remaining risk: browser smoke/pixel evidence will run in the next combined verification pass after the door-label WIP is finished.

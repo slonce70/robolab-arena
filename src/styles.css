@@ -70,9 +70,12 @@ button:focus-visible {
 
 
 .game-shell.is-reduced-motion .toast-chip,
-.game-shell.is-reduced-motion .overlay,
-.game-shell.is-reduced-motion :is(.power-chip.is-expiring) {
+.game-shell.is-reduced-motion .overlay {
   animation-duration: 0.01ms;
+}
+
+.game-shell.is-reduced-motion .power-chip.is-expiring {
+  animation: none;
 }
 
 .game-shell.is-reduced-motion .primary-action,
@@ -232,6 +235,43 @@ button:focus-visible {
     0 0 18px rgba(255, 209, 102, 0.2),
     0 0 16px rgba(84, 241, 255, 0.18),
     0 0 22px rgba(255, 79, 163, 0.25),
+    var(--hud-shadow);
+}
+
+.power-chip.is-rapid.is-shielded.is-expiring {
+  border-color: rgba(255, 159, 67, 0.88);
+  box-shadow:
+    0 0 18px rgba(255, 209, 102, 0.18),
+    0 0 16px rgba(84, 241, 255, 0.16),
+    0 0 24px rgba(255, 159, 67, 0.34),
+    var(--hud-shadow);
+}
+
+.power-chip.is-rapid.is-overcharged.is-expiring {
+  border-color: rgba(255, 159, 67, 0.88);
+  box-shadow:
+    0 0 18px rgba(255, 209, 102, 0.18),
+    0 0 22px rgba(255, 79, 163, 0.22),
+    0 0 24px rgba(255, 159, 67, 0.34),
+    var(--hud-shadow);
+}
+
+.power-chip.is-shielded.is-overcharged.is-expiring {
+  border-color: rgba(255, 159, 67, 0.88);
+  box-shadow:
+    0 0 16px rgba(84, 241, 255, 0.16),
+    0 0 22px rgba(255, 79, 163, 0.22),
+    0 0 24px rgba(255, 159, 67, 0.34),
+    var(--hud-shadow);
+}
+
+.power-chip.is-rapid.is-shielded.is-overcharged.is-expiring {
+  border-color: rgba(255, 159, 67, 0.9);
+  box-shadow:
+    0 0 18px rgba(255, 209, 102, 0.18),
+    0 0 16px rgba(84, 241, 255, 0.16),
+    0 0 22px rgba(255, 79, 163, 0.22),
+    0 0 24px rgba(255, 159, 67, 0.34),
     var(--hud-shadow);
 }
 

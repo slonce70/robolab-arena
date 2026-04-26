@@ -6,9 +6,11 @@ const cssPath = fileURLToPath(new URL('../styles.css', import.meta.url));
 const css = readFileSync(cssPath, 'utf8');
 
 function getCssRule(selector: string): string {
-  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
-  return match?.[1] ?? '';
+  for (const match of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const selectors = match[1].split(',').map((item) => item.trim());
+    if (selectors.includes(selector)) return match[2];
+  }
+  return '';
 }
 
 describe('CSS custom properties', () => {
@@ -45,6 +47,20 @@ describe('CSS custom properties', () => {
 
     expect(rule).toContain('rgba(255, 159, 67');
     expect(rule).toContain('power-expiring');
+  });
+
+  it('disables expiring pulse animation in reduced-motion mode', () => {
+    const rule = getCssRule('.game-shell.is-reduced-motion .power-chip.is-expiring');
+
+    expect(rule).toContain('animation: none');
+  });
+
+  it('keeps layered power states and expiring warning glow visible together', () => {
+    const rule = getCssRule('.power-chip.is-rapid.is-shielded.is-expiring');
+
+    expect(rule).toContain('rgba(255, 209, 102');
+    expect(rule).toContain('rgba(84, 241, 255');
+    expect(rule).toContain('rgba(255, 159, 67');
   });
 
   it('makes the victory panel visibly celebratory', () => {
