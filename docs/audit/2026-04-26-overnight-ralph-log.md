@@ -1506,3 +1506,16 @@ Remaining risk:
   - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: stats are snapshot text when pause opens; they do not live-update while paused, by design.
+
+## Iteration 128 - Laser-button room tactics are specific
+- Problem: pause intel treated every button room the same, so room 10's hardest button/laser pressure did not explicitly tell the player to route between laser windows or save the shield for the final button/error recovery.
+- Change: `getLevelIntel()` now gives button+laser rooms a dedicated tactic that calls out laser timing, sequential doors, and shield usage while leaving simpler button rooms with the original guidance.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelIntel.test.ts` first failed because room 10 tactics did not mention `щит` or `лазер`.
+  - Focused green: `npm test -- src/game/levelIntel.test.ts` PASS: 1 file / 4 tests.
+  - Full regression: `npm test` PASS: 40 files / 178 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Room-10 pause browser smoke `node .omx/tmp/robolab-room-10-intel-qa.mjs` PASS: `room-10-intel-playwright-pass`, tactic included shield/laser/final-button guidance, no bad console messages or page errors.
+  - Fresh 12-room browser smoke `node .omx/tmp/robolab-12-room-dom-smoke.mjs` PASS: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: this improves pause guidance and does not change room 10 enemy/laser balance.

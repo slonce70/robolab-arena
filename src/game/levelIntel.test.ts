@@ -24,6 +24,8 @@ describe('level intel', () => {
 
   it('calls out boss and laser rooms with specific tactics', () => {
     expect(getLevelIntel(LEVELS[3]).tactic).toContain('ривок');
+    expect(getLevelIntel(LEVELS[9]).tactic).toContain('щит');
+    expect(getLevelIntel(LEVELS[9]).tactic).toContain('лазер');
     expect(getLevelIntel(LEVELS[11]).threat).toContain('бос');
     expect(getLevelIntel(LEVELS[11]).tactic).toContain('рухайся колом');
   });
