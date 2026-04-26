@@ -1402,3 +1402,16 @@ Remaining risk:
   - Victory browser smoke `node .omx/tmp/robolab-victory-panel-qa.mjs` PASS: `victory-panel-gameflow-pass`.
   - `git diff --check` PASS.
 - Remaining risk: browser smoke currently verifies boss HUD presence/phase-1 boot and victory path, while final phase-3 CSS is covered by token tests rather than a live phase-3 combat screenshot.
+
+## Iteration 120 - Live final boss phase browser evidence
+- Problem: iteration 119 made phase-3 boss HUD CSS stronger, but the browser evidence only booted room 12 in phase 1; phase-3 animation was token-tested rather than observed in a real running browser state.
+- Change: added a DEV-only boss phase QA shortcut (`KeyP`) behind existing dev shortcut gating, which lowers the live boss to phase-3 health without completing the room. Added an ignored browser smoke that jumps to room 12, triggers phase 3, and verifies the boss HUD text, `is-phase-3` class, and `boss-phase-critical` animation.
+- Evidence:
+  - TDD red: `npm test -- src/game/devControls.test.ts` failed first because `getDevBossTarget` was missing.
+  - Focused green: `npm test -- src/game/devControls.test.ts` PASS: 1 file / 5 tests.
+  - Browser phase-3 smoke: `node .omx/tmp/robolab-boss-final-phase-qa.mjs` PASS with `boss-final-phase-playwright-pass`, boss text `Турбо-Вартовий 20% · Фаза 3: Останній розряд · рухайся колом`, `phaseClasses: [is-phase-3]`, `animationName: boss-phase-critical`, no bad console messages or page errors.
+  - Full regression: `npm test` PASS: 40 files / 172 tests.
+  - `npm run build` PASS with TypeScript/Vite production bundle.
+  - Full campaign DEV-completion browser smoke `node .omx/tmp/robolab-full-campaign-dev-complete-qa.mjs` PASS: `full-campaign-dev-complete-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: phase-3 browser evidence uses a DEV shortcut for health setup; it is still not a human no-shortcut boss fight.

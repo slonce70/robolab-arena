@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getDevBossTarget, getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 
 describe('getDevLevelTarget', () => {
   it('moves between rooms with bracket shortcuts', () => {
@@ -21,5 +21,10 @@ describe('getDevLevelTarget', () => {
   it('exposes a room-completion QA shortcut for true victory smoke tests', () => {
     expect(getDevCompletionTarget('KeyN')).toBe('complete-room');
     expect(getDevCompletionTarget('KeyC')).toBeUndefined();
+  });
+
+  it('exposes a boss phase QA shortcut without stealing player-facing controls', () => {
+    expect(getDevBossTarget('KeyP')).toBe('phase-three');
+    expect(getDevBossTarget('KeyM')).toBeUndefined();
   });
 });

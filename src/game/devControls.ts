@@ -16,6 +16,11 @@ export function getDevCompletionTarget(code: string): 'complete-room' | undefine
   return undefined;
 }
 
+export function getDevBossTarget(code: string): 'phase-three' | undefined {
+  if (code === 'KeyP') return 'phase-three';
+  return undefined;
+}
+
 function clampRoom(level: number, totalLevels: number): number {
   return Math.min(Math.max(1, level), totalLevels);
 }

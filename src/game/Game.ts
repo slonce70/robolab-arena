@@ -17,7 +17,7 @@ import { CameraController } from './camera/CameraController';
 import { DOOR_PANEL_DEPTH, DOOR_SOLID_HALF_DEPTH, DOOR_SOLID_HALF_WIDTH, pointHitsSolid } from './collision';
 import { canApplyDamage, effectiveDamage } from './combat';
 import { getControlsHint } from './controlsHint';
-import { getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
+import { getDevBossTarget, getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDifficultyChange, getDifficultyLabel, scaleEnemyPacingDelta, nextDifficulty } from './difficulty';
 import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
 import { getPowerEffectTheme } from './effects';
@@ -2370,6 +2370,15 @@ export class Game {
     }
     if (getDevCompletionTarget(event.code) === 'complete-room') {
       this.completeLevel();
+      return true;
+    }
+    if (getDevBossTarget(event.code) === 'phase-three') {
+      const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
+      if (!boss) return false;
+      boss.health = Math.max(1, Math.floor(boss.maxHealth * 0.2));
+      boss.shootTimer = 0.15;
+      this.showToast('QA: фінальна фаза боса.', 1.4);
+      this.updateHud();
       return true;
     }
     const targetLevel = getDevLevelTarget(event.code, this.levelIndex + 1, LEVELS.length);
