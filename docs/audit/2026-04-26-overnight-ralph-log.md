@@ -1042,3 +1042,15 @@ Remaining risk:
   - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
   - `git diff --check` PASS.
 - Remaining risk: victory styling is CSS-token covered, not pixel-matched in a browser screenshot.
+
+## Iteration 91 - Deduplicate missing door reference failures
+- Problem: `validateLevel()` checked both `opensDoorId` and `opensDoorIds`, but a missing id duplicated in both fields would emit duplicate failure strings, and only the base `opensDoorId` path had a regression test.
+- Change: deduplicated button door references before validation and added a regression where `opensDoorIds` repeats a missing id.
+- Evidence:
+  - TDD red: `npm test -- src/game/levelValidation.test.ts` failed with duplicate missing-door failures before dedupe.
+  - Focused green: `npm test -- src/game/levelValidation.test.ts` PASS: 1 file / 8 tests.
+  - Full regression: `npm test` PASS: 40 files / 149 tests.
+  - `npm run build` PASS with app/three chunks and no large-chunk warning.
+  - Fresh 12-room browser smoke `output/playwright/overnight-12-room-dom-smoke-2026-04-26/report.json`: `12-room-dom-smoke-pass`, 12 rooms, `badConsoleMessages: 0`, `pageErrors: 0`.
+  - `git diff --check` PASS.
+- Remaining risk: stricter semantics still intentionally require every referenced id in both fields to exist.
