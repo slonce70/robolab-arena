@@ -1,5 +1,12 @@
 node_modules/
 dist/
 output/
+.omx/
+.playwright-cli/
+coverage/
+playwright-report/
+test-results/
 .DS_Store
-
+.env
+.env.*
+!.env.example
