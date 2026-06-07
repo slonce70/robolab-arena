@@ -231,6 +231,7 @@ export class Game {
   private readonly collectibles: Collectible[] = [];
   private readonly doors: Door[] = [];
   private readonly buttons: LabButton[] = [];
+  private readonly buttonsByDoorId = new Map<string, LabButton[]>();
   private readonly lasers: Laser[] = [];
   private readonly powerUps: PowerUp[] = [];
   private readonly obstacles: Obstacle[] = [];
@@ -624,6 +625,7 @@ export class Game {
     level.enemies?.forEach((enemy) => this.spawnEnemy(enemy));
     level.doors?.forEach((door) => this.spawnDoor(door));
     level.buttons?.forEach((button) => this.spawnButton(button));
+    this.rebuildButtonDoorIndex();
     level.lasers?.forEach((laser) => this.spawnLaser(laser));
     level.powerUps?.forEach((powerUp) => this.spawnPowerUp(powerUp));
 
@@ -641,6 +643,7 @@ export class Game {
     this.collectibles.length = 0;
     this.doors.length = 0;
     this.buttons.length = 0;
+    this.buttonsByDoorId.clear();
     this.lasers.length = 0;
     this.powerUps.length = 0;
     this.obstacles.length = 0;
@@ -1256,6 +1259,17 @@ export class Game {
       opensDoorIds: config.opensDoorIds ?? [config.opensDoorId],
       active: false
     });
+  }
+
+  private rebuildButtonDoorIndex(): void {
+    this.buttonsByDoorId.clear();
+    for (const button of this.buttons) {
+      for (const doorId of button.opensDoorIds) {
+        const buttons = this.buttonsByDoorId.get(doorId) ?? [];
+        buttons.push(button);
+        this.buttonsByDoorId.set(doorId, buttons);
+      }
+    }
   }
 
   private spawnLaser(config: LaserConfig): void {
@@ -1908,7 +1922,7 @@ export class Game {
   private updateDoors(delta: number): void {
     let openedThisFrame = 0;
     for (const door of this.doors) {
-      const relatedButtons = this.buttons.filter((button) => button.opensDoorIds.includes(door.id));
+      const relatedButtons = this.buttonsByDoorId.get(door.id) ?? [];
       const shouldOpen = relatedButtons.length > 0 && relatedButtons.every((button) => button.active);
       if (shouldOpen && !door.open) {
         door.open = true;
