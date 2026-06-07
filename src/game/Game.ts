@@ -36,6 +36,7 @@ import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } 
 import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerHud } from './powerStatus';
+import { calculateRenderPixelRatio, getRendererOptions } from './renderQuality';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import {
   getPointerLockToast,
@@ -287,8 +288,8 @@ export class Game {
 
   constructor(root: HTMLDivElement) {
     this.root = root;
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer = new THREE.WebGLRenderer(getRendererOptions());
+    this.renderer.setPixelRatio(calculateRenderPixelRatio(window.devicePixelRatio, this.settings.reducedMotion));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -572,6 +573,7 @@ export class Game {
     }
     if (action === 'motion') {
       this.settings = saveSettings({ reducedMotion: !this.settings.reducedMotion });
+      this.renderer.setPixelRatio(calculateRenderPixelRatio(window.devicePixelRatio, this.settings.reducedMotion));
       this.updateHud();
       this.showPauseOverlay();
       return;
