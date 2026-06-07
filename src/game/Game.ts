@@ -226,6 +226,14 @@ export class Game {
   private readonly playerEffectRoot = new THREE.Group();
   private readonly playerPosition = new THREE.Vector3();
   private readonly playerVelocity = new THREE.Vector3();
+  private readonly movementInput = new THREE.Vector3();
+  private readonly movementScratch = new THREE.Vector3();
+  private readonly stepMoveScratch = new THREE.Vector3();
+  private readonly aimDirectionScratch = new THREE.Vector3();
+  private readonly toPlayerScratch = new THREE.Vector3();
+  private readonly effectPositionScratch = new THREE.Vector3();
+  private readonly exitPositionScratch = new THREE.Vector3();
+  private readonly aimMarkerTarget = new THREE.Vector3();
   private readonly enemies: Enemy[] = [];
   private readonly targets: Target[] = [];
   private readonly collectibles: Collectible[] = [];
@@ -1469,7 +1477,7 @@ export class Game {
   }
 
   private updatePlayer(delta: number): void {
-    const movementInput = new THREE.Vector3();
+    const movementInput = this.movementInput.set(0, 0, 0);
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) movementInput.z -= 1;
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) movementInput.z += 1;
     if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) movementInput.x -= 1;
@@ -1477,7 +1485,8 @@ export class Game {
     const movementDirection = this.cameraController.getMovementDirection(movementInput);
     if (movementDirection.lengthSq() > 0) {
       this.lastMoveDirection.copy(movementDirection);
-      this.movePlayer(movementDirection.clone().multiplyScalar(PLAYER_SPEED * delta));
+      this.movementScratch.copy(movementDirection).multiplyScalar(PLAYER_SPEED * delta);
+      this.movePlayer(this.movementScratch);
     }
 
     if ((this.keys.has('Space') || this.keys.has('KeyE')) && !this.jumpHeld && this.playerPosition.y <= 0.01) {
@@ -1495,7 +1504,7 @@ export class Game {
     }
 
     this.player.position.copy(this.playerPosition);
-    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     aimDirection.y = 0;
     const facingDirection = movementDirection.lengthSq() > 0.01 ? movementDirection : aimDirection;
     if (facingDirection.lengthSq() > 0.01) {
@@ -1581,7 +1590,7 @@ export class Game {
 
   private movePlayer(deltaMove: THREE.Vector3): void {
     const steps = Math.max(1, Math.ceil(deltaMove.length() / 0.35));
-    const step = deltaMove.clone().multiplyScalar(1 / steps);
+    const step = this.stepMoveScratch.copy(deltaMove).multiplyScalar(1 / steps);
 
     for (let i = 0; i < steps; i += 1) {
       this.playerPosition.add(step);
@@ -1595,7 +1604,7 @@ export class Game {
     for (const enemy of this.enemies) {
       if (!enemy.alive) continue;
 
-      const toPlayer = this.playerPosition.clone().sub(enemy.group.position);
+      const toPlayer = this.toPlayerScratch.copy(this.playerPosition).sub(enemy.group.position);
       toPlayer.y = 0;
       const distance = Math.max(toPlayer.length(), 0.001);
       const lookAngle = Math.atan2(toPlayer.x, toPlayer.z);
@@ -2031,7 +2040,8 @@ export class Game {
 
   private updateAimMarker(delta: number): void {
     this.aimMarker.visible = this.state === 'playing' && this.cameraController.getMode() === 'thirdPerson';
-    this.aimMarker.position.lerp(new THREE.Vector3(this.aimPoint.x, 0.09, this.aimPoint.z), 1 - Math.pow(0.004, delta));
+    this.aimMarkerTarget.set(this.aimPoint.x, 0.09, this.aimPoint.z);
+    this.aimMarker.position.lerp(this.aimMarkerTarget, 1 - Math.pow(0.004, delta));
     this.aimMarker.rotation.y += delta * 2.4;
   }
 
@@ -2064,7 +2074,7 @@ export class Game {
   }
 
   private updateCamera(delta: number): void {
-    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     this.cameraController.update(delta, this.playerPosition, aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
     const isFirstPersonPlaying = this.state === 'playing' && this.cameraController.getMode() === 'firstPerson';
     this.player.visible = !isFirstPersonPlaying;
@@ -2078,7 +2088,7 @@ export class Game {
     }
 
     const level = LEVELS[this.levelIndex];
-    if (this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 1.35) {
+    if (this.distance2D(this.playerPosition, this.exitPositionScratch.set(level.exit.x, 0, level.exit.z)) < 1.35) {
       this.levelCompleteTimer += delta;
       if (this.levelCompleteTimer > 0.35) {
         this.completeLevel();
@@ -2120,7 +2130,7 @@ export class Game {
     if (level.objective === 'enemies') return this.enemies.every((enemy) => !enemy.alive);
     if (level.objective === 'buttons') return this.buttons.every((button) => button.active);
     if (level.objective === 'boss') return this.enemies.filter((enemy) => enemy.kind === 'boss').every((enemy) => !enemy.alive);
-    return this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 2.2;
+    return this.distance2D(this.playerPosition, this.exitPositionScratch.set(level.exit.x, 0, level.exit.z)) < 2.2;
   }
 
   private objectiveProgressText(): string {
@@ -2144,7 +2154,7 @@ export class Game {
 
   private shoot(): void {
     if (this.shootCooldown > 0 || this.state !== 'playing') return;
-    const thirdPersonDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const thirdPersonDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     const direction = this.cameraController.getAimDirection(thirdPersonDirection, this.lastMoveDirection);
     const overcharged = this.overchargeShots > 0;
     const projectileTheme = getPlayerProjectileTheme({
@@ -2158,7 +2168,7 @@ export class Game {
       roughness: 0.18
     });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(projectileTheme.radius, 16, 12), material);
-    mesh.position.copy(this.playerPosition).add(new THREE.Vector3(direction.x * 0.7, 1.1, direction.z * 0.7));
+    mesh.position.copy(this.playerPosition).add(this.effectPositionScratch.set(direction.x * 0.7, 1.1, direction.z * 0.7));
     this.dynamicRoot.add(mesh);
     if (overcharged) {
       this.overchargeShots -= 1;
@@ -2177,7 +2187,7 @@ export class Game {
 
   private dash(): void {
     if (this.state !== 'playing' || this.dashCooldown > 0) return;
-    const direction = this.lastMoveDirection.clone();
+    const direction = this.movementScratch.copy(this.lastMoveDirection);
     if (direction.lengthSq() < 0.01) {
       direction.set(0, 0, -1);
     }
@@ -2186,7 +2196,9 @@ export class Game {
     this.player.position.copy(this.playerPosition);
     this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
     this.dashCooldown = 2.6;
-    this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.cyan, 1.25);
+    this.effectPositionScratch.copy(this.playerPosition);
+    this.effectPositionScratch.y += 0.45;
+    this.addSpark(this.effectPositionScratch, palette.cyan, 1.25);
     this.audio.play('dash');
     this.showToast('Ривок заряджається!', 1.25);
   }
@@ -2419,7 +2431,7 @@ export class Game {
   private toggleCameraMode(): void {
     this.cameraController.toggleMode();
     if (this.cameraController.getMode() === 'firstPerson') {
-      const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+      const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
       this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
       this.requestPointerLockForFirstPerson();
     } else {
@@ -2474,8 +2486,9 @@ export class Game {
       this.rapidTimer = 8;
       this.shieldTimer = 9;
       this.overchargeShots = Math.max(this.overchargeShots, 1);
-      const effectPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0));
-      this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
+      this.effectPositionScratch.copy(this.playerPosition);
+      this.effectPositionScratch.y += 1;
+      this.addPulseRing(this.effectPositionScratch, getPowerEffectTheme('shield').color, 1.4);
       this.showToast('QA: усі ефекти активні.', 1.4);
       this.updateHud();
       return true;
