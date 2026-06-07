@@ -30,6 +30,7 @@ import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamag
 import { LASER_ACTIVE_THRESHOLD, calculateLaserWarningCharge, describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
+import { disposeObject3D } from './threeDisposal';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
 import { describeBossPhaseTransitionBurst, describeBossPhaseTransitionCue, describeBossPhaseVisual } from './bossPhaseVisual';
@@ -631,6 +632,8 @@ export class Game {
   }
 
   private clearLevel(): void {
+    disposeObject3D(this.levelRoot);
+    disposeObject3D(this.dynamicRoot);
     this.levelRoot.clear();
     this.dynamicRoot.clear();
     this.enemies.length = 0;
@@ -1991,6 +1994,7 @@ export class Game {
       spark.material.opacity = Math.max(0, spark.life / spark.maxLife);
       if (spark.life <= 0) {
         this.dynamicRoot.remove(spark.mesh);
+        disposeObject3D(spark.mesh);
         this.sparks.splice(i, 1);
       }
     }
@@ -2005,6 +2009,7 @@ export class Game {
       pulse.material.opacity = Math.max(0, (pulse.life / pulse.maxLife) * 0.58);
       if (pulse.life <= 0) {
         this.dynamicRoot.remove(pulse.mesh);
+        disposeObject3D(pulse.mesh);
         this.pulses.splice(i, 1);
       }
     }
@@ -2199,6 +2204,7 @@ export class Game {
   private removeBullet(index: number): void {
     const [bullet] = this.bullets.splice(index, 1);
     this.dynamicRoot.remove(bullet.mesh);
+    disposeObject3D(bullet.mesh);
   }
 
   private damagePlayer(amount: number, options: DamageOptions = {}): void {
@@ -2550,6 +2556,11 @@ export class Game {
     window.removeEventListener('pointerdown', this.handlePointerDown);
     document.removeEventListener('pointerlockchange', this.handlePointerLockChange);
     document.removeEventListener('pointerlockerror', this.handlePointerLockError);
+    this.clearLevel();
+    disposeObject3D(this.player);
+    disposeObject3D(this.playerEffectRoot);
+    disposeObject3D(this.aimMarker);
+    disposeObject3D(this.firstPersonBlaster);
     this.renderer.dispose();
   }
 }
