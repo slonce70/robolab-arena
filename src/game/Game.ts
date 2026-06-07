@@ -21,6 +21,7 @@ import { getControlsHint } from './controlsHint';
 import { getDevBossTarget, getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDifficultyChange, getDifficultyLabel, scaleEnemyPacingDelta, nextDifficulty } from './difficulty';
 import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
+import { setClassNameIfChanged, setStylePropertyIfChanged, setTextIfChanged } from './domPerformance';
 import { getPowerEffectTheme } from './effects';
 import { describeBeetleContactWarning, describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
@@ -29,6 +30,7 @@ import { getLaserHazardFootprint, getLaserWarningLaneOffset, isPointInLaserDamag
 import { LASER_ACTIVE_THRESHOLD, calculateLaserWarningCharge, describeLaserVisibility } from './laserVisibility';
 import { LEVELS } from './levels';
 import { robotYawForDirection } from './math';
+import { disposeObject3D } from './threeDisposal';
 import { createRoomBrief } from './roomBrief';
 import { describeBossStatus } from './bossStatus';
 import { describeBossPhaseTransitionBurst, describeBossPhaseTransitionCue, describeBossPhaseVisual } from './bossPhaseVisual';
@@ -36,6 +38,7 @@ import { describeObjectiveHud, describeObjectiveProgress, formatObjectiveHint } 
 import { describeHealthHud, describePlayerFeedback, shouldPlayLaserContactAudio } from './playerFeedback';
 import { describePowerAuraState } from './powerAura';
 import { describePowerHud } from './powerStatus';
+import { calculateRenderPixelRatio, getRendererOptions } from './renderQuality';
 import { stepMouseSensitivity, type SensitivityDirection } from './sensitivity';
 import {
   getPointerLockToast,
@@ -223,17 +226,27 @@ export class Game {
   private readonly playerEffectRoot = new THREE.Group();
   private readonly playerPosition = new THREE.Vector3();
   private readonly playerVelocity = new THREE.Vector3();
+  private readonly movementInput = new THREE.Vector3();
+  private readonly movementScratch = new THREE.Vector3();
+  private readonly stepMoveScratch = new THREE.Vector3();
+  private readonly aimDirectionScratch = new THREE.Vector3();
+  private readonly toPlayerScratch = new THREE.Vector3();
+  private readonly effectPositionScratch = new THREE.Vector3();
+  private readonly exitPositionScratch = new THREE.Vector3();
+  private readonly aimMarkerTarget = new THREE.Vector3();
   private readonly enemies: Enemy[] = [];
   private readonly targets: Target[] = [];
   private readonly collectibles: Collectible[] = [];
   private readonly doors: Door[] = [];
   private readonly buttons: LabButton[] = [];
+  private readonly buttonsByDoorId = new Map<string, LabButton[]>();
   private readonly lasers: Laser[] = [];
   private readonly powerUps: PowerUp[] = [];
   private readonly obstacles: Obstacle[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
   private readonly pulses: Pulse[] = [];
+  private hudProgressMarkup = '';
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
   private readonly firstPersonBlaster = new THREE.Group();
@@ -287,8 +300,8 @@ export class Game {
 
   constructor(root: HTMLDivElement) {
     this.root = root;
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer = new THREE.WebGLRenderer(getRendererOptions());
+    this.renderer.setPixelRatio(calculateRenderPixelRatio(window.devicePixelRatio, this.settings.reducedMotion));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -572,6 +585,7 @@ export class Game {
     }
     if (action === 'motion') {
       this.settings = saveSettings({ reducedMotion: !this.settings.reducedMotion });
+      this.renderer.setPixelRatio(calculateRenderPixelRatio(window.devicePixelRatio, this.settings.reducedMotion));
       this.updateHud();
       this.showPauseOverlay();
       return;
@@ -619,6 +633,7 @@ export class Game {
     level.enemies?.forEach((enemy) => this.spawnEnemy(enemy));
     level.doors?.forEach((door) => this.spawnDoor(door));
     level.buttons?.forEach((button) => this.spawnButton(button));
+    this.rebuildButtonDoorIndex();
     level.lasers?.forEach((laser) => this.spawnLaser(laser));
     level.powerUps?.forEach((powerUp) => this.spawnPowerUp(powerUp));
 
@@ -627,6 +642,8 @@ export class Game {
   }
 
   private clearLevel(): void {
+    disposeObject3D(this.levelRoot);
+    disposeObject3D(this.dynamicRoot);
     this.levelRoot.clear();
     this.dynamicRoot.clear();
     this.enemies.length = 0;
@@ -634,6 +651,7 @@ export class Game {
     this.collectibles.length = 0;
     this.doors.length = 0;
     this.buttons.length = 0;
+    this.buttonsByDoorId.clear();
     this.lasers.length = 0;
     this.powerUps.length = 0;
     this.obstacles.length = 0;
@@ -1251,6 +1269,17 @@ export class Game {
     });
   }
 
+  private rebuildButtonDoorIndex(): void {
+    this.buttonsByDoorId.clear();
+    for (const button of this.buttons) {
+      for (const doorId of button.opensDoorIds) {
+        const buttons = this.buttonsByDoorId.get(doorId) ?? [];
+        buttons.push(button);
+        this.buttonsByDoorId.set(doorId, buttons);
+      }
+    }
+  }
+
   private spawnLaser(config: LaserConfig): void {
     const material = new THREE.MeshStandardMaterial({
       color: palette.red,
@@ -1448,7 +1477,7 @@ export class Game {
   }
 
   private updatePlayer(delta: number): void {
-    const movementInput = new THREE.Vector3();
+    const movementInput = this.movementInput.set(0, 0, 0);
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) movementInput.z -= 1;
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) movementInput.z += 1;
     if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) movementInput.x -= 1;
@@ -1456,7 +1485,8 @@ export class Game {
     const movementDirection = this.cameraController.getMovementDirection(movementInput);
     if (movementDirection.lengthSq() > 0) {
       this.lastMoveDirection.copy(movementDirection);
-      this.movePlayer(movementDirection.clone().multiplyScalar(PLAYER_SPEED * delta));
+      this.movementScratch.copy(movementDirection).multiplyScalar(PLAYER_SPEED * delta);
+      this.movePlayer(this.movementScratch);
     }
 
     if ((this.keys.has('Space') || this.keys.has('KeyE')) && !this.jumpHeld && this.playerPosition.y <= 0.01) {
@@ -1474,7 +1504,7 @@ export class Game {
     }
 
     this.player.position.copy(this.playerPosition);
-    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     aimDirection.y = 0;
     const facingDirection = movementDirection.lengthSq() > 0.01 ? movementDirection : aimDirection;
     if (facingDirection.lengthSq() > 0.01) {
@@ -1560,7 +1590,7 @@ export class Game {
 
   private movePlayer(deltaMove: THREE.Vector3): void {
     const steps = Math.max(1, Math.ceil(deltaMove.length() / 0.35));
-    const step = deltaMove.clone().multiplyScalar(1 / steps);
+    const step = this.stepMoveScratch.copy(deltaMove).multiplyScalar(1 / steps);
 
     for (let i = 0; i < steps; i += 1) {
       this.playerPosition.add(step);
@@ -1574,7 +1604,7 @@ export class Game {
     for (const enemy of this.enemies) {
       if (!enemy.alive) continue;
 
-      const toPlayer = this.playerPosition.clone().sub(enemy.group.position);
+      const toPlayer = this.toPlayerScratch.copy(this.playerPosition).sub(enemy.group.position);
       toPlayer.y = 0;
       const distance = Math.max(toPlayer.length(), 0.001);
       const lookAngle = Math.atan2(toPlayer.x, toPlayer.z);
@@ -1901,7 +1931,7 @@ export class Game {
   private updateDoors(delta: number): void {
     let openedThisFrame = 0;
     for (const door of this.doors) {
-      const relatedButtons = this.buttons.filter((button) => button.opensDoorIds.includes(door.id));
+      const relatedButtons = this.buttonsByDoorId.get(door.id) ?? [];
       const shouldOpen = relatedButtons.length > 0 && relatedButtons.every((button) => button.active);
       if (shouldOpen && !door.open) {
         door.open = true;
@@ -1987,6 +2017,7 @@ export class Game {
       spark.material.opacity = Math.max(0, spark.life / spark.maxLife);
       if (spark.life <= 0) {
         this.dynamicRoot.remove(spark.mesh);
+        disposeObject3D(spark.mesh);
         this.sparks.splice(i, 1);
       }
     }
@@ -2001,6 +2032,7 @@ export class Game {
       pulse.material.opacity = Math.max(0, (pulse.life / pulse.maxLife) * 0.58);
       if (pulse.life <= 0) {
         this.dynamicRoot.remove(pulse.mesh);
+        disposeObject3D(pulse.mesh);
         this.pulses.splice(i, 1);
       }
     }
@@ -2008,7 +2040,8 @@ export class Game {
 
   private updateAimMarker(delta: number): void {
     this.aimMarker.visible = this.state === 'playing' && this.cameraController.getMode() === 'thirdPerson';
-    this.aimMarker.position.lerp(new THREE.Vector3(this.aimPoint.x, 0.09, this.aimPoint.z), 1 - Math.pow(0.004, delta));
+    this.aimMarkerTarget.set(this.aimPoint.x, 0.09, this.aimPoint.z);
+    this.aimMarker.position.lerp(this.aimMarkerTarget, 1 - Math.pow(0.004, delta));
     this.aimMarker.rotation.y += delta * 2.4;
   }
 
@@ -2041,7 +2074,7 @@ export class Game {
   }
 
   private updateCamera(delta: number): void {
-    const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     this.cameraController.update(delta, this.playerPosition, aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
     const isFirstPersonPlaying = this.state === 'playing' && this.cameraController.getMode() === 'firstPerson';
     this.player.visible = !isFirstPersonPlaying;
@@ -2055,7 +2088,7 @@ export class Game {
     }
 
     const level = LEVELS[this.levelIndex];
-    if (this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 1.35) {
+    if (this.distance2D(this.playerPosition, this.exitPositionScratch.set(level.exit.x, 0, level.exit.z)) < 1.35) {
       this.levelCompleteTimer += delta;
       if (this.levelCompleteTimer > 0.35) {
         this.completeLevel();
@@ -2097,7 +2130,7 @@ export class Game {
     if (level.objective === 'enemies') return this.enemies.every((enemy) => !enemy.alive);
     if (level.objective === 'buttons') return this.buttons.every((button) => button.active);
     if (level.objective === 'boss') return this.enemies.filter((enemy) => enemy.kind === 'boss').every((enemy) => !enemy.alive);
-    return this.distance2D(this.playerPosition, new THREE.Vector3(level.exit.x, 0, level.exit.z)) < 2.2;
+    return this.distance2D(this.playerPosition, this.exitPositionScratch.set(level.exit.x, 0, level.exit.z)) < 2.2;
   }
 
   private objectiveProgressText(): string {
@@ -2121,7 +2154,7 @@ export class Game {
 
   private shoot(): void {
     if (this.shootCooldown > 0 || this.state !== 'playing') return;
-    const thirdPersonDirection = this.aimPoint.clone().sub(this.playerPosition);
+    const thirdPersonDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
     const direction = this.cameraController.getAimDirection(thirdPersonDirection, this.lastMoveDirection);
     const overcharged = this.overchargeShots > 0;
     const projectileTheme = getPlayerProjectileTheme({
@@ -2135,7 +2168,7 @@ export class Game {
       roughness: 0.18
     });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(projectileTheme.radius, 16, 12), material);
-    mesh.position.copy(this.playerPosition).add(new THREE.Vector3(direction.x * 0.7, 1.1, direction.z * 0.7));
+    mesh.position.copy(this.playerPosition).add(this.effectPositionScratch.set(direction.x * 0.7, 1.1, direction.z * 0.7));
     this.dynamicRoot.add(mesh);
     if (overcharged) {
       this.overchargeShots -= 1;
@@ -2154,7 +2187,7 @@ export class Game {
 
   private dash(): void {
     if (this.state !== 'playing' || this.dashCooldown > 0) return;
-    const direction = this.lastMoveDirection.clone();
+    const direction = this.movementScratch.copy(this.lastMoveDirection);
     if (direction.lengthSq() < 0.01) {
       direction.set(0, 0, -1);
     }
@@ -2163,7 +2196,9 @@ export class Game {
     this.player.position.copy(this.playerPosition);
     this.player.rotation.y = robotYawForDirection(direction.x, direction.z);
     this.dashCooldown = 2.6;
-    this.addSpark(this.playerPosition.clone().add(new THREE.Vector3(0, 0.45, 0)), palette.cyan, 1.25);
+    this.effectPositionScratch.copy(this.playerPosition);
+    this.effectPositionScratch.y += 0.45;
+    this.addSpark(this.effectPositionScratch, palette.cyan, 1.25);
     this.audio.play('dash');
     this.showToast('Ривок заряджається!', 1.25);
   }
@@ -2195,6 +2230,7 @@ export class Game {
   private removeBullet(index: number): void {
     const [bullet] = this.bullets.splice(index, 1);
     this.dynamicRoot.remove(bullet.mesh);
+    disposeObject3D(bullet.mesh);
   }
 
   private damagePlayer(amount: number, options: DamageOptions = {}): void {
@@ -2257,19 +2293,19 @@ export class Game {
   private updateHud(): void {
     const level = LEVELS[this.levelIndex];
     const objectiveDone = this.isObjectiveComplete();
-    this.hudLevel.textContent = `Кімната ${level.id}/${LEVELS.length}: ${level.name}`;
+    setTextIfChanged(this.hudLevel, `Кімната ${level.id}/${LEVELS.length}: ${level.name}`);
     const healthHud = describeHealthHud({
       health: this.health,
       maxHealth: PLAYER_MAX_HEALTH,
       shieldTimer: this.shieldTimer,
       difficulty: this.settings.difficulty
     });
-    this.hudHealth.textContent = healthHud.text;
-    this.hudHealth.className = healthHud.classes.join(' ');
-    this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
+    setTextIfChanged(this.hudHealth, healthHud.text);
+    setClassNameIfChanged(this.hudHealth, healthHud.classes.join(' '));
+    setTextIfChanged(this.hudGears, `Очки ${this.score} | Шестерні ${this.gears}`);
     const objectiveHud = describeObjectiveHud(objectiveDone);
-    this.hudObjective.textContent = objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip);
-    this.hudObjective.className = objectiveHud.classes.join(' ');
+    setTextIfChanged(this.hudObjective, objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip));
+    setClassNameIfChanged(this.hudObjective, objectiveHud.classes.join(' '));
     this.updateExitPadStatus(objectiveDone);
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const feedback = describePlayerFeedback({
@@ -2279,18 +2315,18 @@ export class Game {
       laserContactTimer: this.laserContactTimer,
       shieldTimer: this.shieldTimer
     });
-    this.feedbackVignette.className = feedback.classes.join(' ');
-    this.feedbackVignette.style.setProperty('--feedback-opacity', String(feedback.opacity));
+    setClassNameIfChanged(this.feedbackVignette, feedback.classes.join(' '));
+    setStylePropertyIfChanged(this.feedbackVignette, '--feedback-opacity', String(feedback.opacity));
     const powerHud = describePowerHud({
       rapidTimer: this.rapidTimer,
       shieldTimer: this.shieldTimer,
       overchargeShots: this.overchargeShots
     });
-    this.hudPower.textContent = powerHud.text;
-    this.hudPower.className = powerHud.classes.join(' ');
-    this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
+    setTextIfChanged(this.hudPower, powerHud.text);
+    setClassNameIfChanged(this.hudPower, powerHud.classes.join(' '));
+    setTextIfChanged(this.hudDash, this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`);
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
-    this.hudCamera.textContent = this.cameraController.getHudLabel();
+    setTextIfChanged(this.hudCamera, this.cameraController.getHudLabel());
     const isFirstPerson = this.cameraController.getMode() === 'firstPerson';
     this.shell.classList.toggle('is-first-person', isFirstPerson);
     this.shell.classList.toggle('is-reduced-motion', this.settings.reducedMotion);
@@ -2303,21 +2339,29 @@ export class Game {
       rapidTimer: this.rapidTimer,
       overchargeShots: this.overchargeShots
     }).join(' ');
-    this.hudProgress.innerHTML = LEVELS.map((item, index) => {
-      const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
-      return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
-    }).join('');
+    this.updateHudProgressMarkup();
     this.toast.classList.toggle('is-visible', this.toastTimer > 0);
 
     const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
     this.hudBoss.classList.remove('is-phase-1', 'is-phase-2', 'is-phase-3');
     if (boss) {
       const status = describeBossStatus(boss.health, boss.maxHealth);
-      this.hudBoss.textContent = status.text;
+      setTextIfChanged(this.hudBoss, status.text);
       this.hudBoss.classList.add('is-visible', status.cssClass);
     } else {
       this.hudBoss.classList.remove('is-visible');
     }
+  }
+
+  private updateHudProgressMarkup(): void {
+    const nextMarkup = LEVELS.map((item, index) => {
+      const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
+      return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
+    }).join('');
+
+    if (this.hudProgressMarkup === nextMarkup) return;
+    this.hudProgressMarkup = nextMarkup;
+    this.hudProgress.innerHTML = nextMarkup;
   }
 
   private updateExitPadStatus(objectiveDone: boolean): void {
@@ -2387,7 +2431,7 @@ export class Game {
   private toggleCameraMode(): void {
     this.cameraController.toggleMode();
     if (this.cameraController.getMode() === 'firstPerson') {
-      const aimDirection = this.aimPoint.clone().sub(this.playerPosition);
+      const aimDirection = this.aimDirectionScratch.copy(this.aimPoint).sub(this.playerPosition);
       this.cameraController.resetFirstPersonLook(aimDirection.lengthSq() > 0.001 ? aimDirection : this.lastMoveDirection);
       this.requestPointerLockForFirstPerson();
     } else {
@@ -2442,8 +2486,9 @@ export class Game {
       this.rapidTimer = 8;
       this.shieldTimer = 9;
       this.overchargeShots = Math.max(this.overchargeShots, 1);
-      const effectPosition = this.playerPosition.clone().add(new THREE.Vector3(0, 1, 0));
-      this.addPulseRing(effectPosition, getPowerEffectTheme('shield').color, 1.4);
+      this.effectPositionScratch.copy(this.playerPosition);
+      this.effectPositionScratch.y += 1;
+      this.addPulseRing(this.effectPositionScratch, getPowerEffectTheme('shield').color, 1.4);
       this.showToast('QA: усі ефекти активні.', 1.4);
       this.updateHud();
       return true;
@@ -2538,6 +2583,11 @@ export class Game {
     window.removeEventListener('pointerdown', this.handlePointerDown);
     document.removeEventListener('pointerlockchange', this.handlePointerLockChange);
     document.removeEventListener('pointerlockerror', this.handlePointerLockError);
+    this.clearLevel();
+    disposeObject3D(this.player);
+    disposeObject3D(this.playerEffectRoot);
+    disposeObject3D(this.aimMarker);
+    disposeObject3D(this.firstPersonBlaster);
     this.renderer.dispose();
   }
 }
