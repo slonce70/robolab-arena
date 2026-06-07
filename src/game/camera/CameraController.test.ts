@@ -91,4 +91,28 @@ describe('CameraController', () => {
     controller.setMouseSensitivity(0.1);
     expect(controller.getMouseSensitivity()).toBe(0.6);
   });
+
+  it('returns stable movement directions across repeated calls', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+    const input = new THREE.Vector3(1, 0, -1);
+
+    const first = controller.getMovementDirection(input);
+    const second = controller.getMovementDirection(input);
+
+    expect(first.equals(second)).toBe(true);
+    expect(first).not.toBe(second);
+  });
+
+  it('keeps third-person aim direction independent from caller mutation', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const controller = new CameraController(camera);
+    const source = new THREE.Vector3(1, 0, 0);
+
+    const direction = controller.getAimDirection(source, new THREE.Vector3(0, 0, -1));
+    source.set(0, 0, 0);
+
+    expect(direction.x).toBeCloseTo(1);
+    expect(direction.z).toBeCloseTo(0);
+  });
 });

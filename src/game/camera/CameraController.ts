@@ -17,6 +17,16 @@ export class CameraController {
   private firstPersonPitch = 0;
   private firstPersonLookReady = false;
   private mouseSensitivity = 1;
+  private readonly targetPosition = new THREE.Vector3();
+  private readonly lookTarget = new THREE.Vector3();
+  private readonly headPosition = new THREE.Vector3();
+  private readonly lookDirection = new THREE.Vector3();
+  private readonly planarInput = new THREE.Vector3();
+  private readonly forward = new THREE.Vector3();
+  private readonly right = new THREE.Vector3();
+  private readonly movement = new THREE.Vector3();
+  private readonly aimDirection = new THREE.Vector3();
+  private readonly fallbackAimDirection = new THREE.Vector3();
 
   constructor(camera: THREE.PerspectiveCamera, initialMode: CameraMode = 'thirdPerson') {
     this.camera = camera;
@@ -67,14 +77,15 @@ export class CameraController {
   updateThirdPerson(delta: number, playerPosition: THREE.Vector3): void {
     this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, 50, 1 - Math.pow(0.002, delta));
     this.camera.updateProjectionMatrix();
-    const targetPosition = playerPosition.clone().add(THIRD_PERSON_OFFSET);
+    this.targetPosition.copy(playerPosition).add(THIRD_PERSON_OFFSET);
     if (this.snapNextUpdate) {
-      this.camera.position.copy(targetPosition);
+      this.camera.position.copy(this.targetPosition);
       this.snapNextUpdate = false;
     } else {
-      this.camera.position.lerp(targetPosition, 1 - Math.pow(0.001, delta));
+      this.camera.position.lerp(this.targetPosition, 1 - Math.pow(0.001, delta));
     }
-    this.camera.lookAt(playerPosition.clone().add(THIRD_PERSON_LOOK_OFFSET));
+    this.lookTarget.copy(playerPosition).add(THIRD_PERSON_LOOK_OFFSET);
+    this.camera.lookAt(this.lookTarget);
   }
 
   updateFirstPerson(delta: number, playerPosition: THREE.Vector3, facingDirection: THREE.Vector3): void {
@@ -83,15 +94,16 @@ export class CameraController {
     if (!this.firstPersonLookReady) {
       this.resetFirstPersonLook(facingDirection);
     }
-    const normalizedFacing = this.getFirstPersonLookDirection();
-    const headPosition = playerPosition.clone().add(FIRST_PERSON_HEAD_OFFSET);
+    this.getFirstPersonLookDirection(this.lookDirection);
+    this.headPosition.copy(playerPosition).add(FIRST_PERSON_HEAD_OFFSET);
     if (this.snapNextUpdate) {
-      this.camera.position.copy(headPosition);
+      this.camera.position.copy(this.headPosition);
       this.snapNextUpdate = false;
     } else {
-      this.camera.position.lerp(headPosition, 1 - Math.pow(0.0006, delta));
+      this.camera.position.lerp(this.headPosition, 1 - Math.pow(0.0006, delta));
     }
-    this.camera.lookAt(headPosition.clone().add(normalizedFacing.multiplyScalar(8)));
+    this.lookTarget.copy(this.headPosition).addScaledVector(this.lookDirection, 8);
+    this.camera.lookAt(this.lookTarget);
   }
 
   resetFirstPersonLook(direction: THREE.Vector3): void {
@@ -118,9 +130,9 @@ export class CameraController {
     this.firstPersonLookReady = true;
   }
 
-  private getFirstPersonLookDirection(): THREE.Vector3 {
+  private getFirstPersonLookDirection(target = new THREE.Vector3()): THREE.Vector3 {
     const cosPitch = Math.cos(this.firstPersonPitch);
-    return new THREE.Vector3(
+    return target.set(
       Math.sin(this.firstPersonYaw) * cosPitch,
       Math.sin(this.firstPersonPitch),
       -Math.cos(this.firstPersonYaw) * cosPitch
@@ -128,51 +140,50 @@ export class CameraController {
   }
 
   getMovementDirection(input: THREE.Vector3): THREE.Vector3 {
-    const planarInput = input.clone();
-    planarInput.y = 0;
-    if (planarInput.lengthSq() < 0.001) {
+    this.planarInput.copy(input);
+    this.planarInput.y = 0;
+    if (this.planarInput.lengthSq() < 0.001) {
       return new THREE.Vector3();
     }
 
     if (this.mode !== 'firstPerson') {
-      return planarInput.normalize();
+      return this.planarInput.clone().normalize();
     }
 
     if (!this.firstPersonLookReady) {
-      this.resetFirstPersonLook(new THREE.Vector3(0, 0, -1));
+      this.resetFirstPersonLook(this.fallbackAimDirection.set(0, 0, -1));
     }
 
-    const forward = this.getFirstPersonLookDirection();
-    forward.y = 0;
-    forward.normalize();
-    const right = new THREE.Vector3(-forward.z, 0, forward.x);
-    const movement = new THREE.Vector3()
-      .addScaledVector(right, planarInput.x)
-      .addScaledVector(forward, -planarInput.z);
+    this.getFirstPersonLookDirection(this.forward);
+    this.forward.y = 0;
+    this.forward.normalize();
+    this.right.set(-this.forward.z, 0, this.forward.x);
+    this.movement.set(0, 0, 0)
+      .addScaledVector(this.right, this.planarInput.x)
+      .addScaledVector(this.forward, -this.planarInput.z);
 
-    return movement.lengthSq() > 0.001 ? movement.normalize() : movement;
+    return this.movement.lengthSq() > 0.001 ? this.movement.clone().normalize() : this.movement.clone();
   }
 
   getAimDirection(thirdPersonDirection: THREE.Vector3, fallbackDirection: THREE.Vector3): THREE.Vector3 {
     if (this.mode === 'firstPerson') {
-      const direction = new THREE.Vector3();
-      this.camera.getWorldDirection(direction);
-      direction.y = 0;
-      if (direction.lengthSq() > 0.001) {
-        return direction.normalize();
+      this.camera.getWorldDirection(this.aimDirection);
+      this.aimDirection.y = 0;
+      if (this.aimDirection.lengthSq() > 0.001) {
+        return this.aimDirection.clone().normalize();
       }
     }
 
-    const direction = thirdPersonDirection.clone();
-    direction.y = 0;
-    if (direction.lengthSq() > 0.001) {
-      return direction.normalize();
+    this.aimDirection.copy(thirdPersonDirection);
+    this.aimDirection.y = 0;
+    if (this.aimDirection.lengthSq() > 0.001) {
+      return this.aimDirection.clone().normalize();
     }
 
-    const fallback = fallbackDirection.clone();
-    fallback.y = 0;
-    if (fallback.lengthSq() > 0.001) {
-      return fallback.normalize();
+    this.fallbackAimDirection.copy(fallbackDirection);
+    this.fallbackAimDirection.y = 0;
+    if (this.fallbackAimDirection.lengthSq() > 0.001) {
+      return this.fallbackAimDirection.clone().normalize();
     }
 
     return new THREE.Vector3(0, 0, -1);
