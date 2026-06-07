@@ -21,6 +21,7 @@ import { getControlsHint } from './controlsHint';
 import { getDevBossTarget, getDevCompletionTarget, getDevEffectTarget, getDevLevelTarget } from './devControls';
 import { describeDifficultyChange, getDifficultyLabel, scaleEnemyPacingDelta, nextDifficulty } from './difficulty';
 import { describeDoorLabel, describeDoorOpenedToast, describeDoorVisualStatus, shouldPlayDoorOpenAudio } from './doorStatus';
+import { setClassNameIfChanged, setStylePropertyIfChanged, setTextIfChanged } from './domPerformance';
 import { getPowerEffectTheme } from './effects';
 import { describeBeetleContactWarning, describeEnemyHitFeedback } from './enemyFeedback';
 import { describeExitPadStatus } from './exitStatus';
@@ -235,6 +236,7 @@ export class Game {
   private readonly bullets: Bullet[] = [];
   private readonly sparks: Spark[] = [];
   private readonly pulses: Pulse[] = [];
+  private hudProgressMarkup = '';
   private readonly lastMoveDirection = new THREE.Vector3(0, 0, -1);
   private readonly aimMarker = new THREE.Group();
   private readonly firstPersonBlaster = new THREE.Group();
@@ -2259,19 +2261,19 @@ export class Game {
   private updateHud(): void {
     const level = LEVELS[this.levelIndex];
     const objectiveDone = this.isObjectiveComplete();
-    this.hudLevel.textContent = `Кімната ${level.id}/${LEVELS.length}: ${level.name}`;
+    setTextIfChanged(this.hudLevel, `Кімната ${level.id}/${LEVELS.length}: ${level.name}`);
     const healthHud = describeHealthHud({
       health: this.health,
       maxHealth: PLAYER_MAX_HEALTH,
       shieldTimer: this.shieldTimer,
       difficulty: this.settings.difficulty
     });
-    this.hudHealth.textContent = healthHud.text;
-    this.hudHealth.className = healthHud.classes.join(' ');
-    this.hudGears.textContent = `Очки ${this.score} | Шестерні ${this.gears}`;
+    setTextIfChanged(this.hudHealth, healthHud.text);
+    setClassNameIfChanged(this.hudHealth, healthHud.classes.join(' '));
+    setTextIfChanged(this.hudGears, `Очки ${this.score} | Шестерні ${this.gears}`);
     const objectiveHud = describeObjectiveHud(objectiveDone);
-    this.hudObjective.textContent = objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip);
-    this.hudObjective.className = objectiveHud.classes.join(' ');
+    setTextIfChanged(this.hudObjective, objectiveHud.text || formatObjectiveHint(this.objectiveProgressText(), level.tip));
+    setClassNameIfChanged(this.hudObjective, objectiveHud.classes.join(' '));
     this.updateExitPadStatus(objectiveDone);
     this.hudHint.classList.toggle('is-alert', this.invulnerableTimer > 0 || this.laserContactTimer > 0);
     const feedback = describePlayerFeedback({
@@ -2281,18 +2283,18 @@ export class Game {
       laserContactTimer: this.laserContactTimer,
       shieldTimer: this.shieldTimer
     });
-    this.feedbackVignette.className = feedback.classes.join(' ');
-    this.feedbackVignette.style.setProperty('--feedback-opacity', String(feedback.opacity));
+    setClassNameIfChanged(this.feedbackVignette, feedback.classes.join(' '));
+    setStylePropertyIfChanged(this.feedbackVignette, '--feedback-opacity', String(feedback.opacity));
     const powerHud = describePowerHud({
       rapidTimer: this.rapidTimer,
       shieldTimer: this.shieldTimer,
       overchargeShots: this.overchargeShots
     });
-    this.hudPower.textContent = powerHud.text;
-    this.hudPower.className = powerHud.classes.join(' ');
-    this.hudDash.textContent = this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`;
+    setTextIfChanged(this.hudPower, powerHud.text);
+    setClassNameIfChanged(this.hudPower, powerHud.classes.join(' '));
+    setTextIfChanged(this.hudDash, this.dashCooldown <= 0 ? 'Ривок готовий' : `Ривок ${this.dashCooldown.toFixed(1)}с`);
     this.hudDash.classList.toggle('is-ready', this.dashCooldown <= 0);
-    this.hudCamera.textContent = this.cameraController.getHudLabel();
+    setTextIfChanged(this.hudCamera, this.cameraController.getHudLabel());
     const isFirstPerson = this.cameraController.getMode() === 'firstPerson';
     this.shell.classList.toggle('is-first-person', isFirstPerson);
     this.shell.classList.toggle('is-reduced-motion', this.settings.reducedMotion);
@@ -2305,21 +2307,29 @@ export class Game {
       rapidTimer: this.rapidTimer,
       overchargeShots: this.overchargeShots
     }).join(' ');
-    this.hudProgress.innerHTML = LEVELS.map((item, index) => {
-      const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
-      return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
-    }).join('');
+    this.updateHudProgressMarkup();
     this.toast.classList.toggle('is-visible', this.toastTimer > 0);
 
     const boss = this.enemies.find((enemy) => enemy.kind === 'boss' && enemy.alive);
     this.hudBoss.classList.remove('is-phase-1', 'is-phase-2', 'is-phase-3');
     if (boss) {
       const status = describeBossStatus(boss.health, boss.maxHealth);
-      this.hudBoss.textContent = status.text;
+      setTextIfChanged(this.hudBoss, status.text);
       this.hudBoss.classList.add('is-visible', status.cssClass);
     } else {
       this.hudBoss.classList.remove('is-visible');
     }
+  }
+
+  private updateHudProgressMarkup(): void {
+    const nextMarkup = LEVELS.map((item, index) => {
+      const state = index < this.levelIndex ? 'is-done' : index === this.levelIndex ? 'is-current' : '';
+      return `<span class="progress-dot ${state}" title="Кімната ${item.id}: ${item.name}">${item.id}</span>`;
+    }).join('');
+
+    if (this.hudProgressMarkup === nextMarkup) return;
+    this.hudProgressMarkup = nextMarkup;
+    this.hudProgress.innerHTML = nextMarkup;
   }
 
   private updateExitPadStatus(objectiveDone: boolean): void {
